@@ -1,0 +1,27 @@
+{
+  "name": "수원대 길찾기 (USW Nav)",
+  "short_name": "수원대길찾기",
+  "description": "수원대학교 스마트 캠퍼스 실내외 길찾기 내비게이션",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08386b",
+  "theme_color": "#08386b",
+  "orientation": "portrait",
+  "categories": ["navigation", "education"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
