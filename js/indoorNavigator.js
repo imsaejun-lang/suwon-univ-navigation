@@ -19,26 +19,36 @@ class IndoorNavigator {
 
     // 상태 관리
     this.isOpen = false;
+    this.directionMode = 'enter'; // 'enter' (외부 입구 -> 강의실) | 'exit' (강의실 출발 -> 외부 입구 -> 야외 목적지)
     this.currentFloor = '1F';
     this.outdoorOriginId = 'main_gate'; // 야외 출발지 ID (기본: 정문)
     this.outdoorOriginName = '정문';
+    this.outdoorDestId = 'main_gate'; // 실내 출발 시 야외 목적지 ID
+    this.outdoorDestName = '정문';
+    this.routePreference = 'shortest'; // 'shortest' | 'mainRoad'
     this.selectedEntranceId = this.data.defaultEntranceId; // 'ent_1f_main' (1층 남동측 주출입구)
     this.selectedRoomId = this.data.defaultRoomId; // 'room_203' (2F 203호)
+    this.customOriginNodeId = null; // 도면 마우스 클릭으로 지정한 커스텀 출발 노드 ID
+    this.isPickOriginMode = false; // 도면 위 마우스 클릭 출발지 지정 모드
     this.activeRouteMode = 'elevator'; // 'elevator' | 'stairs'
     this.dualRoutes = { elevator: null, stairs: null };
 
-    // 실내 시뮬레이션 상태
+    // 실내 시뮬레이션 상태 (실시간 지나온 길 트리밍 포함)
     this.simTimer = null;
     this.isSimulating = false;
     this.simPhase = 'idle';
-    this.userMarkerPos = null; // { floor, x, y }
+    this.userMarkerPos = null; // { floor, x, y, orthoEdgeIndex }
 
-    // 캔버스 줌/팬 상태
+    // 캔버스 줌/팬/360도 회전 상태
     this.zoom = 1;
     this.panX = 0;
     this.panY = 0;
+    this.rotation = 0; // 0 ~ 360 deg
     this.isDragging = false;
+    this.isRotatingDrag = false;
     this.dragStart = { x: 0, y: 0 };
+    this.rotateStartAngle = 0;
+    this.touchRotateState = null;
 
     this.dom = {};
     this.initDom();
@@ -73,10 +83,12 @@ class IndoorNavigator {
     // 우측 네이버 지도 스타일 층수 선택 버튼 (5F ~ 1F)
     this.dom.floorBtnList = document.getElementById('indoorRightFloorSelector');
 
-    // 줌 컨트롤
+    // 줌 & 360도 회전 컨트롤
     this.dom.zoomInBtn = document.getElementById('indoorZoomInBtn');
     this.dom.zoomOutBtn = document.getElementById('indoorZoomOutBtn');
     this.dom.zoomResetBtn = document.getElementById('indoorZoomResetBtn');
+    this.dom.rotateLeftBtn = document.getElementById('indoorRotateLeftBtn');
+    this.dom.rotateRightBtn = document.getElementById('indoorRotateRightBtn');
 
     // [N층 이동 완료] 층간 이동 확인 팝업
     this.dom.floorTransitionPopup = document.getElementById('indoorFloorTransitionPopup');
@@ -102,6 +114,8 @@ class IndoorNavigator {
     this.dom.switchFloorPreviewBtn = document.getElementById('indoorSwitchFloorPreviewBtn');
     this.dom.switchFloorPreviewText = document.getElementById('indoorSwitchFloorPreviewText');
     this.dom.outdoorToEntranceBtn = document.getElementById('indoorOutdoorToEntranceBtn');
+    this.dom.pickOriginBtn = document.getElementById('indoorPickOriginBtn');
+    this.dom.cancelIndoorNavBtn = document.getElementById('indoorCancelNavBtn');
   }
 
   bindEvents() {
@@ -114,7 +128,7 @@ class IndoorNavigator {
       });
     }
 
-    // 목적지 강의실 드롭다운 변경 -> 항상 야외에서 들어간 입구 층(예: 1F 주출입구)을 유지한 채 안내!
+    // 목적지/출발지 강의실 드롭다운 변경
     if (this.dom.targetRoomSelect) {
       this.dom.targetRoomSelect.addEventListener('change', (e) => {
         this.setDestinationRoom(e.target.value, { speak: true, resetFloorToStart: true });
@@ -164,7 +178,7 @@ class IndoorNavigator {
       });
     }
 
-    // [도착 층 도면 보기 / 출발 입구 층 보기] 토글 버튼
+    // [도착 층 도면 보기 / 출발 층 보기] 토글 버튼
     if (this.dom.switchFloorPreviewBtn) {
       this.dom.switchFloorPreviewBtn.addEventListener('click', () => {
         const activeRoute = this.getActiveRoute();
@@ -184,32 +198,82 @@ class IndoorNavigator {
       this.dom.outdoorToEntranceBtn.addEventListener('click', () => {
         const ent = this.getSelectedEntrance();
         if (this.onRequestOutdoorRouteToEntrance && ent) {
-          this.onRequestOutdoorRouteToEntrance(ent, this.selectedRoomId);
+          this.onRequestOutdoorRouteToEntrance(ent, this.selectedRoomId, this.directionMode);
         }
       });
     }
 
-    // 줌 컨트롤
+    // [🖱️ 도면 위 클릭으로 출발지 지정] 버튼
+    if (this.dom.pickOriginBtn) {
+      this.dom.pickOriginBtn.addEventListener('click', () => {
+        this.togglePickOriginMode();
+      });
+    }
+
+    // [✕ 안내 취소 / 종료] 버튼
+    if (this.dom.cancelIndoorNavBtn) {
+      this.dom.cancelIndoorNavBtn.addEventListener('click', () => {
+        this.stopIndoorSimulation();
+        this.close();
+      });
+    }
+
+    // 줌 및 360도 회전 컨트롤
     if (this.dom.zoomInBtn) {
       this.dom.zoomInBtn.addEventListener('click', () => this.setZoom(this.zoom + 0.25));
     }
     if (this.dom.zoomOutBtn) {
       this.dom.zoomOutBtn.addEventListener('click', () => this.setZoom(this.zoom - 0.25));
     }
+    if (this.dom.rotateLeftBtn) {
+      this.dom.rotateLeftBtn.addEventListener('click', () => this.setRotation(this.rotation - 45));
+    }
+    if (this.dom.rotateRightBtn) {
+      this.dom.rotateRightBtn.addEventListener('click', () => this.setRotation(this.rotation + 45));
+    }
     if (this.dom.zoomResetBtn) {
       this.dom.zoomResetBtn.addEventListener('click', () => this.resetZoomPan());
     }
 
-    // 마우스 및 터치 팬(드래그) 이동
+    // 마우스 팬(드래그) 및 우클릭/Alt/Ctrl 드래그 360도 회전 + 두 손가락 터치 회전/핀치줌 + 도면 클릭 출발지 지정
     if (this.dom.viewport) {
+      this.dom.viewport.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+
       this.dom.viewport.addEventListener('pointerdown', (e) => {
         if (e.target.closest('button') || e.target.closest('.indoor-badge')) return;
+        if (this.isPickOriginMode && e.button === 0) {
+          this.handleBlueprintClickForOrigin(e);
+          return;
+        }
+        if (e.pointerType === 'touch') return; // 터치는 touchstart/touchmove에서 멀티터치와 함께 처리
+
+        if (e.button === 2 || e.altKey || e.ctrlKey) {
+          this.isRotatingDrag = true;
+          const rect = this.dom.viewport.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const startPointerAngle = (Math.atan2(e.clientY - cy, e.clientX - cx) * 180) / Math.PI;
+          this.rotateStartAngle = startPointerAngle - this.rotation;
+          this.dom.viewport.classList.add('dragging');
+          return;
+        }
+
         this.isDragging = true;
         this.dragStart = { x: e.clientX - this.panX, y: e.clientY - this.panY };
         this.dom.viewport.classList.add('dragging');
       });
 
       window.addEventListener('pointermove', (e) => {
+        if (this.isRotatingDrag && this.dom.viewport) {
+          const rect = this.dom.viewport.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const currentAngle = (Math.atan2(e.clientY - cy, e.clientX - cx) * 180) / Math.PI;
+          this.setRotation(currentAngle - this.rotateStartAngle);
+          return;
+        }
         if (!this.isDragging) return;
         this.panX = e.clientX - this.dragStart.x;
         this.panY = e.clientY - this.dragStart.y;
@@ -217,9 +281,69 @@ class IndoorNavigator {
       });
 
       window.addEventListener('pointerup', () => {
-        if (this.isDragging) {
+        if (this.isDragging || this.isRotatingDrag) {
           this.isDragging = false;
+          this.isRotatingDrag = false;
           if (this.dom.viewport) this.dom.viewport.classList.remove('dragging');
+        }
+      });
+
+      // 스마트폰 터치: 1손가락 팬 이동 + 2손가락 비틀기(360도 회전) & 핀치 줌
+      this.dom.viewport.addEventListener(
+        'touchstart',
+        (e) => {
+          if (e.target.closest('button') || e.target.closest('.indoor-badge')) return;
+          if (e.touches.length === 1) {
+            const t = e.touches[0];
+            this.isDragging = true;
+            this.dragStart = { x: t.clientX - this.panX, y: t.clientY - this.panY };
+          } else if (e.touches.length === 2) {
+            this.isDragging = false;
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+            const angle = (Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * 180) / Math.PI;
+            this.touchRotateState = {
+              startDist: Math.max(20, dist),
+              startZoom: this.zoom,
+              startAngle: angle,
+              startRotation: this.rotation,
+            };
+          }
+        },
+        { passive: true }
+      );
+
+      this.dom.viewport.addEventListener(
+        'touchmove',
+        (e) => {
+          if (e.touches.length === 2 && this.touchRotateState) {
+            e.preventDefault();
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+            const angle = (Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * 180) / Math.PI;
+            const scaleRatio = dist / this.touchRotateState.startDist;
+            const nextZoom = Math.max(0.85, Math.min(3.5, this.touchRotateState.startZoom * scaleRatio));
+            const deltaAngle = angle - this.touchRotateState.startAngle;
+            this.zoom = nextZoom;
+            this.setRotation(this.touchRotateState.startRotation + deltaAngle);
+          } else if (e.touches.length === 1 && this.isDragging) {
+            const t = e.touches[0];
+            this.panX = t.clientX - this.dragStart.x;
+            this.panY = t.clientY - this.dragStart.y;
+            this.applyStageTransform();
+          }
+        },
+        { passive: false }
+      );
+
+      this.dom.viewport.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) {
+          this.touchRotateState = null;
+        }
+        if (e.touches.length === 0) {
+          this.isDragging = false;
         }
       });
 
@@ -227,7 +351,7 @@ class IndoorNavigator {
         'wheel',
         (e) => {
           e.preventDefault();
-          const delta = e.deltaY < 0 ? 0.15 : -0.15;
+          const delta = e.deltaY < 0 ? 0.18 : -0.18;
           this.setZoom(this.zoom + delta);
         },
         { passive: false }
@@ -244,12 +368,14 @@ class IndoorNavigator {
       const floorsOrder = ['1F', '2F', '3F', '4F', '5F'];
       let html = '';
       floorsOrder.forEach((fId) => {
-        const roomsOnFloor = classrooms.filter((r) => r.floor === fId);
+        const roomsOnFloor = classrooms
+          .filter((r) => r.floor === fId)
+          .sort((a, b) => String(a.roomNumber).localeCompare(String(b.roomNumber), 'ko', { numeric: true }));
         if (!roomsOnFloor.length) return;
         html += `<optgroup label="IT대학 ${fId} (${fId.replace('F', '00')}호대)">`;
         roomsOnFloor.forEach((room) => {
           const selectedAttr = room.id === this.selectedRoomId ? 'selected' : '';
-          const star = room.id === 'room_203' || room.id === 'room_310' ? '★ ' : '';
+          const star = room.id === 'room_203' || room.id === 'room_310' || room.id === 'room_308' ? '★ ' : '';
           html += `<option value="${room.id}" ${selectedAttr}>[${room.floor}] ${star}${room.name}</option>`;
         });
         html += `</optgroup>`;
@@ -263,31 +389,62 @@ class IndoorNavigator {
 
   /**
    * 실내 길안내 모드 열기
-   * - 야외 출발지(outdoorOriginId)에서 진입한 입구를 최우선 기준으로 설정!
+   * - directionMode: 'enter' (야외 출발지 -> 건물 입구 -> 강의실)
+   * - directionMode: 'exit'  (실내 호실 출발 -> 건물 입구 -> 야외 목적지)
    */
   open(opts = {}) {
     if (!this.dom.container) return;
 
     this.stopIndoorSimulation();
+    this.isPickOriginMode = false;
+    this.customOriginNodeId = null;
+    if (this.dom.pickOriginBtn) this.dom.pickOriginBtn.classList.remove('active');
+    if (this.dom.viewport) this.dom.viewport.classList.remove('pick-origin-cursor');
+
+    this.directionMode = opts.directionMode === 'exit' ? 'exit' : 'enter';
+    if (opts.routePreference) {
+      this.routePreference = opts.routePreference;
+    }
 
     if (opts.outdoorOriginId) {
       this.outdoorOriginId = opts.outdoorOriginId;
       const originNode = window.CAMPUS_NODES && window.CAMPUS_NODES[opts.outdoorOriginId];
-      this.outdoorOriginName = originNode ? originNode.name : '정문';
+      this.outdoorOriginName = originNode ? originNode.name : opts.outdoorOriginName || '정문';
     }
 
-    // 핵심: 야외에서 들어간 입구를 기준으로 실내 시작 입구를 고정!
-    if (opts.entranceId && this.getEntranceById(opts.entranceId)) {
-      this.selectedEntranceId = opts.entranceId;
-    } else {
-      const resolvedEnt = this.router.resolveEntranceForOutdoorOrigin(this.outdoorOriginId);
-      this.selectedEntranceId = resolvedEnt ? resolvedEnt.id : this.data.defaultEntranceId;
+    if (opts.outdoorDestId) {
+      this.outdoorDestId = opts.outdoorDestId;
+      const destNode = window.CAMPUS_NODES && window.CAMPUS_NODES[opts.outdoorDestId];
+      this.outdoorDestName = destNode ? destNode.name : opts.outdoorDestName || '정문';
     }
 
-    if (opts.roomId && this.data.nodes[opts.roomId]) {
-      this.selectedRoomId = opts.roomId;
+    // 동적 강의실(예: room_308, room_310 등) 자동 보장
+    if (opts.roomId) {
+      if (!this.data.nodes[opts.roomId] && this.router.ensureDynamicRoomNode) {
+        this.router.ensureDynamicRoomNode(opts.roomId);
+      }
+      if (this.data.nodes[opts.roomId]) {
+        this.selectedRoomId = opts.roomId;
+      }
     } else if (!this.selectedRoomId || !this.data.nodes[this.selectedRoomId]) {
       this.selectedRoomId = 'room_203';
+    }
+
+    // 핵심: 야외에서 들어간 입구 또는 선택된 루트(큰길 우선 vs 최단거리)에 맞춘 최적 입구 설정!
+    if (opts.entranceId && this.getEntranceById(opts.entranceId)) {
+      this.selectedEntranceId = opts.entranceId;
+    } else if (this.directionMode === 'exit') {
+      const resolvedExitEnt = this.router.resolveEntranceForOutdoorOrigin(
+        this.outdoorDestId || 'main_gate',
+        this.routePreference
+      );
+      this.selectedEntranceId = resolvedExitEnt ? resolvedExitEnt.id : this.data.defaultEntranceId;
+    } else {
+      const resolvedEnt = this.router.resolveEntranceForOutdoorOrigin(
+        this.outdoorOriginId,
+        this.routePreference
+      );
+      this.selectedEntranceId = resolvedEnt ? resolvedEnt.id : this.data.defaultEntranceId;
     }
 
     this.isOpen = true;
@@ -301,16 +458,18 @@ class IndoorNavigator {
     const room = this.data.nodes[this.selectedRoomId];
 
     if (opts.speak !== false && activeRoute && ent && room) {
-      const startFloorKo = ent.entryFloor.replace('F', '층');
-      const endFloorKo = room.floor.replace('F', '층');
+      const entFloorKo = ent.entryFloor.replace('F', '층');
+      const roomFloorKo = room.floor.replace('F', '층');
+      const modeKo = this.activeRouteMode === 'elevator' ? '엘리베이터' : '계단';
       let msg = '';
-      if (ent.entryFloor === room.floor) {
-        msg = `야외 경로에서 진입한 ${ent.name}(${startFloorKo})를 기준으로 ${room.roomNumber}까지 실내 안내를 시작합니다.`;
+      if (this.directionMode === 'exit') {
+        msg = `현재 위치한 ${roomFloorKo} ${room.roomNumber}에서 출발하여 ${ent.name}(${entFloorKo})를 거쳐 야외 목적지 ${this.outdoorDestName}까지 통합 최단 경로를 안내합니다.`;
+      } else if (ent.entryFloor === room.floor) {
+        msg = `야외 경로에서 진입한 ${ent.name}(${entFloorKo})를 기준으로 ${room.roomNumber}까지 실내 안내를 시작합니다.`;
       } else {
-        const modeKo = this.activeRouteMode === 'elevator' ? '엘리베이터' : '계단';
-        msg = `야외 경로에서 진입한 ${ent.name}(${startFloorKo})를 기준으로 ${endFloorKo} ${room.roomNumber}까지 ${modeKo} 최단 경로를 안내합니다.`;
+        msg = `야외 경로에서 진입한 ${ent.name}(${entFloorKo})를 기준으로 ${roomFloorKo} ${room.roomNumber}까지 ${modeKo} 최단 경로를 안내합니다.`;
       }
-      this.speak(msg, '실내 도면 길안내');
+      this.speak(msg, this.directionMode === 'exit' ? '실내 출발 ➔ 야외 통합 길안내' : '실내 도면 길안내');
     }
 
     if (opts.autoStartSim) {
@@ -349,6 +508,74 @@ class IndoorNavigator {
   }
 
   /**
+   * 도면 위 마우스 클릭으로 시뮬레이션 출발지 직접 지정 모드 토글
+   */
+  togglePickOriginMode(forceState) {
+    this.isPickOriginMode =
+      typeof forceState === 'boolean' ? forceState : !this.isPickOriginMode;
+    if (this.dom.pickOriginBtn) {
+      this.dom.pickOriginBtn.classList.toggle('active', this.isPickOriginMode);
+    }
+    if (this.dom.viewport) {
+      this.dom.viewport.classList.toggle('pick-origin-cursor', this.isPickOriginMode);
+    }
+    if (this.isPickOriginMode && this.onShowToast) {
+      this.onShowToast(
+        `🖱️ 현재 ${this.currentFloor} 도면 위에서 출발할 지점을 마우스로 클릭하세요.`
+      );
+    }
+  }
+
+  /**
+   * 실내 도면(viewport) 위를 클릭했을 때 클릭한 정확한 도면 좌표(0~100%)를 시뮬레이션 출발지로 설정
+   */
+  handleBlueprintClickForOrigin(e) {
+    if (!this.dom.routeSvg || !this.router.ensureCustomIndoorPointNode) return;
+
+    let xPct = 50;
+    let yPct = 76;
+
+    try {
+      const pt = this.dom.routeSvg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const ctm = this.dom.routeSvg.getScreenCTM();
+      if (ctm) {
+        const transformed = pt.matrixTransform(ctm.inverse());
+        xPct = transformed.x;
+        yPct = transformed.y;
+      }
+    } catch (err) {
+      const rect = this.dom.stage.getBoundingClientRect();
+      xPct = ((e.clientX - rect.left) / Math.max(1, rect.width)) * 100;
+      yPct = ((e.clientY - rect.top) / Math.max(1, rect.height)) * 100;
+    }
+
+    if (xPct < 2 || xPct > 98 || yPct < 2 || yPct > 98) return;
+
+    this.stopIndoorSimulation();
+    this.hideFloorTransitionPopup();
+    this.togglePickOriginMode(false);
+
+    const customNode = this.router.ensureCustomIndoorPointNode(
+      this.currentFloor,
+      xPct,
+      yPct,
+      '도면 클릭 출발지'
+    );
+    if (!customNode) return;
+
+    this.customOriginNodeId = customNode.id;
+    this.recalculateAndRender({ resetFloorToStart: false });
+
+    const room = this.data.nodes[this.selectedRoomId];
+    const destLabel = room ? `${room.floor} ${room.roomNumber}` : '목적지';
+    const msg = `${this.currentFloor} 도면에서 클릭한 지점을 출발지로 설정했습니다. ${destLabel}까지 안내합니다.`;
+    if (this.onShowToast) this.onShowToast(`📍 ${msg}`);
+    this.speak(msg, '실내 도면 클릭 출발지 설정');
+  }
+
+  /**
    * 상단 출입구 칩에서 사용자가 명시적으로 다른 출입구를 테스트 선택했을 때만 변경
    */
   selectEntrance(entranceId, options = {}) {
@@ -357,6 +584,7 @@ class IndoorNavigator {
 
     this.stopIndoorSimulation();
     this.hideFloorTransitionPopup();
+    this.customOriginNodeId = null;
     this.selectedEntranceId = ent.id;
 
     this.renderEntranceChips();
@@ -381,10 +609,17 @@ class IndoorNavigator {
   }
 
   /**
-   * 목적지 강의실 변경 (예: 310호, 203호, 101호 등)
+   * 목적지(또는 실내 출발 시 출발지) 강의실 변경 (예: 310호, 308호, 203호, 101호 등)
    * - 외부에서 들어간 입구(selectedEntranceId)를 절대 바꾸지 않고 그대로 유지!
    */
   setDestinationRoom(roomId, options = {}) {
+    if (!this.data.nodes[roomId] && this.router.ensureDynamicRoomNode) {
+      const created = this.router.ensureDynamicRoomNode(roomId);
+      if (created) {
+        roomId = created.id;
+        this.populateStaticControls();
+      }
+    }
     const room = this.data.nodes[roomId];
     if (!room || room.type !== 'classroom') return;
 
@@ -396,18 +631,24 @@ class IndoorNavigator {
       this.dom.targetRoomSelect.value = roomId;
     }
 
-    // 강의실을 새로 선택할 때, 야외에서 진입한 입구 층에서부터 어떻게 가는지 보여주거나 현재 층 유지
     const resetFloor = options.resetFloorToStart !== undefined ? options.resetFloorToStart : false;
     this.recalculateAndRender({ resetFloorToStart: resetFloor });
 
     if (options.speak) {
       const ent = this.getSelectedEntrance();
-      const startFloorKo = ent.entryFloor.replace('F', '층');
-      const endFloorKo = room.floor.replace('F', '층');
-      this.speak(
-        `외부 진입 입구인 ${ent.name}(${startFloorKo})에서 ${endFloorKo} ${room.name}까지 실내 경로를 안내합니다.`,
-        '강의실 목적지 설정'
-      );
+      const entFloorKo = ent.entryFloor.replace('F', '층');
+      const roomFloorKo = room.floor.replace('F', '층');
+      if (this.directionMode === 'exit') {
+        this.speak(
+          `출발 호실을 ${roomFloorKo} ${room.name}으로 설정했습니다. ${ent.name}(${entFloorKo})을 통해 야외 ${this.outdoorDestName}으로 안내합니다.`,
+          '실내 출발 호실 설정'
+        );
+      } else {
+        this.speak(
+          `외부 진입 입구인 ${ent.name}(${entFloorKo})에서 ${roomFloorKo} ${room.name}까지 실내 경로를 안내합니다.`,
+          '강의실 목적지 설정'
+        );
+      }
     }
   }
 
@@ -436,8 +677,14 @@ class IndoorNavigator {
    */
   recalculateAndRender(options = {}) {
     const ent = this.getSelectedEntrance();
-    const startNodeId = ent.nodeId;
-    const endNodeId = this.selectedRoomId;
+    const hasCustomOrigin =
+      this.customOriginNodeId && Boolean(this.data.nodes[this.customOriginNodeId]);
+    const startNodeId = hasCustomOrigin
+      ? this.customOriginNodeId
+      : this.directionMode === 'exit'
+        ? this.selectedRoomId
+        : ent.nodeId;
+    const endNodeId = this.directionMode === 'exit' ? ent.nodeId : this.selectedRoomId;
 
     this.dualRoutes = this.router.findDualRoutes(startNodeId, endNodeId);
 
@@ -451,6 +698,7 @@ class IndoorNavigator {
         floor: activeRoute.startNode.floor,
         x: activeRoute.startNode.x,
         y: activeRoute.startNode.y,
+        orthoEdgeIndex: null,
       };
     }
 
@@ -468,6 +716,7 @@ class IndoorNavigator {
 
     const currentEnt = this.getSelectedEntrance();
     const targetRoom = this.data.nodes[this.selectedRoomId];
+    const isExit = this.directionMode === 'exit';
 
     this.dom.entranceChipsRow.innerHTML = this.data.entrances
       .map((ent) => {
@@ -479,9 +728,9 @@ class IndoorNavigator {
             data-entrance-id="${ent.id}"
             title="${ent.description}"
           >
-            <span class="ent-floor-pill" style="background:${ent.badgeColor}">${ent.entryFloor} 진입</span>
+            <span class="ent-floor-pill" style="background:${ent.badgeColor}">${ent.entryFloor} ${isExit ? '출구' : '진입'}</span>
             <span class="ent-chip-name">${ent.name}</span>
-            ${isActive ? `<span class="ent-outdoor-tag">야외안내 진입출입구</span>` : ''}
+            ${isActive ? `<span class="ent-outdoor-tag">${isExit ? '야외탈출 최적출입구' : '야외안내 진입출입구'}</span>` : ''}
           </button>
         `;
       })
@@ -495,21 +744,35 @@ class IndoorNavigator {
 
     if (this.dom.entranceFloorExplain && currentEnt && targetRoom) {
       const isSame = currentEnt.entryFloor === targetRoom.floor;
-      const startNum = parseInt(currentEnt.entryFloor, 10) || 1;
-      const endNum = parseInt(targetRoom.floor, 10) || 2;
-      const diff = Math.abs(endNum - startNum);
-      const dirText = endNum > startNum ? `${diff}개 층 위로 이동` : `${diff}개 층 아래로 이동`;
+      const entNum = parseInt(currentEnt.entryFloor, 10) || 1;
+      const roomNum = parseInt(targetRoom.floor, 10) || 2;
+      const diff = Math.abs(roomNum - entNum);
 
-      this.dom.entranceFloorExplain.innerHTML = `
-        <span class="explain-tag">🚶 야외 출발(${this.outdoorOriginName}) 연동 입구</span>
-        <span class="explain-main">
-          외부에서 들어간 <strong>${currentEnt.name}(${currentEnt.entryFloor})</strong> 기준 ➔
-          목적지 <strong>${targetRoom.roomNumber}(${targetRoom.floor})</strong>까지
-          <strong class="${isSame ? 'same-floor-hl' : 'cross-floor-hl'}">
-            ${isSame ? '같은 층 복도 직통 이동' : `[${currentEnt.entryFloor} 입구 ➔ 엘리베이터/계단 ➔ ${targetRoom.floor} ${targetRoom.roomNumber}] (${dirText})`}
-          </strong>
-        </span>
-      `;
+      if (isExit) {
+        const dirText = entNum < roomNum ? `${diff}개 층 아래로 이동` : `${diff}개 층 위로 이동`;
+        this.dom.entranceFloorExplain.innerHTML = `
+          <span class="explain-tag">🏢 실내 출발(${targetRoom.floor} ${targetRoom.roomNumber}) ➔ 야외(${this.outdoorDestName}) 통합 경로</span>
+          <span class="explain-main">
+            현재 위치한 <strong>${targetRoom.floor} ${targetRoom.roomNumber}</strong> 출발 ➔
+            <strong class="${isSame ? 'same-floor-hl' : 'cross-floor-hl'}">
+              ${isSame ? `${targetRoom.floor} 복도 직통 이동` : `[${targetRoom.floor} 복도 ➔ 엘리베이터/계단(${dirText}) ➔ ${currentEnt.entryFloor} ${currentEnt.name}]`}
+            </strong>
+            ➔ 야외 도로를 따라 <strong>${this.outdoorDestName}</strong> 도착
+          </span>
+        `;
+      } else {
+        const dirText = roomNum > entNum ? `${diff}개 층 위로 이동` : `${diff}개 층 아래로 이동`;
+        this.dom.entranceFloorExplain.innerHTML = `
+          <span class="explain-tag">🚶 야외 출발(${this.outdoorOriginName}) 연동 입구</span>
+          <span class="explain-main">
+            외부에서 들어간 <strong>${currentEnt.name}(${currentEnt.entryFloor})</strong> 기준 ➔
+            목적지 <strong>${targetRoom.roomNumber}(${targetRoom.floor})</strong>까지
+            <strong class="${isSame ? 'same-floor-hl' : 'cross-floor-hl'}">
+              ${isSame ? '같은 층 복도 직통 이동' : `[${currentEnt.entryFloor} 입구 ➔ 엘리베이터/계단 ➔ ${targetRoom.floor} ${targetRoom.roomNumber}] (${dirText})`}
+            </strong>
+          </span>
+        `;
+      }
     }
   }
 
@@ -533,9 +796,9 @@ class IndoorNavigator {
         if (isStart && isEnd) {
           roleTag = `<span class="floor-role-dot same">출발·도착</span>`;
         } else if (isStart) {
-          roleTag = `<span class="floor-role-dot start">진입층</span>`;
+          roleTag = `<span class="floor-role-dot start">${this.directionMode === 'exit' ? '출발층' : '진입층'}</span>`;
         } else if (isEnd) {
-          roleTag = `<span class="floor-role-dot dest">목적지층</span>`;
+          roleTag = `<span class="floor-role-dot dest">${this.directionMode === 'exit' ? '출구층' : '목적지층'}</span>`;
         }
 
         return `
@@ -578,7 +841,7 @@ class IndoorNavigator {
   }
 
   /**
-   * 현재 층의 2D 평면도 배경 + 컬러 건축 조닝 + SVG 듀얼 화살표 경로 + 고대비 배지 렌더링
+   * 현재 층의 2D 원본 평면도 배경 + 직각(ㄱ/ㄴ) 복도 경로 SVG + 고대비 배지 렌더링
    */
   renderCurrentFloorCanvas() {
     const floorMeta = this.getFloorMeta(this.currentFloor);
@@ -602,136 +865,129 @@ class IndoorNavigator {
   }
 
   /**
-   * 도면을 화사하고 예쁘게 꾸며주는 네이버 실내지도 스타일 컬러 조닝 SVG 생성
-   * - 복도(따뜻한 아이보리/스카이 통로), 강의실(스카이블루), 목적지 강의실(코랄 핑크 하이라이트),
-   *   엘리베이터(로열블루), 계단(민트그린), 화장실(라벤더) 구역을 도면 위에 깔끔하게 컬러링
+   * 원본 피난안내도 도면을 가리지 않도록 불필요한 박스/노란 복도 덧칠을 제거하고,
+   * 선택된 목적지(또는 출발) 호실 위치에만 깔끔한 포커스 링을 표시합니다.
    */
-  buildArchitecturalZonesSvg() {
-    const nodesOnFloor = Object.values(this.data.nodes).filter(
-      (n) => n.floor === this.currentFloor
-    );
-    const nodeIdsOnFloor = new Set(nodesOnFloor.map((n) => n.id));
+  buildTargetRoomHighlightSvg() {
+    const targetRoom = this.data.nodes[this.selectedRoomId];
+    if (!targetRoom || targetRoom.floor !== this.currentFloor) return '';
 
-    let zonesSvg = `<g class="indoor-arch-zones">`;
+    const isExit = this.directionMode === 'exit';
+    const ringColor = isExit ? '#10b981' : '#f43f5e';
+    const fillColor = isExit ? 'rgba(16, 185, 129, 0.14)' : 'rgba(244, 63, 94, 0.14)';
 
-    // 1. 현재 층의 보행 복도(Corridor) 하이라이트 트랙 렌더링
-    this.data.edges.forEach((edge) => {
-      if (edge.isVertical) return;
-      if (!nodeIdsOnFloor.has(edge.from) || !nodeIdsOnFloor.has(edge.to)) return;
-      const a = this.data.nodes[edge.from];
-      const b = this.data.nodes[edge.to];
-      if (!a || !b) return;
-      // 복도 노드 간 간선은 넓은 파스텔 복도 길로 표시
-      if (a.type === 'corridor' && b.type === 'corridor') {
-        zonesSvg += `
-          <line
-            x1="${a.x}" y1="${a.y}"
-            x2="${b.x}" y2="${b.y}"
-            stroke="#fef9c3"
-            stroke-width="3.6"
-            stroke-linecap="round"
-            opacity="0.78"
-          />
-          <line
-            x1="${a.x}" y1="${a.y}"
-            x2="${b.x}" y2="${b.y}"
-            stroke="#fde68a"
-            stroke-width="3.9"
-            stroke-linecap="round"
-            opacity="0.28"
-          />
-        `;
-      }
-    });
-
-    // 2. 강의실 / 엘리베이터 / 계단 / 화장실 파스텔 룸 블록 렌더링
-    nodesOnFloor.forEach((node) => {
-      if (node.type === 'classroom') {
-        const isTarget = node.id === this.selectedRoomId;
-        const isSpecialHall =
-          node.id === 'room_105' || node.id === 'room_101' || node.id === 'room_209';
-
-        const w = node.id === 'room_105' ? 18 : node.id === 'room_101' ? 13 : 6.8;
-        const h = node.id === 'room_105' ? 16 : node.id === 'room_101' ? 12 : 6.2;
-        const rx = 1.1;
-
-        const fill = isTarget
-          ? '#ffe4e6'
-          : isSpecialHall
-          ? '#fef3c7'
-          : '#dbeafe';
-        const stroke = isTarget
-          ? '#f43f5e'
-          : isSpecialHall
-          ? '#f59e0b'
-          : '#60a5fa';
-        const strokeWidth = isTarget ? '0.55' : '0.28';
-        const opacity = isTarget ? '0.88' : '0.62';
-
-        zonesSvg += `
-          <rect
-            x="${(node.x - w / 2).toFixed(2)}"
-            y="${(node.y - h / 2).toFixed(2)}"
-            width="${w}"
-            height="${h}"
-            rx="${rx}"
-            fill="${fill}"
-            stroke="${stroke}"
-            stroke-width="${strokeWidth}"
-            opacity="${opacity}"
-          />
-        `;
-      } else if (node.type === 'elevator') {
-        zonesSvg += `
-          <rect
-            x="${(node.x - 2.3).toFixed(2)}"
-            y="${(node.y - 2.3).toFixed(2)}"
-            width="4.6"
-            height="4.6"
-            rx="0.9"
-            fill="#bfdbfe"
-            stroke="#2563eb"
-            stroke-width="0.35"
-            opacity="0.82"
-          />
-        `;
-      } else if (node.type === 'stairs') {
-        zonesSvg += `
-          <rect
-            x="${(node.x - 2.4).toFixed(2)}"
-            y="${(node.y - 2.3).toFixed(2)}"
-            width="4.8"
-            height="4.6"
-            rx="0.9"
-            fill="#bbf7d0"
-            stroke="#059669"
-            stroke-width="0.35"
-            opacity="0.82"
-          />
-        `;
-      } else if (node.type === 'restroom') {
-        zonesSvg += `
-          <rect
-            x="${(node.x - 2.5).toFixed(2)}"
-            y="${(node.y - 2.2).toFixed(2)}"
-            width="5.0"
-            height="4.4"
-            rx="0.9"
-            fill="#f3e8ff"
-            stroke="#a855f7"
-            stroke-width="0.3"
-            opacity="0.78"
-          />
-        `;
-      }
-    });
-
-    zonesSvg += `</g>`;
-    return zonesSvg;
+    return `
+      <g class="indoor-target-room-ring">
+        <circle
+          cx="${targetRoom.x.toFixed(2)}"
+          cy="${targetRoom.y.toFixed(2)}"
+          r="2.9"
+          fill="${fillColor}"
+          stroke="${ringColor}"
+          stroke-width="0.45"
+          stroke-dasharray="1.1 0.7"
+        />
+      </g>
+    `;
   }
 
   /**
-   * 현재 층에 해당하는 컬러 조닝 + [엘리베이터 루트(파란색)]와 [계단 루트(초록색)] 화살표를 동시에 SVG로 렌더링
+   * 실내 경로 노드 배열이 어떤 경우에도 벽을 대각선으로 관통하지 않도록
+   * 모든 연속 구간을 직각(ㄱ자, ㄴ자) 복도 중심선 좌표로 보정합니다.
+   */
+  ensureOrthogonalPoints(nodes) {
+    if (!nodes || !nodes.length) return [];
+    const result = [{ x: Number(nodes[0].x), y: Number(nodes[0].y), type: nodes[0].type }];
+
+    for (let i = 0; i < nodes.length - 1; i++) {
+      const a = nodes[i];
+      const b = nodes[i + 1];
+      const ax = Number(a.x);
+      const ay = Number(a.y);
+      const bx = Number(b.x);
+      const by = Number(b.y);
+      const dx = Math.abs(bx - ax);
+      const dy = Math.abs(by - ay);
+
+      // 만약 x와 y가 동시에 1.3% 이상 차이 나는 대각선 구간이 있다면 직각 코너(문 앞 진입점)를 자동 삽입
+      if (dx > 1.3 && dy > 1.3) {
+        if (a.type === 'classroom') {
+          // 강의실에서 수평 복도로 나올 때는 문 앞(동일 x, 복도 y)으로 먼저 수직 진출
+          result.push({ x: ax, y: by, type: 'corridor_corner' });
+        } else if (b.type === 'classroom') {
+          // 복도에서 강의실로 들어갈 때는 강의실 문 앞(강의실 x, 복도 y)까지 복도를 따라 이동 후 수직 진입
+          result.push({ x: bx, y: ay, type: 'corridor_corner' });
+        } else {
+          // 일반 복도 간 코너 보정
+          result.push({ x: bx, y: ay, type: 'corridor_corner' });
+        }
+      }
+      result.push({ x: bx, y: by, type: b.type });
+    }
+    return result;
+  }
+
+  /**
+   * 시뮬레이션 이동 중 내 위치(userMarkerPos)를 직교 경로 폴리라인 위의 투영점(Projected Point)으로 계산해
+   * 이미 지나온 선은 아예 그리지 않고 투영점부터 목적지까지의 남은 선만 왜곡 없이 반환합니다.
+   */
+  getTrimmedOrthogonalPoints(orthoPoints, isSelectedRoute) {
+    if (
+      !isSelectedRoute ||
+      !this.isSimulating ||
+      !this.userMarkerPos ||
+      this.userMarkerPos.floor !== this.currentFloor ||
+      !Array.isArray(orthoPoints) ||
+      orthoPoints.length < 2
+    ) {
+      return orthoPoints;
+    }
+
+    const ux = Number(this.userMarkerPos.x);
+    const uy = Number(this.userMarkerPos.y);
+    let bestSegIdx =
+      typeof this.userMarkerPos.orthoEdgeIndex === 'number'
+        ? Math.min(Math.max(0, this.userMarkerPos.orthoEdgeIndex), orthoPoints.length - 2)
+        : 0;
+    let bestProjX = ux;
+    let bestProjY = uy;
+    let minSqDist = Infinity;
+
+    const searchStart =
+      typeof this.userMarkerPos.orthoEdgeIndex === 'number'
+        ? Math.max(0, this.userMarkerPos.orthoEdgeIndex)
+        : 0;
+
+    for (let i = searchStart; i < orthoPoints.length - 1; i++) {
+      const a = orthoPoints[i];
+      const b = orthoPoints[i + 1];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const lenSq = dx * dx + dy * dy;
+      let t = 0;
+      if (lenSq > 0) {
+        t = Math.max(0, Math.min(1, ((ux - a.x) * dx + (uy - a.y) * dy) / lenSq));
+      }
+      const px = a.x + t * dx;
+      const py = a.y + t * dy;
+      const sqDist = (ux - px) * (ux - px) + (uy - py) * (uy - py);
+      if (sqDist < minSqDist) {
+        minSqDist = sqDist;
+        bestSegIdx = i;
+        bestProjX = px;
+        bestProjY = py;
+      }
+    }
+
+    const remaining = [
+      { x: bestProjX, y: bestProjY, type: 'projected_start' },
+      ...orthoPoints.slice(bestSegIdx + 1),
+    ];
+    return remaining.length >= 2 ? remaining : orthoPoints.slice(-2);
+  }
+
+  /**
+   * 현재 층에 해당하는 [엘리베이터 루트(파란색)]와 [계단 루트(초록색)] 직각 화살표를 SVG로 렌더링
    */
   renderDualRoutesSvg() {
     if (!this.dom.routeSvg) return;
@@ -742,10 +998,10 @@ class IndoorNavigator {
     let svgContent = `
       <defs>
         <filter id="indoorRouteGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="1.0" stdDeviation="1.0" flood-color="#0f172a" flood-opacity="0.26" />
+          <feDropShadow dx="0" dy="0.8" stdDeviation="0.9" flood-color="#0f172a" flood-opacity="0.32" />
         </filter>
       </defs>
-      ${this.buildArchitecturalZonesSvg()}
+      ${this.buildTargetRoomHighlightSvg()}
     `;
 
     if (!elvRoute && !stairRoute) {
@@ -761,20 +1017,19 @@ class IndoorNavigator {
         svgContent += this.buildSvgRouteGroup(seg.nodes, {
           color: '#0068ff',
           isSelected: true,
-          offsetUnits: 0,
         });
       }
     } else {
       const renderOrder =
         this.activeRouteMode === 'elevator'
           ? [
-              { route: stairRoute, mode: 'stairs', color: '#03c75a', isSelected: false, offset: 0.55 },
-              { route: elvRoute, mode: 'elevator', color: '#0068ff', isSelected: true, offset: -0.55 },
-            ]
+            { route: stairRoute, mode: 'stairs', color: '#03c75a', isSelected: false },
+            { route: elvRoute, mode: 'elevator', color: '#0068ff', isSelected: true },
+          ]
           : [
-              { route: elvRoute, mode: 'elevator', color: '#0068ff', isSelected: false, offset: -0.55 },
-              { route: stairRoute, mode: 'stairs', color: '#03c75a', isSelected: true, offset: 0.55 },
-            ];
+            { route: elvRoute, mode: 'elevator', color: '#0068ff', isSelected: false },
+            { route: stairRoute, mode: 'stairs', color: '#03c75a', isSelected: true },
+          ];
 
       renderOrder.forEach((item) => {
         if (!item.route) return;
@@ -784,7 +1039,6 @@ class IndoorNavigator {
         svgContent += this.buildSvgRouteGroup(seg.nodes, {
           color: item.color,
           isSelected: item.isSelected,
-          offsetUnits: item.offset,
           mode: item.mode,
         });
       });
@@ -794,28 +1048,23 @@ class IndoorNavigator {
   }
 
   buildSvgRouteGroup(nodes, opts = {}) {
-    const { color = '#0068ff', isSelected = true, offsetUnits = 0 } = opts;
+    const { color = '#0068ff', isSelected = true } = opts;
 
-    const shiftedPoints = nodes.map((n, idx) => {
-      if (idx === 0 || idx === nodes.length - 1 || offsetUnits === 0) {
-        return { x: n.x, y: n.y };
-      }
-      return {
-        x: n.x + offsetUnits * 0.45,
-        y: n.y + offsetUnits * 0.65,
-      };
-    });
+    // 1. 먼저 원본 노드를 복도 중심선 직각(ㄱ/ㄴ) 폴리라인으로 변환
+    const fullOrthogonalPoints = this.ensureOrthogonalPoints(nodes);
+    // 2. 직교 폴리라인 위에서 현재 위치의 투영점(Projected Point)을 구해 지나온 구간을 삭제 (재보정으로 인한 선 꼬임 원천 차단!)
+    const orthogonalPoints = this.getTrimmedOrthogonalPoints(fullOrthogonalPoints, isSelected);
 
-    const pointsAttr = shiftedPoints.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
-    const opacity = isSelected ? 0.98 : 0.56;
-    const strokeWidth = isSelected ? 1.55 : 0.95;
-    const outlineWidth = isSelected ? 2.5 : 1.5;
-    const dashArray = isSelected ? 'none' : '1.8 1.2';
+    const pointsAttr = orthogonalPoints.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
+    const opacity = isSelected ? 0.98 : 0.52;
+    const strokeWidth = isSelected ? 1.55 : 0.92;
+    const outlineWidth = isSelected ? 2.45 : 1.45;
+    const dashArray = isSelected ? 'none' : '1.6 1.2';
 
     let arrowsSvg = '';
-    for (let i = 0; i < shiftedPoints.length - 1; i++) {
-      const p1 = shiftedPoints[i];
-      const p2 = shiftedPoints[i + 1];
+    for (let i = 0; i < orthogonalPoints.length - 1; i++) {
+      const p1 = orthogonalPoints[i];
+      const p2 = orthogonalPoints[i + 1];
       const dx = p2.x - p1.x;
       const dy = p2.y - p1.y;
       const segLen = Math.hypot(dx, dy);
@@ -920,21 +1169,20 @@ class IndoorNavigator {
 
       if (node.type === 'entrance') {
         const isSelectedEnt = node.id === this.selectedEntranceId;
+        const isExitMode = this.directionMode === 'exit';
         if (isSelectedEnt) {
-          // 야외 경로에서 실제로 진입한 현재 출발 입구!
           html += `
             <div
               class="indoor-badge badge-entrance active-entrance"
               style="${posStyle}"
-              title="야외 경로에서 진입한 출발 출입구 (${node.name})"
+              title="${isExitMode ? '야외로 나가는 목표 출입구' : '야외 경로에서 진입한 출발 출입구'} (${node.name})"
             >
               <span class="badge-icon">🚪</span>
               <span class="badge-text">${node.shortLabel.replace('🚪 ', '')}</span>
-              <span class="badge-tag-start">출발 입구</span>
+              <span class="badge-tag-start">${isExitMode ? `야외 출구 ➔ ${this.outdoorDestName}` : '출발 입구'}</span>
             </div>
           `;
         } else {
-          // 현재 출발 입구가 아닌 보조 출입문은 참고용 서브 라벨로만 표시 (클릭해도 출발지가 바뀌지 않음!)
           html += `
             <div
               class="indoor-badge badge-entrance inactive-entrance"
@@ -966,11 +1214,10 @@ class IndoorNavigator {
             <span class="badge-icon">🛗</span>
             <span class="badge-text">${node.shortLabel.replace('🛗 ', '')}</span>
             ${isDep && targetFloor ? `<span class="transit-action-pill elv">${targetFloor} 이동 ➔</span>` : ''}
-            ${
-              isArr && fromFloor
-                ? `<span class="transit-arrival-pill">📍 ${fromFloor} ${selectedEnt ? selectedEnt.name : '입구'}에서 올라온 곳</span>`
-                : ''
-            }
+            ${isArr && fromFloor
+            ? `<span class="transit-arrival-pill">📍 ${fromFloor}에서 이동해 온 지점</span>`
+            : ''
+          }
           </button>
         `;
       } else if (node.type === 'stairs') {
@@ -994,12 +1241,19 @@ class IndoorNavigator {
             <span class="badge-icon">🪜</span>
             <span class="badge-text">${node.shortLabel.replace('🪜 ', '')}</span>
             ${isDep && targetFloor ? `<span class="transit-action-pill stair">${targetFloor} 이동 ➔</span>` : ''}
-            ${
-              isArr && fromFloor
-                ? `<span class="transit-arrival-pill stair">📍 ${fromFloor} ${selectedEnt ? selectedEnt.name : '입구'}에서 올라온 곳</span>`
-                : ''
-            }
+            ${isArr && fromFloor
+            ? `<span class="transit-arrival-pill stair">📍 ${fromFloor}에서 이동해 온 지점</span>`
+            : ''
+          }
           </button>
+        `;
+      } else if (node.type === 'custom_origin' && node.id === this.customOriginNodeId) {
+        html += `
+          <div class="indoor-badge badge-entrance active-entrance" style="${posStyle}" title="${node.name}">
+            <span class="badge-icon">🚩</span>
+            <span class="badge-text">클릭 출발지</span>
+            <span class="badge-tag-start">시뮬레이션 시작점</span>
+          </div>
         `;
       } else if (node.type === 'restroom') {
         html += `
@@ -1010,17 +1264,18 @@ class IndoorNavigator {
         `;
       } else if (node.type === 'classroom') {
         const isTargetRoom = node.id === this.selectedRoomId;
+        const isExitMode = this.directionMode === 'exit';
         html += `
           <button
             type="button"
             class="indoor-badge badge-classroom ${isTargetRoom ? 'target-room' : ''} ${node.isFeatured ? 'featured-room' : ''}"
             style="${posStyle}"
             data-room-id="${node.id}"
-            title="${node.name} (${node.dept}) - 클릭 시 외부 진입 입구(${selectedEnt ? selectedEnt.name : '1F'})에서 이 강의실로 안내"
+            title="${node.name} (${node.dept})"
           >
-            ${isTargetRoom ? `<span class="badge-icon">🎯</span>` : ''}
+            ${isTargetRoom ? `<span class="badge-icon">${isExitMode ? '🚩' : '🎯'}</span>` : ''}
             <span class="badge-room-num">${node.roomNumber}</span>
-            ${isTargetRoom ? `<span class="badge-room-sub">목적지</span>` : ''}
+            ${isTargetRoom ? `<span class="badge-room-sub">${isExitMode ? '현재 출발 호실' : '목적지'}</span>` : ''}
           </button>
         `;
       }
@@ -1028,7 +1283,7 @@ class IndoorNavigator {
 
     this.dom.overlayLayer.innerHTML = html;
 
-    // 강의실 배지 클릭 -> 외부 진입 입구는 그대로 유지하고 목적지 강의실만 변경!
+    // 강의실 배지 클릭 -> 외부 진입 입구는 그대로 유지하고 목적지(또는 출발) 강의실만 변경!
     this.dom.overlayLayer.querySelectorAll('[data-room-id]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1077,11 +1332,16 @@ class IndoorNavigator {
     const activeRoute = this.getActiveRoute();
     const room = this.data.nodes[this.selectedRoomId];
     const ent = this.getSelectedEntrance();
+    const isExit = this.directionMode === 'exit';
 
     if (!activeRoute || !room || !ent) return;
 
     if (this.dom.buildingTitle) {
-      this.dom.buildingTitle.textContent = `IT대학 ${room.roomNumber} 실내 길안내 (${ent.entryFloor} 입구 기준)`;
+      if (isExit) {
+        this.dom.buildingTitle.textContent = `IT대학 ${room.floor} ${room.roomNumber} 출발 ➔ ${this.outdoorDestName} 통합 길안내`;
+      } else {
+        this.dom.buildingTitle.textContent = `IT대학 ${room.roomNumber} 실내 길안내 (${ent.entryFloor} 입구 기준)`;
+      }
     }
 
     const isSameFloor = activeRoute.isSameFloor;
@@ -1094,9 +1354,15 @@ class IndoorNavigator {
           : `예상 ${elvRoute.estimatedMinutes}분`;
       }
       if (this.dom.tabElevatorMeta) {
-        this.dom.tabElevatorMeta.textContent = isSameFloor
-          ? `같은 층(${ent.entryFloor}) 복도 이동 · ${elvRoute.totalDistanceMeters}m`
-          : `${ent.name}(${ent.entryFloor}) ➔ 🛗 엘리베이터 ➔ ${room.floor} ${room.roomNumber} · ${elvRoute.totalDistanceMeters}m`;
+        if (isExit) {
+          this.dom.tabElevatorMeta.textContent = isSameFloor
+            ? `${room.floor} ${room.roomNumber} ➔ ${ent.name} · ${elvRoute.totalDistanceMeters}m`
+            : `${room.floor} ${room.roomNumber} ➔ 🛗 엘리베이터 ➔ ${ent.entryFloor} ${ent.name} · ${elvRoute.totalDistanceMeters}m`;
+        } else {
+          this.dom.tabElevatorMeta.textContent = isSameFloor
+            ? `같은 층(${ent.entryFloor}) 복도 이동 · ${elvRoute.totalDistanceMeters}m`
+            : `${ent.name}(${ent.entryFloor}) ➔ 🛗 엘리베이터 ➔ ${room.floor} ${room.roomNumber} · ${elvRoute.totalDistanceMeters}m`;
+        }
       }
     }
 
@@ -1108,9 +1374,15 @@ class IndoorNavigator {
           : `예상 ${stairRoute.estimatedMinutes}분`;
       }
       if (this.dom.tabStairsMeta) {
-        this.dom.tabStairsMeta.textContent = isSameFloor
-          ? `같은 층(${ent.entryFloor}) 복도 이동 · ${stairRoute.totalDistanceMeters}m`
-          : `${ent.name}(${ent.entryFloor}) ➔ 🪜 계단 ➔ ${room.floor} ${room.roomNumber} · ${stairRoute.totalDistanceMeters}m`;
+        if (isExit) {
+          this.dom.tabStairsMeta.textContent = isSameFloor
+            ? `${room.floor} ${room.roomNumber} ➔ ${ent.name} · ${stairRoute.totalDistanceMeters}m`
+            : `${room.floor} ${room.roomNumber} ➔ 🪜 계단 ➔ ${ent.entryFloor} ${ent.name} · ${stairRoute.totalDistanceMeters}m`;
+        } else {
+          this.dom.tabStairsMeta.textContent = isSameFloor
+            ? `같은 층(${ent.entryFloor}) 복도 이동 · ${stairRoute.totalDistanceMeters}m`
+            : `${ent.name}(${ent.entryFloor}) ➔ 🪜 계단 ➔ ${room.floor} ${room.roomNumber} · ${stairRoute.totalDistanceMeters}m`;
+        }
       }
     }
 
@@ -1119,7 +1391,7 @@ class IndoorNavigator {
         this.dom.sameFloorNotice.classList.remove('hidden');
         this.dom.sameFloorNotice.innerHTML = `
           <i data-lucide="check-circle-2"></i>
-          <span>진입하신 <strong>${ent.name}(${ent.entryFloor})</strong>와 목적지 <strong>${room.roomNumber}(${room.floor})</strong>가 같은 층이므로 계단·엘리베이터 없이 복도로 바로 이동합니다.</span>
+          <span>${isExit ? `출발 호실 <strong>${room.roomNumber}(${room.floor})</strong>와 탈출 입구 <strong>${ent.name}(${ent.entryFloor})</strong>가` : `진입하신 <strong>${ent.name}(${ent.entryFloor})</strong>와 목적지 <strong>${room.roomNumber}(${room.floor})</strong>가`} 같은 층이므로 계단·엘리베이터 없이 복도로 바로 이동합니다.</span>
         `;
       } else {
         this.dom.sameFloorNotice.classList.add('hidden');
@@ -1127,7 +1399,30 @@ class IndoorNavigator {
     }
 
     if (this.dom.routeStepSummary) {
-      if (isSameFloor) {
+      if (isExit) {
+        if (isSameFloor) {
+          this.dom.routeStepSummary.innerHTML = `
+            <span class="seq-badge start">🚩 ${room.roomNumber} (${room.floor})</span>
+            <span class="seq-arrow">➔</span>
+            <span class="seq-badge corridor">${room.floor} 복도 이동</span>
+            <span class="seq-arrow">➔</span>
+            <span class="seq-badge dest">🚪 ${ent.name} ➔ ${this.outdoorDestName}</span>
+          `;
+        } else {
+          const vt = activeRoute.verticalTransition;
+          const icon = this.activeRouteMode === 'elevator' ? '🛗' : '🪜';
+          const modeClass = this.activeRouteMode === 'elevator' ? 'elv' : 'stair';
+          this.dom.routeStepSummary.innerHTML = `
+            <span class="seq-badge start">🚩 ${room.roomNumber} (${vt.fromFloor})</span>
+            <span class="seq-arrow">➔</span>
+            <span class="seq-badge transit ${modeClass}">${icon} ${vt.fromFloor}➔${vt.toFloor} ${this.activeRouteMode === 'elevator' ? '엘리베이터' : '계단'}</span>
+            <span class="seq-arrow">➔</span>
+            <span class="seq-badge dest">🚪 ${ent.name} (${vt.toFloor})</span>
+            <span class="seq-arrow">➔</span>
+            <span class="seq-badge start">🌳 야외 (${this.outdoorDestName})</span>
+          `;
+        }
+      } else if (isSameFloor) {
         this.dom.routeStepSummary.innerHTML = `
           <span class="seq-badge start">🚪 ${ent.name} (${ent.entryFloor})</span>
           <span class="seq-arrow">➔</span>
@@ -1161,7 +1456,7 @@ class IndoorNavigator {
         if (this.currentFloor === startFloor) {
           this.dom.switchFloorPreviewText.textContent = `도착 층(${targetFloor}) 도면 보기`;
         } else {
-          this.dom.switchFloorPreviewText.textContent = `출발 입구 층(${startFloor}) 보기`;
+          this.dom.switchFloorPreviewText.textContent = `출발 층(${startFloor}) 도면 보기`;
         }
       }
     }
@@ -1213,6 +1508,7 @@ class IndoorNavigator {
       floor: verticalTransition.departureNode.floor,
       x: verticalTransition.departureNode.x,
       y: verticalTransition.departureNode.y,
+      segEdgeIndex: null,
     };
     this.renderUserMarker();
 
@@ -1230,6 +1526,8 @@ class IndoorNavigator {
     const isElevator = vt.transitType === 'elevator';
     const targetFloorKo = vt.toFloor.replace('F', '층');
     const room = this.data.nodes[this.selectedRoomId];
+    const ent = this.getSelectedEntrance();
+    const isExit = this.directionMode === 'exit';
 
     if (this.dom.transitionPopupIcon) {
       this.dom.transitionPopupIcon.textContent = isElevator ? '🛗' : '🪜';
@@ -1238,7 +1536,8 @@ class IndoorNavigator {
       this.dom.transitionPopupTitle.textContent = vt.ttsPrompt;
     }
     if (this.dom.transitionPopupDesc) {
-      this.dom.transitionPopupDesc.textContent = `${vt.departureNode.name}에 도착했습니다. ${targetFloorKo}으로 이동한 뒤 아래 버튼을 누르면 ${targetFloorKo} 도면과 ${room ? room.roomNumber : '목적지'}까지 남은 화살표를 안내합니다.`;
+      const destLabel = isExit ? (ent ? ent.name : '출입구') : (room ? room.roomNumber : '목적지');
+      this.dom.transitionPopupDesc.textContent = `${vt.departureNode.name}에 도착했습니다. ${targetFloorKo}으로 이동한 뒤 아래 버튼을 누르면 ${targetFloorKo} 도면과 ${destLabel}까지 남은 화살표를 안내합니다.`;
     }
     if (this.dom.confirmFloorTransitionText) {
       this.dom.confirmFloorTransitionText.textContent = vt.buttonLabel;
@@ -1269,6 +1568,7 @@ class IndoorNavigator {
       floor: vt.arrivalNode.floor,
       x: vt.arrivalNode.x,
       y: vt.arrivalNode.y,
+      segEdgeIndex: 0,
     };
     this.renderUserMarker();
 
@@ -1287,6 +1587,10 @@ class IndoorNavigator {
   finishIndoorSimulation(activeRoute) {
     this.isSimulating = false;
     this.simPhase = 'arrived';
+    if (this.userMarkerPos) {
+      this.userMarkerPos.segEdgeIndex = null;
+    }
+    this.renderDualRoutesSvg();
 
     if (this.dom.startIndoorSimBtn) {
       this.dom.startIndoorSimBtn.classList.remove('running');
@@ -1296,11 +1600,21 @@ class IndoorNavigator {
     }
 
     const arriveStep = activeRoute.steps[activeRoute.steps.length - 1];
-    if (arriveStep) {
-      this.speak(arriveStep.ttsText, '🎯 강의실 도착 완료');
-    }
-    if (this.onShowToast && activeRoute.endNode) {
-      this.onShowToast(`목적지 IT대학 ${activeRoute.endNode.roomNumber} 앞에 도착했습니다!`);
+    const isExit = this.directionMode === 'exit';
+    if (isExit) {
+      const ent = this.getSelectedEntrance();
+      const msg = `${ent ? ent.name : '출입구'}에 도착했습니다! 건물 밖으로 나가 야외 도로를 따라 ${this.outdoorDestName}까지 이동하세요.`;
+      this.speak(msg, '🚪 건물 출입구 도착 · 야외 경로 연결');
+      if (this.onShowToast) {
+        this.onShowToast(msg);
+      }
+    } else {
+      if (arriveStep) {
+        this.speak(arriveStep.ttsText, '🎯 강의실 도착 완료');
+      }
+      if (this.onShowToast && activeRoute.endNode) {
+        this.onShowToast(`목적지 IT대학 ${activeRoute.endNode.roomNumber} 앞에 도착했습니다!`);
+      }
     }
   }
 
@@ -1315,23 +1629,36 @@ class IndoorNavigator {
       this.simTimer = null;
     }
 
+    const floorId = nodes[0].floor || this.currentFloor;
+    const orthoNodes = this.ensureOrthogonalPoints(nodes);
+    if (orthoNodes.length < 2) {
+      if (onComplete) onComplete();
+      return;
+    }
+
     const samplePoints = [];
-    for (let i = 0; i < nodes.length - 1; i++) {
-      const a = nodes[i];
-      const b = nodes[i + 1];
+    for (let i = 0; i < orthoNodes.length - 1; i++) {
+      const a = orthoNodes[i];
+      const b = orthoNodes[i + 1];
       const dist = Math.hypot(b.x - a.x, b.y - a.y);
-      const steps = Math.max(8, Math.round(dist * 1.4));
+      const steps = Math.max(6, Math.round(dist * 1.4));
       for (let s = 0; s < steps; s++) {
         const t = s / steps;
         samplePoints.push({
-          floor: a.floor,
+          floor: floorId,
           x: a.x + (b.x - a.x) * t,
           y: a.y + (b.y - a.y) * t,
+          orthoEdgeIndex: i,
         });
       }
     }
-    const last = nodes[nodes.length - 1];
-    samplePoints.push({ floor: last.floor, x: last.x, y: last.y });
+    const last = orthoNodes[orthoNodes.length - 1];
+    samplePoints.push({
+      floor: floorId,
+      x: last.x,
+      y: last.y,
+      orthoEdgeIndex: Math.max(0, orthoNodes.length - 2),
+    });
 
     let idx = 0;
     this.simTimer = setInterval(() => {
@@ -1343,6 +1670,7 @@ class IndoorNavigator {
       }
       this.userMarkerPos = samplePoints[idx];
       this.renderUserMarker();
+      this.renderDualRoutesSvg(); // 이동에 따라 지나온 실내 경로선 실시간 삭제
       idx += 1;
     }, 40);
   }
@@ -1354,6 +1682,9 @@ class IndoorNavigator {
     }
     this.isSimulating = false;
     this.simPhase = 'idle';
+    if (this.userMarkerPos) {
+      this.userMarkerPos.orthoEdgeIndex = null;
+    }
     if (this.dom.startIndoorSimBtn) {
       this.dom.startIndoorSimBtn.classList.remove('running');
     }
@@ -1363,11 +1694,20 @@ class IndoorNavigator {
   }
 
   setZoom(nextZoom) {
-    this.zoom = Math.max(1, Math.min(2.6, nextZoom));
-    if (this.zoom === 1) {
+    this.zoom = Math.max(0.85, Math.min(3.5, nextZoom));
+    if (Math.abs(this.zoom - 1) < 0.05) {
+      this.zoom = 1;
       this.panX = 0;
       this.panY = 0;
     }
+    this.applyStageTransform();
+  }
+
+  setRotation(nextDeg) {
+    let norm = Number(nextDeg) || 0;
+    norm = ((norm % 360) + 360) % 360;
+    if (norm > 180) norm -= 360;
+    this.rotation = norm;
     this.applyStageTransform();
   }
 
@@ -1375,12 +1715,14 @@ class IndoorNavigator {
     this.zoom = 1;
     this.panX = 0;
     this.panY = 0;
+    this.rotation = 0;
     this.applyStageTransform();
   }
 
   applyStageTransform() {
     if (!this.dom.stage) return;
-    this.dom.stage.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom})`;
+    this.dom.stage.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom}) rotate(${this.rotation}deg)`;
+    this.dom.stage.style.setProperty('--indoor-rotation-neg', `${-this.rotation}deg`);
   }
 
   speak(text, badgeTitle = '실내 음성 길안내') {

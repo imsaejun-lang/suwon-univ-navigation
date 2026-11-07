@@ -262,23 +262,33 @@ const IT_COLLEGE_INDOOR_DATA = {
       y: 73.2,
     },
 
-    // 1F 복도 교차로 노드
-    c1_se_entry: { id: 'c1_se_entry', floor: '1F', type: 'corridor', name: '1층 남동측 입구 홀', x: 77.5, y: 66.5 },
-    c1_elv_east: { id: 'c1_elv_east', floor: '1F', type: 'corridor', name: '1층 동측 엘리베이터 앞', x: 70.2, y: 71.5 },
-    c1_e_junction: { id: 'c1_e_junction', floor: '1F', type: 'corridor', name: '1층 동측 복도 교차로', x: 68.0, y: 66.5 },
-    c1_e_stair_front: { id: 'c1_e_stair_front', floor: '1F', type: 'corridor', name: '1층 동측 계단 앞', x: 68.0, y: 56.0 },
-    c1_e_atrium: { id: 'c1_e_atrium', floor: '1F', type: 'corridor', name: '1층 동측 아트리움 홀', x: 68.0, y: 36.5 },
-    c1_e_door: { id: 'c1_e_door', floor: '1F', type: 'corridor', name: '1층 동측 출입구 통로', x: 77.5, y: 36.5 },
-    c1_e_north1: { id: 'c1_e_north1', floor: '1F', type: 'corridor', name: '1층 북동측 복도 (119호 앞)', x: 68.0, y: 24.5 },
-    c1_e_north2: { id: 'c1_e_north2', floor: '1F', type: 'corridor', name: '1층 북동측 복도 (120호 앞)', x: 68.0, y: 19.5 },
-    c1_n_entry: { id: 'c1_n_entry', floor: '1F', type: 'corridor', name: '1층 북측 출입구 홀', x: 68.0, y: 12.0 },
-    c1_s_east: { id: 'c1_s_east', floor: '1F', type: 'corridor', name: '1층 남측 복도 (남자화장실 앞)', x: 62.2, y: 67.2 },
+    // 1F 복도 교차로 및 문 앞 직각 진입 노드 (벽 관통 원천 방지)
+    c1_se_entry: { id: 'c1_se_entry', floor: '1F', type: 'corridor', name: '1층 남동측 입구 홀', x: 77.8, y: 66.8 },
+    c1_elv_east: { id: 'c1_elv_east', floor: '1F', type: 'corridor', name: '1층 동측 엘리베이터 앞', x: 67.5, y: 78.5 },
+    c1_e_junction: { id: 'c1_e_junction', floor: '1F', type: 'corridor', name: '1층 동측 복도 교차로', x: 67.5, y: 66.8 },
+    c1_e_stair_front: { id: 'c1_e_stair_front', floor: '1F', type: 'corridor', name: '1층 동측 계단 앞', x: 67.5, y: 56.0 },
+    c1_e_atrium: { id: 'c1_e_atrium', floor: '1F', type: 'corridor', name: '1층 동측 아트리움 홀', x: 67.5, y: 36.8 },
+    c1_e_door: { id: 'c1_e_door', floor: '1F', type: 'corridor', name: '1층 동측 출입구 통로', x: 77.5, y: 36.8 },
+    c1_e_north_hall: { id: 'c1_e_north_hall', floor: '1F', type: 'corridor', name: '1층 북동측 아트리움 분기점', x: 67.5, y: 28.5 },
+    c1_ne_corridor_s: { id: 'c1_ne_corridor_s', floor: '1F', type: 'corridor', name: '1층 북동측 복도 남단', x: 78.3, y: 28.5 },
+    c1_e_north1: { id: 'c1_e_north1', floor: '1F', type: 'corridor', name: '1층 북동측 복도 (119호 문 앞)', x: 78.3, y: 24.5 },
+    c1_e_north2: { id: 'c1_e_north2', floor: '1F', type: 'corridor', name: '1층 북동측 복도 (120호 문 앞)', x: 78.3, y: 19.5 },
+    c1_ne_121: { id: 'c1_ne_121', floor: '1F', type: 'corridor', name: '1층 북동측 복도 (121호 문 앞)', x: 78.3, y: 11.5 },
+    c1_ne_122: { id: 'c1_ne_122', floor: '1F', type: 'corridor', name: '1층 북동측 복도 (122호 문 앞)', x: 80.2, y: 11.5 },
+    c1_n_entry: { id: 'c1_n_entry', floor: '1F', type: 'corridor', name: '1층 북측 출입구 홀', x: 67.5, y: 12.0 },
+    c1_s_east: { id: 'c1_s_east', floor: '1F', type: 'corridor', name: '1층 남측 복도 (남자화장실 앞)', x: 62.2, y: 66.8 },
     c1_s_mid2: { id: 'c1_s_mid2', floor: '1F', type: 'corridor', name: '1층 남측 복도 (여자화장실 앞)', x: 53.5, y: 66.8 },
-    c1_s_center: { id: 'c1_s_center', floor: '1F', type: 'corridor', name: '1층 중앙 복도', x: 41.5, y: 66.2 },
-    c1_s_mid1: { id: 'c1_s_mid1', floor: '1F', type: 'corridor', name: '1층 서측 복도 (109·117호 앞)', x: 31.0, y: 65.5 },
-    c1_s_west: { id: 'c1_s_west', floor: '1F', type: 'corridor', name: '1층 서측 복도 (110·116호 앞)', x: 23.5, y: 64.8 },
-    c1_w_lobby: { id: 'c1_w_lobby', floor: '1F', type: 'corridor', name: '1층 서측 엘리베이터 홀', x: 16.0, y: 64.0 },
-    c1_w_stair: { id: 'c1_w_stair', floor: '1F', type: 'corridor', name: '1층 서측 계단 홀', x: 9.5, y: 64.0 },
+    c1_s_center: { id: 'c1_s_center', floor: '1F', type: 'corridor', name: '1층 중앙 복도', x: 42.0, y: 66.5 },
+    c1_s_118: { id: 'c1_s_118', floor: '1F', type: 'corridor', name: '118호 문 앞 복도', x: 37.2, y: 66.2 },
+    c1_s_mid1: { id: 'c1_s_mid1', floor: '1F', type: 'corridor', name: '117호 문 앞 복도', x: 30.8, y: 65.6 },
+    c1_s_109_door: { id: 'c1_s_109_door', floor: '1F', type: 'corridor', name: '109호 문 앞 복도', x: 28.2, y: 65.3 },
+    c1_s_109_in: { id: 'c1_s_109_in', floor: '1F', type: 'corridor', name: '109호 내부 진입점', x: 28.2, y: 82.5 },
+    c1_s_west: { id: 'c1_s_west', floor: '1F', type: 'corridor', name: '116호 문 앞 복도', x: 25.2, y: 64.9 },
+    c1_s_110_door: { id: 'c1_s_110_door', floor: '1F', type: 'corridor', name: '110호 문 앞 복도', x: 20.5, y: 64.5 },
+    c1_s_115_door: { id: 'c1_s_115_door', floor: '1F', type: 'corridor', name: '115호 문 앞 복도', x: 19.2, y: 64.4 },
+    c1_w_lobby: { id: 'c1_w_lobby', floor: '1F', type: 'corridor', name: '1층 서측 엘리베이터 홀', x: 15.5, y: 64.2 },
+    c1_w_elv: { id: 'c1_w_elv', floor: '1F', type: 'corridor', name: '1층 서측 엘리베이터 앞', x: 15.5, y: 59.8 },
+    c1_w_stair: { id: 'c1_w_stair', floor: '1F', type: 'corridor', name: '1층 서측 계단 홀', x: 6.5, y: 64.2 },
 
     // 1F 강의실 노드
     room_101: {
@@ -508,30 +518,41 @@ const IT_COLLEGE_INDOOR_DATA = {
       y: 13.2,
     },
 
-    // 2F 복도 교차로 노드
+    // 2F 복도 교차로 및 문 앞 직각 진입 노드 (y=76.8 수평 복도 + x=18.3 서측 복도 + x=71.5 동측 복도)
     c2_s_vestibule: { id: 'c2_s_vestibule', floor: '2F', type: 'corridor', name: '2층 남측 방풍실', x: 62.2, y: 82.0 },
-    c2_s_lobby: { id: 'c2_s_lobby', floor: '2F', type: 'corridor', name: '2층 남측 중앙로비', x: 62.2, y: 74.0 },
-    c2_elv_east: { id: 'c2_elv_east', floor: '2F', type: 'corridor', name: '2층 동측 엘리베이터 앞', x: 70.2, y: 74.0 },
-    c2_201_front: { id: 'c2_201_front', floor: '2F', type: 'corridor', name: '201호 앞 복도', x: 75.5, y: 74.0 },
-    c2_e_junction: { id: 'c2_e_junction', floor: '2F', type: 'corridor', name: '2층 동측 복도 분기점', x: 71.2, y: 67.5 },
-    c2_e_stair_front: { id: 'c2_e_stair_front', floor: '2F', type: 'corridor', name: '2층 동측 계단 앞', x: 71.2, y: 56.0 },
-    c2_e_213: { id: 'c2_e_213', floor: '2F', type: 'corridor', name: '213호 앞 복도', x: 71.2, y: 51.5 },
-    c2_e_214: { id: 'c2_e_214', floor: '2F', type: 'corridor', name: '214호 앞 복도', x: 71.2, y: 36.8 },
-    c2_e_215: { id: 'c2_e_215', floor: '2F', type: 'corridor', name: '215호 앞 복도', x: 71.2, y: 26.8 },
-    c2_e_216: { id: 'c2_e_216', floor: '2F', type: 'corridor', name: '216호 앞 복도', x: 71.2, y: 17.0 },
-    c2_e_north: { id: 'c2_e_north', floor: '2F', type: 'corridor', name: '2층 북동측 복도 (217~219호 앞)', x: 71.2, y: 11.2 },
-    c2_n_wc: { id: 'c2_n_wc', floor: '2F', type: 'corridor', name: '2층 북측 화장실 앞 복도', x: 56.0, y: 15.5 },
+    c2_s_lobby: { id: 'c2_s_lobby', floor: '2F', type: 'corridor', name: '2층 남측 중앙로비', x: 62.2, y: 76.8 },
+    c2_elv_lobby: { id: 'c2_elv_lobby', floor: '2F', type: 'corridor', name: '2층 동측 엘리베이터 홀 입구', x: 67.8, y: 76.8 },
+    c2_elv_east: { id: 'c2_elv_east', floor: '2F', type: 'corridor', name: '2층 동측 엘리베이터 앞', x: 67.8, y: 78.5 },
+    c2_e_south_pass: { id: 'c2_e_south_pass', floor: '2F', type: 'corridor', name: '2층 동측 로비 연결통로', x: 67.8, y: 70.5 },
+    c2_201_corridor: { id: 'c2_201_corridor', floor: '2F', type: 'corridor', name: '201호 진입 복도', x: 71.5, y: 70.5 },
+    c2_201_front: { id: 'c2_201_front', floor: '2F', type: 'corridor', name: '201호 문 앞', x: 78.5, y: 70.5 },
+    c2_e_junction: { id: 'c2_e_junction', floor: '2F', type: 'corridor', name: '2층 동측 복도 분기점', x: 71.5, y: 67.5 },
+    c2_e_stair_front: { id: 'c2_e_stair_front', floor: '2F', type: 'corridor', name: '2층 동측 계단 앞', x: 71.5, y: 56.0 },
+    c2_e_213: { id: 'c2_e_213', floor: '2F', type: 'corridor', name: '213호 문 앞 복도', x: 71.5, y: 51.5 },
+    c2_e_214: { id: 'c2_e_214', floor: '2F', type: 'corridor', name: '214호 문 앞 복도', x: 71.5, y: 36.8 },
+    c2_e_215: { id: 'c2_e_215', floor: '2F', type: 'corridor', name: '215호 문 앞 복도', x: 71.5, y: 26.8 },
+    c2_e_216: { id: 'c2_e_216', floor: '2F', type: 'corridor', name: '216호 문 앞 복도', x: 71.5, y: 17.0 },
+    c2_e_north: { id: 'c2_e_north', floor: '2F', type: 'corridor', name: '2층 북동측 복도 (217~219호 앞)', x: 71.5, y: 11.2 },
+    c2_218_front: { id: 'c2_218_front', floor: '2F', type: 'corridor', name: '218호 문 앞 복도', x: 74.8, y: 11.2 },
+    c2_217_front: { id: 'c2_217_front', floor: '2F', type: 'corridor', name: '217호 문 앞 복도', x: 80.2, y: 11.2 },
+    c2_n_wc_turn: { id: 'c2_n_wc_turn', floor: '2F', type: 'corridor', name: '2층 북측 복도 코너', x: 71.5, y: 15.5 },
+    c2_n_wc: { id: 'c2_n_wc', floor: '2F', type: 'corridor', name: '2층 북측 화장실 앞 복도', x: 56.8, y: 15.5 },
+    c2_n_wc_w: { id: 'c2_n_wc_w', floor: '2F', type: 'corridor', name: '2층 여자화장실 앞 복도', x: 52.2, y: 15.5 },
 
-    c2_203_front: { id: 'c2_203_front', floor: '2F', type: 'corridor', name: '203호 강의실 문 앞', x: 52.5, y: 76.5 },
-    c2_204_front: { id: 'c2_204_front', floor: '2F', type: 'corridor', name: '204호·211호 앞 복도', x: 45.8, y: 76.5 },
-    c2_205_front: { id: 'c2_205_front', floor: '2F', type: 'corridor', name: '205호·210호 앞 복도', x: 38.2, y: 76.5 },
-    c2_206_front: { id: 'c2_206_front', floor: '2F', type: 'corridor', name: '206호·209호 앞 복도', x: 29.8, y: 76.5 },
-    c2_207_front: { id: 'c2_207_front', floor: '2F', type: 'corridor', name: '207호 앞 복도', x: 20.8, y: 76.5 },
-    c2_sw_corner: { id: 'c2_sw_corner', floor: '2F', type: 'corridor', name: '2층 남서측 복도 코너 (208호 앞)', x: 16.5, y: 76.5 },
-    c2_w_mid: { id: 'c2_w_mid', floor: '2F', type: 'corridor', name: '2층 서측 계단 연결 복도', x: 16.5, y: 64.5 },
-    c2_w_stair: { id: 'c2_w_stair', floor: '2F', type: 'corridor', name: '2층 서측 계단 앞', x: 9.5, y: 64.5 },
-    c2_w_elv: { id: 'c2_w_elv', floor: '2F', type: 'corridor', name: '2층 서측 엘리베이터 앞', x: 16.5, y: 59.8 },
-    c2_w_212: { id: 'c2_w_212', floor: '2F', type: 'corridor', name: '212호 앞 복도', x: 16.5, y: 44.0 },
+    c2_203_front: { id: 'c2_203_front', floor: '2F', type: 'corridor', name: '203호 강의실 문 앞', x: 52.5, y: 76.8 },
+    c2_211_front: { id: 'c2_211_front', floor: '2F', type: 'corridor', name: '211호 문 앞 복도', x: 47.8, y: 76.8 },
+    c2_204_front: { id: 'c2_204_front', floor: '2F', type: 'corridor', name: '204호 문 앞 복도', x: 45.8, y: 76.8 },
+    c2_210_front: { id: 'c2_210_front', floor: '2F', type: 'corridor', name: '210호 문 앞 복도', x: 39.8, y: 76.8 },
+    c2_205_front: { id: 'c2_205_front', floor: '2F', type: 'corridor', name: '205호 문 앞 복도', x: 38.2, y: 76.8 },
+    c2_206_front: { id: 'c2_206_front', floor: '2F', type: 'corridor', name: '206호 문 앞 복도', x: 29.8, y: 76.8 },
+    c2_209_front: { id: 'c2_209_front', floor: '2F', type: 'corridor', name: '209호 행정실 문 앞 복도', x: 27.5, y: 76.8 },
+    c2_207_front: { id: 'c2_207_front', floor: '2F', type: 'corridor', name: '207호 문 앞 복도', x: 20.8, y: 76.8 },
+    c2_sw_corner: { id: 'c2_sw_corner', floor: '2F', type: 'corridor', name: '2층 남서측 복도 코너', x: 18.3, y: 76.8 },
+    c2_208_door: { id: 'c2_208_door', floor: '2F', type: 'corridor', name: '208호 문 앞', x: 18.3, y: 82.5 },
+    c2_w_mid: { id: 'c2_w_mid', floor: '2F', type: 'corridor', name: '2층 서측 계단 연결 복도', x: 18.3, y: 64.5 },
+    c2_w_stair: { id: 'c2_w_stair', floor: '2F', type: 'corridor', name: '2층 서측 계단 앞', x: 6.5, y: 64.5 },
+    c2_w_elv: { id: 'c2_w_elv', floor: '2F', type: 'corridor', name: '2층 서측 엘리베이터 앞', x: 18.3, y: 59.8 },
+    c2_w_212: { id: 'c2_w_212', floor: '2F', type: 'corridor', name: '212호 앞 복도', x: 18.3, y: 44.0 },
 
     // 2F 강의실 노드 (★ 203호 포함!)
     room_201: {
@@ -806,24 +827,34 @@ const IT_COLLEGE_INDOOR_DATA = {
       y: 61.5,
     },
 
-    // 3F 복도 교차로 노드
+    // 3F 복도 교차로 및 문 앞 직각 진입 노드 (308·307·306호 벽 관통 원천 차단 직각 복도)
     c3_w_elv: { id: 'c3_w_elv', floor: '3F', type: 'corridor', name: '3층 서측 엘리베이터 앞', x: 15.5, y: 59.8 },
-    c3_w_stair: { id: 'c3_w_stair', floor: '3F', type: 'corridor', name: '3층 서측 계단 앞', x: 9.5, y: 64.5 },
+    c3_w_stair: { id: 'c3_w_stair', floor: '3F', type: 'corridor', name: '3층 서측 계단 앞', x: 6.5, y: 64.5 },
     c3_w_mid: { id: 'c3_w_mid', floor: '3F', type: 'corridor', name: '3층 서측 복도', x: 15.5, y: 64.5 },
+    c3_w_bridge: { id: 'c3_w_bridge', floor: '3F', type: 'corridor', name: '3층 서측-중앙 연결 복도', x: 15.5, y: 68.5 },
     c3_w_entry: { id: 'c3_w_entry', floor: '3F', type: 'corridor', name: '3층 서측 언덕출입구 홀', x: 15.5, y: 73.5 },
-    c3_w_311: { id: 'c3_w_311', floor: '3F', type: 'corridor', name: '311호 앞 복도', x: 15.5, y: 44.0 },
-    c3_sw_corner: { id: 'c3_sw_corner', floor: '3F', type: 'corridor', name: '310호 앞 코너', x: 15.5, y: 79.5 },
-    c3_s_309: { id: 'c3_s_309', floor: '3F', type: 'corridor', name: '309호 앞 복도', x: 20.8, y: 79.5 },
-    c3_s_308: { id: 'c3_s_308', floor: '3F', type: 'corridor', name: '308호 앞 복도', x: 29.0, y: 79.5 },
-    c3_s_307: { id: 'c3_s_307', floor: '3F', type: 'corridor', name: '307호 앞 복도', x: 37.5, y: 79.5 },
-    c3_s_306: { id: 'c3_s_306', floor: '3F', type: 'corridor', name: '306호 앞 복도', x: 45.5, y: 79.5 },
-    c3_s_304: { id: 'c3_s_304', floor: '3F', type: 'corridor', name: '304·305호 앞 복도', x: 53.5, y: 83.8 },
-    c3_se_hall: { id: 'c3_se_hall', floor: '3F', type: 'corridor', name: '3층 동측 복도 홀', x: 67.5, y: 83.8 },
-    c3_elv_east: { id: 'c3_elv_east', floor: '3F', type: 'corridor', name: '3층 동측 엘리베이터 앞', x: 67.5, y: 74.5 },
-    c3_stair_east: { id: 'c3_stair_east', floor: '3F', type: 'corridor', name: '3층 동측 계단 앞', x: 73.5, y: 83.8 },
-    c3_303: { id: 'c3_303', floor: '3F', type: 'corridor', name: '303호 앞 복도', x: 70.5, y: 83.8 },
-    c3_302: { id: 'c3_302', floor: '3F', type: 'corridor', name: '302·312호 앞 복도', x: 78.5, y: 83.8 },
-    c3_301: { id: 'c3_301', floor: '3F', type: 'corridor', name: '301·313호 앞 복도', x: 88.5, y: 83.8 },
+    c3_w_311: { id: 'c3_w_311', floor: '3F', type: 'corridor', name: '311호 문 앞 복도', x: 15.5, y: 44.0 },
+    c3_sw_corner: { id: 'c3_sw_corner', floor: '3F', type: 'corridor', name: '310·309호 앞 코너', x: 15.5, y: 79.2 },
+    c3_310_door: { id: 'c3_310_door', floor: '3F', type: 'corridor', name: '310호 문 앞', x: 11.0, y: 79.2 },
+    c3_s_309: { id: 'c3_s_309', floor: '3F', type: 'corridor', name: '309호 문 앞 복도', x: 20.8, y: 79.2 },
+    c3_u_25: { id: 'c3_u_25', floor: '3F', type: 'corridor', name: '3층 중앙 복도 서단', x: 25.0, y: 68.5 },
+    c3_u_25_drop: { id: 'c3_u_25_drop', floor: '3F', type: 'corridor', name: '308호 복도 진입 코너', x: 25.0, y: 69.2 },
+    c3_s_308: { id: 'c3_s_308', floor: '3F', type: 'corridor', name: '308호 문 앞 복도', x: 29.0, y: 69.2 },
+    c3_s_307: { id: 'c3_s_307', floor: '3F', type: 'corridor', name: '307호 문 앞 복도', x: 37.5, y: 69.2 },
+    c3_u_42: { id: 'c3_u_42', floor: '3F', type: 'corridor', name: '3층 중앙 복도 코너', x: 42.5, y: 69.2 },
+    c3_u_42_drop: { id: 'c3_u_42_drop', floor: '3F', type: 'corridor', name: '306호 복도 진입 코너', x: 42.5, y: 72.2 },
+    c3_s_306: { id: 'c3_s_306', floor: '3F', type: 'corridor', name: '306호 문 앞 복도', x: 45.5, y: 72.2 },
+    c3_mid_top: { id: 'c3_mid_top', floor: '3F', type: 'corridor', name: '3층 중앙-동측 연결 복도 상단', x: 56.9, y: 72.2 },
+    c3_305_door: { id: 'c3_305_door', floor: '3F', type: 'corridor', name: '305호 문 앞 복도', x: 56.9, y: 81.5 },
+    c3_mid_bottom: { id: 'c3_mid_bottom', floor: '3F', type: 'corridor', name: '3층 동측 복도 교차점', x: 56.9, y: 83.8 },
+    c3_s_304: { id: 'c3_s_304', floor: '3F', type: 'corridor', name: '304호 문 앞 복도', x: 53.5, y: 83.8 },
+    c3_se_hall: { id: 'c3_se_hall', floor: '3F', type: 'corridor', name: '3층 동측 엘리베이터 통로 입구', x: 67.8, y: 83.8 },
+    c3_elv_east: { id: 'c3_elv_east', floor: '3F', type: 'corridor', name: '3층 동측 엘리베이터 앞', x: 67.8, y: 78.5 },
+    c3_303: { id: 'c3_303', floor: '3F', type: 'corridor', name: '303호 문 앞 복도', x: 70.5, y: 83.8 },
+    c3_stair_hall: { id: 'c3_stair_hall', floor: '3F', type: 'corridor', name: '3층 동측 계단 통로 입구', x: 75.2, y: 83.8 },
+    c3_stair_east: { id: 'c3_stair_east', floor: '3F', type: 'corridor', name: '3층 동측 계단 앞', x: 75.2, y: 78.8 },
+    c3_302: { id: 'c3_302', floor: '3F', type: 'corridor', name: '302·312-B호 문 앞 복도', x: 78.5, y: 83.8 },
+    c3_301: { id: 'c3_301', floor: '3F', type: 'corridor', name: '301·313호 문 앞 복도', x: 88.5, y: 83.8 },
 
     // 3F 강의실 노드
     room_301: {
@@ -1045,22 +1076,27 @@ const IT_COLLEGE_INDOOR_DATA = {
       y: 76.5,
     },
 
-    // 4F 복도 교차로 노드
-    c4_w_elv: { id: 'c4_w_elv', floor: '4F', type: 'corridor', name: '4층 서측 엘리베이터 앞', x: 16.5, y: 59.8 },
-    c4_w_stair: { id: 'c4_w_stair', floor: '4F', type: 'corridor', name: '4층 서측 계단 앞', x: 9.5, y: 64.5 },
-    c4_w_mid: { id: 'c4_w_mid', floor: '4F', type: 'corridor', name: '410호 앞 서측 복도', x: 16.5, y: 66.5 },
-    c4_sw_corner: { id: 'c4_sw_corner', floor: '4F', type: 'corridor', name: '409-2호 앞 코너', x: 16.5, y: 77.0 },
-    c4_409: { id: 'c4_409', floor: '4F', type: 'corridor', name: '409호 앞 복도', x: 20.8, y: 77.0 },
-    c4_408: { id: 'c4_408', floor: '4F', type: 'corridor', name: '408·411호 앞 복도', x: 29.0, y: 77.0 },
-    c4_407: { id: 'c4_407', floor: '4F', type: 'corridor', name: '407·412호 앞 복도', x: 37.5, y: 77.0 },
-    c4_406: { id: 'c4_406', floor: '4F', type: 'corridor', name: '406호·화장실 앞 복도', x: 45.8, y: 77.0 },
-    c4_mid_drop: { id: 'c4_mid_drop', floor: '4F', type: 'corridor', name: '405호 앞 복도', x: 51.5, y: 83.8 },
-    c4_404: { id: 'c4_404', floor: '4F', type: 'corridor', name: '404-2·413호 앞 복도', x: 61.5, y: 83.8 },
-    c4_elv_east: { id: 'c4_elv_east', floor: '4F', type: 'corridor', name: '4층 동측 엘리베이터 앞', x: 67.5, y: 83.8 },
-    c4_stair_east: { id: 'c4_stair_east', floor: '4F', type: 'corridor', name: '4층 동측 계단 앞', x: 73.5, y: 83.8 },
-    c4_403: { id: 'c4_403', floor: '4F', type: 'corridor', name: '403호 앞 복도', x: 70.5, y: 83.8 },
-    c4_402: { id: 'c4_402', floor: '4F', type: 'corridor', name: '402·414호 앞 복도', x: 78.5, y: 83.8 },
-    c4_401: { id: 'c4_401', floor: '4F', type: 'corridor', name: '401·415호 앞 복도', x: 88.5, y: 83.8 },
+    // 4F 복도 교차로 및 문 앞 직각 진입 노드 (y=76.8 서측 복도 ➔ x=51.2 수직 통로 ➔ y=83.8 동측 복도)
+    c4_w_elv: { id: 'c4_w_elv', floor: '4F', type: 'corridor', name: '4층 서측 엘리베이터 앞', x: 18.3, y: 59.8 },
+    c4_w_stair_mid: { id: 'c4_w_stair_mid', floor: '4F', type: 'corridor', name: '4층 서측 계단 연결 복도', x: 18.3, y: 64.5 },
+    c4_w_stair: { id: 'c4_w_stair', floor: '4F', type: 'corridor', name: '4층 서측 계단 앞', x: 6.5, y: 64.5 },
+    c4_w_mid: { id: 'c4_w_mid', floor: '4F', type: 'corridor', name: '410호 문 앞 서측 복도', x: 18.3, y: 71.5 },
+    c4_sw_corner: { id: 'c4_sw_corner', floor: '4F', type: 'corridor', name: '409-2호 앞 코너', x: 18.3, y: 76.8 },
+    c4_409: { id: 'c4_409', floor: '4F', type: 'corridor', name: '409호 문 앞 복도', x: 20.8, y: 76.8 },
+    c4_408: { id: 'c4_408', floor: '4F', type: 'corridor', name: '408·411호 문 앞 복도', x: 29.0, y: 76.8 },
+    c4_407: { id: 'c4_407', floor: '4F', type: 'corridor', name: '407·412호 문 앞 복도', x: 37.5, y: 76.8 },
+    c4_406: { id: 'c4_406', floor: '4F', type: 'corridor', name: '406호·여자화장실 문 앞 복도', x: 45.8, y: 76.8 },
+    c4_mid_top: { id: 'c4_mid_top', floor: '4F', type: 'corridor', name: '4층 중앙 복도 코너 상단', x: 51.2, y: 76.8 },
+    c4_mid_drop: { id: 'c4_mid_drop', floor: '4F', type: 'corridor', name: '4층 중앙 복도 코너 하단', x: 51.2, y: 83.8 },
+    c4_405: { id: 'c4_405', floor: '4F', type: 'corridor', name: '405호 문 앞 복도', x: 53.5, y: 83.8 },
+    c4_404: { id: 'c4_404', floor: '4F', type: 'corridor', name: '404-2·413호 문 앞 복도', x: 61.5, y: 83.8 },
+    c4_elv_hall: { id: 'c4_elv_hall', floor: '4F', type: 'corridor', name: '4층 동측 엘리베이터 통로 입구', x: 67.8, y: 83.8 },
+    c4_elv_east: { id: 'c4_elv_east', floor: '4F', type: 'corridor', name: '4층 동측 엘리베이터 앞', x: 67.8, y: 78.5 },
+    c4_403: { id: 'c4_403', floor: '4F', type: 'corridor', name: '403호 문 앞 복도', x: 70.5, y: 83.8 },
+    c4_stair_hall: { id: 'c4_stair_hall', floor: '4F', type: 'corridor', name: '4층 동측 계단 통로 입구', x: 75.2, y: 83.8 },
+    c4_stair_east: { id: 'c4_stair_east', floor: '4F', type: 'corridor', name: '4층 동측 계단 앞', x: 75.2, y: 78.8 },
+    c4_402: { id: 'c4_402', floor: '4F', type: 'corridor', name: '402·414호 문 앞 복도', x: 78.5, y: 83.8 },
+    c4_401: { id: 'c4_401', floor: '4F', type: 'corridor', name: '401·415호 문 앞 복도', x: 88.5, y: 83.8 },
 
     // 4F 강의실 노드
     room_401: {
@@ -1306,20 +1342,30 @@ const IT_COLLEGE_INDOOR_DATA = {
       y: 75.5,
     },
 
-    // 5F 복도 교차로 노드
+    // 5F 복도 교차로 및 문 앞 직각 진입 노드 (y=81.2 서측 복도 ➔ x=52.0 수직 통로 ➔ y=83.8 동측 복도)
     c5_w_elv: { id: 'c5_w_elv', floor: '5F', type: 'corridor', name: '5층 서측 엘리베이터 앞', x: 15.5, y: 59.8 },
-    c5_w_stair: { id: 'c5_w_stair', floor: '5F', type: 'corridor', name: '5층 서측 계단 앞', x: 9.5, y: 64.5 },
-    c5_w_mid: { id: 'c5_w_mid', floor: '5F', type: 'corridor', name: '515호 앞 서측 복도', x: 15.5, y: 71.0 },
+    c5_w_stair_mid: { id: 'c5_w_stair_mid', floor: '5F', type: 'corridor', name: '5층 서측 계단 연결 복도', x: 15.5, y: 64.5 },
+    c5_w_stair: { id: 'c5_w_stair', floor: '5F', type: 'corridor', name: '5층 서측 계단 앞', x: 6.5, y: 64.5 },
+    c5_w_mid: { id: 'c5_w_mid', floor: '5F', type: 'corridor', name: '515호 문 앞 서측 복도', x: 15.5, y: 74.0 },
     c5_sw_corner: { id: 'c5_sw_corner', floor: '5F', type: 'corridor', name: '514호 앞 코너', x: 15.5, y: 81.2 },
-    c5_513: { id: 'c5_513', floor: '5F', type: 'corridor', name: '513호·화장실 앞 복도', x: 25.0, y: 81.2 },
-    c5_510: { id: 'c5_510', floor: '5F', type: 'corridor', name: '510~512호 앞 복도', x: 41.0, y: 81.2 },
-    c5_508: { id: 'c5_508', floor: '5F', type: 'corridor', name: '508·524호 앞 복도', x: 54.5, y: 83.8 },
-    c5_507: { id: 'c5_507', floor: '5F', type: 'corridor', name: '507호 앞 복도', x: 65.0, y: 83.8 },
-    c5_elv_east: { id: 'c5_elv_east', floor: '5F', type: 'corridor', name: '5층 동측 엘리베이터 앞', x: 70.2, y: 83.8 },
-    c5_stair_east: { id: 'c5_stair_east', floor: '5F', type: 'corridor', name: '5층 동측 계단 앞', x: 73.5, y: 83.8 },
-    c5_505: { id: 'c5_505', floor: '5F', type: 'corridor', name: '505·527호 앞 복도', x: 78.5, y: 83.8 },
-    c5_503: { id: 'c5_503', floor: '5F', type: 'corridor', name: '503호 앞 복도', x: 85.0, y: 83.8 },
-    c5_501: { id: 'c5_501', floor: '5F', type: 'corridor', name: '501·530호 앞 복도', x: 92.0, y: 83.8 },
+    c5_514_door: { id: 'c5_514_door', floor: '5F', type: 'corridor', name: '514호 문 앞 복도', x: 12.2, y: 81.2 },
+    c5_513: { id: 'c5_513', floor: '5F', type: 'corridor', name: '513호 문 앞 복도', x: 25.0, y: 81.2 },
+    c5_wc_m: { id: 'c5_wc_m', floor: '5F', type: 'corridor', name: '5층 남자화장실 앞 복도', x: 26.8, y: 81.2 },
+    c5_wc_w: { id: 'c5_wc_w', floor: '5F', type: 'corridor', name: '5층 여자화장실 앞 복도', x: 31.2, y: 81.2 },
+    c5_510: { id: 'c5_510', floor: '5F', type: 'corridor', name: '510호 문 앞 복도', x: 43.2, y: 81.2 },
+    c5_mid_top: { id: 'c5_mid_top', floor: '5F', type: 'corridor', name: '5층 중앙 복도 코너 상단', x: 52.0, y: 81.2 },
+    c5_mid_drop: { id: 'c5_mid_drop', floor: '5F', type: 'corridor', name: '5층 중앙 복도 코너 하단', x: 52.0, y: 83.8 },
+    c5_508: { id: 'c5_508', floor: '5F', type: 'corridor', name: '508호 문 앞 복도', x: 54.5, y: 83.8 },
+    c5_524_door: { id: 'c5_524_door', floor: '5F', type: 'corridor', name: '524호 문 앞 복도', x: 57.2, y: 83.8 },
+    c5_507: { id: 'c5_507', floor: '5F', type: 'corridor', name: '507호 문 앞 복도', x: 65.0, y: 83.8 },
+    c5_elv_hall: { id: 'c5_elv_hall', floor: '5F', type: 'corridor', name: '5층 동측 엘리베이터 통로 입구', x: 67.8, y: 83.8 },
+    c5_elv_east: { id: 'c5_elv_east', floor: '5F', type: 'corridor', name: '5층 동측 엘리베이터 앞', x: 67.8, y: 78.5 },
+    c5_stair_hall: { id: 'c5_stair_hall', floor: '5F', type: 'corridor', name: '5층 동측 계단 통로 입구', x: 75.2, y: 83.8 },
+    c5_stair_east: { id: 'c5_stair_east', floor: '5F', type: 'corridor', name: '5층 동측 계단 앞', x: 75.2, y: 78.8 },
+    c5_505: { id: 'c5_505', floor: '5F', type: 'corridor', name: '505호 문 앞 복도', x: 76.8, y: 83.8 },
+    c5_527_door: { id: 'c5_527_door', floor: '5F', type: 'corridor', name: '527호 문 앞 복도', x: 81.0, y: 83.8 },
+    c5_503: { id: 'c5_503', floor: '5F', type: 'corridor', name: '503호 문 앞 복도', x: 85.0, y: 83.8 },
+    c5_501: { id: 'c5_501', floor: '5F', type: 'corridor', name: '501·530호 문 앞 복도', x: 92.8, y: 83.8 },
 
     // 5F 연구실/강의실 노드
     room_501: {
@@ -1472,197 +1518,245 @@ const IT_COLLEGE_INDOOR_DATA = {
    * 평면도 내 복도 간선 (양방향) + 수직 통로 간선 (층간 이동)
    */
   edges: [
-    // --- [1F] 복도 연결 ---
-    { from: 'ent_1f_main', to: 'c1_se_entry', weight: 8 },
-    { from: 'c1_se_entry', to: 'room_101', weight: 12 },
+    // --- [1F] 복도 연결 (완전 직각 ㄱ/ㄴ자 복도 중심선 연결) ---
+    { from: 'ent_1f_main', to: 'c1_se_entry', weight: 6 },
+    { from: 'c1_se_entry', to: 'room_101', weight: 10 },
     { from: 'c1_se_entry', to: 'c1_e_junction', weight: 10 },
-    { from: 'c1_e_junction', to: 'c1_elv_east', weight: 6 },
-    { from: 'c1_elv_east', to: 'elv_east_1F', weight: 5 },
+    { from: 'c1_e_junction', to: 'c1_elv_east', weight: 8 },
+    { from: 'c1_elv_east', to: 'elv_east_1F', weight: 4 },
     { from: 'c1_e_junction', to: 'c1_e_stair_front', weight: 10 },
     { from: 'c1_e_stair_front', to: 'stair_east_1F', weight: 3 },
-    { from: 'c1_e_stair_front', to: 'room_105', weight: 15 },
     { from: 'c1_e_stair_front', to: 'c1_e_atrium', weight: 16 },
+    { from: 'c1_e_atrium', to: 'room_105', weight: 15 },
     { from: 'ent_1f_east', to: 'c1_e_door', weight: 8 },
     { from: 'c1_e_door', to: 'c1_e_atrium', weight: 10 },
-    { from: 'c1_e_atrium', to: 'c1_e_north1', weight: 12 },
-    { from: 'c1_e_north1', to: 'room_119', weight: 12 },
-    { from: 'c1_e_north1', to: 'c1_e_north2', weight: 6 },
-    { from: 'c1_e_north2', to: 'room_120', weight: 7 },
-    { from: 'c1_e_north2', to: 'c1_n_entry', weight: 8 },
-    { from: 'ent_1f_north', to: 'c1_n_entry', weight: 6 },
-    { from: 'c1_n_entry', to: 'room_121', weight: 7 },
-    { from: 'c1_n_entry', to: 'room_122', weight: 12 },
+    { from: 'c1_e_atrium', to: 'c1_e_north_hall', weight: 8 },
+    { from: 'c1_e_north_hall', to: 'c1_ne_corridor_s', weight: 10 },
+    { from: 'c1_ne_corridor_s', to: 'c1_e_north1', weight: 4 },
+    { from: 'c1_e_north1', to: 'room_119', weight: 5 },
+    { from: 'c1_e_north1', to: 'c1_e_north2', weight: 5 },
+    { from: 'c1_e_north2', to: 'room_120', weight: 5 },
+    { from: 'c1_e_north2', to: 'c1_ne_121', weight: 8 },
+    { from: 'c1_ne_121', to: 'room_121', weight: 5 },
+    { from: 'c1_ne_121', to: 'c1_ne_122', weight: 3 },
+    { from: 'c1_ne_122', to: 'room_122', weight: 4 },
+    { from: 'c1_e_north_hall', to: 'c1_n_entry', weight: 14 },
+    { from: 'ent_1f_north', to: 'c1_n_entry', weight: 5 },
+    { from: 'c1_n_entry', to: 'c1_ne_121', weight: 10 },
 
-    { from: 'c1_e_junction', to: 'c1_s_east', weight: 7 },
+    { from: 'c1_e_junction', to: 'c1_s_east', weight: 6 },
     { from: 'c1_s_east', to: 'wc_men_1F', weight: 5 },
     { from: 'c1_s_east', to: 'c1_s_mid2', weight: 9 },
     { from: 'c1_s_mid2', to: 'wc_women_1F', weight: 5 },
-    { from: 'c1_s_mid2', to: 'c1_s_center', weight: 12 },
-    { from: 'c1_s_center', to: 'c1_s_mid1', weight: 11 },
-    { from: 'c1_s_mid1', to: 'room_109', weight: 14 },
-    { from: 'c1_s_mid1', to: 'room_117', weight: 5 },
-    { from: 'c1_s_mid1', to: 'room_118', weight: 7 },
-    { from: 'c1_s_mid1', to: 'c1_s_west', weight: 8 },
-    { from: 'c1_s_west', to: 'room_110', weight: 6 },
-    { from: 'c1_s_west', to: 'room_116', weight: 5 },
-    { from: 'c1_s_west', to: 'c1_w_lobby', weight: 8 },
-    { from: 'c1_w_lobby', to: 'room_115', weight: 5 },
-    { from: 'c1_w_lobby', to: 'elv_west_1F', weight: 6 },
-    { from: 'c1_w_lobby', to: 'c1_w_stair', weight: 7 },
-    { from: 'c1_w_stair', to: 'stair_west_1F', weight: 4 },
+    { from: 'c1_s_mid2', to: 'c1_s_center', weight: 11 },
+    { from: 'c1_s_center', to: 'c1_s_118', weight: 5 },
+    { from: 'c1_s_118', to: 'room_118', weight: 4 },
+    { from: 'c1_s_118', to: 'c1_s_mid1', weight: 6 },
+    { from: 'c1_s_mid1', to: 'room_117', weight: 4 },
+    { from: 'c1_s_mid1', to: 'c1_s_109_door', weight: 3 },
+    { from: 'c1_s_109_door', to: 'c1_s_109_in', weight: 14 },
+    { from: 'c1_s_109_in', to: 'room_109', weight: 4 },
+    { from: 'c1_s_109_door', to: 'c1_s_west', weight: 3 },
+    { from: 'c1_s_west', to: 'room_116', weight: 4 },
+    { from: 'c1_s_west', to: 'c1_s_110_door', weight: 5 },
+    { from: 'c1_s_110_door', to: 'room_110', weight: 5 },
+    { from: 'c1_s_110_door', to: 'c1_s_115_door', weight: 2 },
+    { from: 'c1_s_115_door', to: 'room_115', weight: 4 },
+    { from: 'c1_s_115_door', to: 'c1_w_lobby', weight: 4 },
+    { from: 'c1_w_lobby', to: 'c1_w_elv', weight: 5 },
+    { from: 'c1_w_elv', to: 'elv_west_1F', weight: 4 },
+    { from: 'c1_w_lobby', to: 'c1_w_stair', weight: 9 },
+    { from: 'c1_w_stair', to: 'stair_west_1F', weight: 3 },
 
-    // --- [2F] 복도 연결 (★ 203호 포함) ---
+    // --- [2F] 복도 연결 (★ 203호 포함 직각 복도 연결) ---
     { from: 'ent_2f_south', to: 'c2_s_vestibule', weight: 7 },
-    { from: 'c2_s_vestibule', to: 'c2_s_lobby', weight: 8 },
-    { from: 'c2_s_lobby', to: 'c2_elv_east', weight: 8 },
-    { from: 'c2_elv_east', to: 'elv_east_2F', weight: 5 },
-    { from: 'c2_elv_east', to: 'c2_201_front', weight: 6 },
-    { from: 'c2_201_front', to: 'room_201', weight: 10 },
-    { from: 'c2_elv_east', to: 'c2_e_junction', weight: 7 },
+    { from: 'c2_s_vestibule', to: 'c2_s_lobby', weight: 6 },
+    { from: 'c2_s_lobby', to: 'c2_elv_lobby', weight: 6 },
+    { from: 'c2_elv_lobby', to: 'c2_elv_east', weight: 3 },
+    { from: 'c2_elv_east', to: 'elv_east_2F', weight: 3 },
+    { from: 'c2_elv_lobby', to: 'c2_e_south_pass', weight: 6 },
+    { from: 'c2_e_south_pass', to: 'c2_201_corridor', weight: 4 },
+    { from: 'c2_201_corridor', to: 'c2_201_front', weight: 7 },
+    { from: 'c2_201_front', to: 'room_201', weight: 12 },
+    { from: 'c2_201_corridor', to: 'c2_e_junction', weight: 4 },
     { from: 'ent_2f_east', to: 'c2_e_junction', weight: 12 },
     { from: 'c2_e_junction', to: 'c2_e_stair_front', weight: 11 },
     { from: 'c2_e_stair_front', to: 'stair_east_2F', weight: 4 },
     { from: 'c2_e_stair_front', to: 'c2_e_213', weight: 5 },
-    { from: 'c2_e_213', to: 'room_213', weight: 8 },
+    { from: 'c2_e_213', to: 'room_213', weight: 7 },
     { from: 'c2_e_213', to: 'c2_e_214', weight: 14 },
-    { from: 'c2_e_214', to: 'room_214', weight: 8 },
+    { from: 'c2_e_214', to: 'room_214', weight: 7 },
     { from: 'c2_e_214', to: 'c2_e_215', weight: 10 },
-    { from: 'c2_e_215', to: 'room_215', weight: 8 },
+    { from: 'c2_e_215', to: 'room_215', weight: 7 },
     { from: 'c2_e_215', to: 'c2_e_216', weight: 10 },
-    { from: 'c2_e_216', to: 'room_216', weight: 8 },
-    { from: 'c2_e_216', to: 'c2_e_north', weight: 7 },
-    { from: 'c2_e_north', to: 'room_217', weight: 9 },
-    { from: 'c2_e_north', to: 'room_218', weight: 5 },
+    { from: 'c2_e_216', to: 'room_216', weight: 7 },
+    { from: 'c2_e_216', to: 'c2_n_wc_turn', weight: 2 },
+    { from: 'c2_n_wc_turn', to: 'c2_e_north', weight: 5 },
     { from: 'c2_e_north', to: 'room_219', weight: 4 },
-    { from: 'c2_e_north', to: 'c2_n_wc', weight: 14 },
-    { from: 'c2_n_wc', to: 'wc_men_2F', weight: 4 },
-    { from: 'c2_n_wc', to: 'wc_women_2F', weight: 5 },
+    { from: 'c2_e_north', to: 'c2_218_front', weight: 4 },
+    { from: 'c2_218_front', to: 'room_218', weight: 4 },
+    { from: 'c2_218_front', to: 'c2_217_front', weight: 6 },
+    { from: 'c2_217_front', to: 'room_217', weight: 4 },
+    { from: 'c2_n_wc_turn', to: 'c2_n_wc', weight: 14 },
+    { from: 'c2_n_wc', to: 'wc_men_2F', weight: 3 },
+    { from: 'c2_n_wc', to: 'c2_n_wc_w', weight: 5 },
+    { from: 'c2_n_wc_w', to: 'wc_women_2F', weight: 3 },
 
     { from: 'c2_s_lobby', to: 'c2_203_front', weight: 10 },
     { from: 'c2_203_front', to: 'room_203', weight: 8 },
-    { from: 'c2_203_front', to: 'c2_204_front', weight: 7 },
+    { from: 'c2_203_front', to: 'c2_211_front', weight: 5 },
+    { from: 'c2_211_front', to: 'room_211', weight: 4 },
+    { from: 'c2_211_front', to: 'c2_204_front', weight: 2 },
     { from: 'c2_204_front', to: 'room_204', weight: 8 },
-    { from: 'c2_204_front', to: 'room_211', weight: 5 },
-    { from: 'c2_204_front', to: 'c2_205_front', weight: 8 },
+    { from: 'c2_204_front', to: 'c2_210_front', weight: 6 },
+    { from: 'c2_210_front', to: 'room_210', weight: 4 },
+    { from: 'c2_210_front', to: 'c2_205_front', weight: 2 },
     { from: 'c2_205_front', to: 'room_205', weight: 8 },
-    { from: 'c2_205_front', to: 'room_210', weight: 5 },
     { from: 'c2_205_front', to: 'c2_206_front', weight: 8 },
     { from: 'c2_206_front', to: 'room_206', weight: 8 },
-    { from: 'c2_206_front', to: 'room_209', weight: 6 },
-    { from: 'c2_206_front', to: 'c2_207_front', weight: 9 },
+    { from: 'c2_206_front', to: 'c2_209_front', weight: 3 },
+    { from: 'c2_209_front', to: 'room_209', weight: 5 },
+    { from: 'c2_209_front', to: 'c2_207_front', weight: 7 },
     { from: 'c2_207_front', to: 'room_207', weight: 8 },
-    { from: 'c2_207_front', to: 'c2_sw_corner', weight: 5 },
-    { from: 'c2_sw_corner', to: 'room_208', weight: 7 },
+    { from: 'c2_207_front', to: 'c2_sw_corner', weight: 3 },
+    { from: 'c2_sw_corner', to: 'c2_208_door', weight: 6 },
+    { from: 'c2_208_door', to: 'room_208', weight: 6 },
     { from: 'c2_sw_corner', to: 'c2_w_mid', weight: 12 },
-    { from: 'c2_w_mid', to: 'c2_w_stair', weight: 7 },
-    { from: 'c2_w_stair', to: 'stair_west_2F', weight: 4 },
+    { from: 'c2_w_mid', to: 'c2_w_stair', weight: 11 },
+    { from: 'c2_w_stair', to: 'stair_west_2F', weight: 3 },
     { from: 'c2_w_mid', to: 'c2_w_elv', weight: 5 },
-    { from: 'c2_w_elv', to: 'elv_west_2F', weight: 5 },
+    { from: 'c2_w_elv', to: 'elv_west_2F', weight: 7 },
     { from: 'c2_w_elv', to: 'c2_w_212', weight: 15 },
-    { from: 'c2_w_212', to: 'room_212', weight: 5 },
+    { from: 'c2_w_212', to: 'room_212', weight: 6 },
 
-    // --- [3F] 복도 연결 (서측 언덕 3F 출입구 포함) ---
+    // --- [3F] 복도 연결 (308·307·306호 등 벽 관통 원천 차단 직각 연결) ---
     { from: 'ent_3f_west', to: 'c3_w_entry', weight: 9 },
-    { from: 'c3_w_entry', to: 'c3_w_mid', weight: 9 },
-    { from: 'c3_w_mid', to: 'c3_w_stair', weight: 6 },
-    { from: 'c3_w_stair', to: 'stair_west_3F', weight: 4 },
+    { from: 'c3_w_entry', to: 'c3_w_bridge', weight: 5 },
+    { from: 'c3_w_bridge', to: 'c3_w_mid', weight: 4 },
+    { from: 'c3_w_mid', to: 'c3_w_stair', weight: 9 },
+    { from: 'c3_w_stair', to: 'stair_west_3F', weight: 3 },
     { from: 'c3_w_mid', to: 'c3_w_elv', weight: 5 },
-    { from: 'c3_w_elv', to: 'elv_west_3F', weight: 5 },
+    { from: 'c3_w_elv', to: 'elv_west_3F', weight: 4 },
     { from: 'c3_w_elv', to: 'c3_w_311', weight: 15 },
-    { from: 'c3_w_311', to: 'room_311', weight: 5 },
+    { from: 'c3_w_311', to: 'room_311', weight: 4 },
     { from: 'c3_w_entry', to: 'c3_sw_corner', weight: 6 },
-    { from: 'c3_sw_corner', to: 'room_310', weight: 7 },
-    { from: 'c3_sw_corner', to: 'c3_s_309', weight: 6 },
+    { from: 'c3_sw_corner', to: 'c3_310_door', weight: 5 },
+    { from: 'c3_310_door', to: 'room_310', weight: 6 },
+    { from: 'c3_sw_corner', to: 'c3_s_309', weight: 5 },
     { from: 'c3_s_309', to: 'room_309', weight: 6 },
-    { from: 'c3_s_309', to: 'c3_s_308', weight: 8 },
-    { from: 'c3_s_308', to: 'room_308', weight: 6 },
+
+    { from: 'c3_w_bridge', to: 'c3_u_25', weight: 9 },
+    { from: 'c3_u_25', to: 'c3_u_25_drop', weight: 1 },
+    { from: 'c3_u_25_drop', to: 'c3_s_308', weight: 4 },
+    { from: 'c3_s_308', to: 'room_308', weight: 12 },
     { from: 'c3_s_308', to: 'c3_s_307', weight: 8 },
-    { from: 'c3_s_307', to: 'room_307', weight: 6 },
-    { from: 'c3_s_307', to: 'c3_s_306', weight: 8 },
-    { from: 'c3_s_306', to: 'room_306', weight: 6 },
-    { from: 'c3_s_306', to: 'c3_s_304', weight: 9 },
-    { from: 'c3_s_304', to: 'room_304', weight: 5 },
-    { from: 'c3_s_304', to: 'room_305', weight: 4 },
-    { from: 'c3_s_304', to: 'c3_se_hall', weight: 14 },
-    { from: 'c3_se_hall', to: 'c3_elv_east', weight: 9 },
-    { from: 'c3_elv_east', to: 'elv_east_3F', weight: 5 },
-    { from: 'c3_se_hall', to: 'c3_303', weight: 4 },
+    { from: 'c3_s_307', to: 'room_307', weight: 12 },
+    { from: 'c3_s_307', to: 'c3_u_42', weight: 5 },
+    { from: 'c3_u_42', to: 'c3_u_42_drop', weight: 3 },
+    { from: 'c3_u_42_drop', to: 'c3_s_306', weight: 3 },
+    { from: 'c3_s_306', to: 'room_306', weight: 10 },
+    { from: 'c3_s_306', to: 'c3_mid_top', weight: 11 },
+    { from: 'c3_mid_top', to: 'c3_305_door', weight: 9 },
+    { from: 'c3_305_door', to: 'room_305', weight: 4 },
+    { from: 'c3_305_door', to: 'c3_mid_bottom', weight: 3 },
+    { from: 'c3_mid_bottom', to: 'c3_s_304', weight: 4 },
+    { from: 'c3_s_304', to: 'room_304', weight: 4 },
+    { from: 'c3_mid_bottom', to: 'c3_se_hall', weight: 11 },
+    { from: 'c3_se_hall', to: 'c3_elv_east', weight: 5 },
+    { from: 'c3_elv_east', to: 'elv_east_3F', weight: 3 },
+    { from: 'c3_se_hall', to: 'c3_303', weight: 3 },
     { from: 'c3_303', to: 'room_303', weight: 5 },
-    { from: 'c3_303', to: 'c3_stair_east', weight: 4 },
-    { from: 'c3_stair_east', to: 'stair_east_3F', weight: 5 },
-    { from: 'c3_stair_east', to: 'c3_302', weight: 5 },
+    { from: 'c3_303', to: 'c3_stair_hall', weight: 5 },
+    { from: 'c3_stair_hall', to: 'c3_stair_east', weight: 5 },
+    { from: 'c3_stair_east', to: 'stair_east_3F', weight: 2 },
+    { from: 'c3_stair_hall', to: 'c3_302', weight: 3 },
     { from: 'c3_302', to: 'room_302', weight: 5 },
     { from: 'c3_302', to: 'room_312', weight: 6 },
     { from: 'c3_302', to: 'c3_301', weight: 10 },
     { from: 'c3_301', to: 'room_301', weight: 5 },
     { from: 'c3_301', to: 'room_313', weight: 6 },
 
-    // --- [4F] 복도 연결 ---
-    { from: 'elv_west_4F', to: 'c4_w_elv', weight: 5 },
-    { from: 'stair_west_4F', to: 'c4_w_stair', weight: 4 },
-    { from: 'c4_w_stair', to: 'c4_w_mid', weight: 7 },
-    { from: 'c4_w_elv', to: 'c4_w_mid', weight: 7 },
+    // --- [4F] 복도 연결 (완전 직각 ㄱ/ㄴ자 복도 중심선 연결) ---
+    { from: 'elv_west_4F', to: 'c4_w_elv', weight: 7 },
+    { from: 'c4_w_elv', to: 'c4_w_stair_mid', weight: 5 },
+    { from: 'c4_w_stair_mid', to: 'c4_w_stair', weight: 11 },
+    { from: 'c4_w_stair', to: 'stair_west_4F', weight: 3 },
+    { from: 'c4_w_stair_mid', to: 'c4_w_mid', weight: 7 },
     { from: 'c4_w_mid', to: 'room_410', weight: 6 },
-    { from: 'c4_w_mid', to: 'c4_sw_corner', weight: 10 },
-    { from: 'c4_sw_corner', to: 'c4_409', weight: 5 },
+    { from: 'c4_w_mid', to: 'c4_sw_corner', weight: 6 },
+    { from: 'c4_sw_corner', to: 'c4_409', weight: 3 },
     { from: 'c4_409', to: 'room_409', weight: 8 },
     { from: 'c4_409', to: 'c4_408', weight: 8 },
     { from: 'c4_408', to: 'room_408', weight: 8 },
-    { from: 'c4_408', to: 'room_411', weight: 6 },
+    { from: 'c4_408', to: 'room_411', weight: 5 },
     { from: 'c4_408', to: 'c4_407', weight: 8 },
     { from: 'c4_407', to: 'room_407', weight: 8 },
-    { from: 'c4_407', to: 'room_412', weight: 6 },
+    { from: 'c4_407', to: 'room_412', weight: 5 },
     { from: 'c4_407', to: 'c4_406', weight: 8 },
     { from: 'c4_406', to: 'room_406', weight: 8 },
     { from: 'c4_406', to: 'wc_women_4F', weight: 4 },
-    { from: 'c4_406', to: 'c4_mid_drop', weight: 9 },
-    { from: 'c4_mid_drop', to: 'wc_men_4F', weight: 7 },
-    { from: 'c4_mid_drop', to: 'room_405', weight: 5 },
-    { from: 'c4_mid_drop', to: 'c4_404', weight: 10 },
+    { from: 'c4_406', to: 'c4_mid_top', weight: 5 },
+    { from: 'c4_mid_top', to: 'wc_men_4F', weight: 4 },
+    { from: 'c4_mid_top', to: 'c4_mid_drop', weight: 7 },
+    { from: 'c4_mid_drop', to: 'c4_405', weight: 3 },
+    { from: 'c4_405', to: 'room_405', weight: 5 },
+    { from: 'c4_405', to: 'c4_404', weight: 8 },
     { from: 'c4_404', to: 'room_404', weight: 5 },
     { from: 'c4_404', to: 'room_413', weight: 6 },
-    { from: 'c4_404', to: 'c4_elv_east', weight: 6 },
-    { from: 'c4_elv_east', to: 'elv_east_4F', weight: 6 },
-    { from: 'c4_elv_east', to: 'c4_403', weight: 4 },
+    { from: 'c4_404', to: 'c4_elv_hall', weight: 6 },
+    { from: 'c4_elv_hall', to: 'c4_elv_east', weight: 5 },
+    { from: 'c4_elv_east', to: 'elv_east_4F', weight: 3 },
+    { from: 'c4_elv_hall', to: 'c4_403', weight: 3 },
     { from: 'c4_403', to: 'room_403', weight: 5 },
-    { from: 'c4_403', to: 'c4_stair_east', weight: 4 },
-    { from: 'c4_stair_east', to: 'stair_east_4F', weight: 5 },
-    { from: 'c4_stair_east', to: 'c4_402', weight: 5 },
+    { from: 'c4_403', to: 'c4_stair_hall', weight: 5 },
+    { from: 'c4_stair_hall', to: 'c4_stair_east', weight: 5 },
+    { from: 'c4_stair_east', to: 'stair_east_4F', weight: 2 },
+    { from: 'c4_stair_hall', to: 'c4_402', weight: 3 },
     { from: 'c4_402', to: 'room_402', weight: 5 },
     { from: 'c4_402', to: 'room_414', weight: 6 },
     { from: 'c4_402', to: 'c4_401', weight: 10 },
     { from: 'c4_401', to: 'room_401', weight: 5 },
     { from: 'c4_401', to: 'room_415', weight: 6 },
 
-    // --- [5F] 복도 연결 ---
-    { from: 'elv_west_5F', to: 'c5_w_elv', weight: 5 },
-    { from: 'stair_west_5F', to: 'c5_w_stair', weight: 4 },
-    { from: 'c5_w_stair', to: 'c5_w_mid', weight: 8 },
-    { from: 'c5_w_elv', to: 'c5_w_mid', weight: 11 },
-    { from: 'c5_w_mid', to: 'room_515', weight: 5 },
-    { from: 'c5_w_mid', to: 'c5_sw_corner', weight: 10 },
-    { from: 'c5_sw_corner', to: 'room_514', weight: 7 },
-    { from: 'c5_sw_corner', to: 'c5_513', weight: 10 },
+    // --- [5F] 복도 연결 (완전 직각 ㄱ/ㄴ자 복도 중심선 연결) ---
+    { from: 'elv_west_5F', to: 'c5_w_elv', weight: 4 },
+    { from: 'c5_w_elv', to: 'c5_w_stair_mid', weight: 5 },
+    { from: 'c5_w_stair_mid', to: 'c5_w_stair', weight: 9 },
+    { from: 'c5_w_stair', to: 'stair_west_5F', weight: 3 },
+    { from: 'c5_w_stair_mid', to: 'c5_w_mid', weight: 9 },
+    { from: 'c5_w_mid', to: 'room_515', weight: 4 },
+    { from: 'c5_w_mid', to: 'c5_sw_corner', weight: 7 },
+    { from: 'c5_sw_corner', to: 'c5_514_door', weight: 3 },
+    { from: 'c5_514_door', to: 'room_514', weight: 6 },
+    { from: 'c5_sw_corner', to: 'c5_513', weight: 9 },
     { from: 'c5_513', to: 'room_513', weight: 6 },
-    { from: 'c5_513', to: 'wc_men_5F', weight: 6 },
-    { from: 'c5_513', to: 'wc_women_5F', weight: 8 },
-    { from: 'c5_513', to: 'c5_510', weight: 16 },
+    { from: 'c5_513', to: 'c5_wc_m', weight: 2 },
+    { from: 'c5_wc_m', to: 'wc_men_5F', weight: 6 },
+    { from: 'c5_wc_m', to: 'c5_wc_w', weight: 4 },
+    { from: 'c5_wc_w', to: 'wc_women_5F', weight: 6 },
+    { from: 'c5_wc_w', to: 'c5_510', weight: 12 },
     { from: 'c5_510', to: 'room_510', weight: 6 },
-    { from: 'c5_510', to: 'c5_508', weight: 14 },
+    { from: 'c5_510', to: 'c5_mid_top', weight: 9 },
+    { from: 'c5_mid_top', to: 'c5_mid_drop', weight: 3 },
+    { from: 'c5_mid_drop', to: 'c5_508', weight: 3 },
     { from: 'c5_508', to: 'room_508', weight: 5 },
-    { from: 'c5_508', to: 'room_524', weight: 6 },
-    { from: 'c5_508', to: 'c5_507', weight: 10 },
+    { from: 'c5_508', to: 'c5_524_door', weight: 3 },
+    { from: 'c5_524_door', to: 'room_524', weight: 5 },
+    { from: 'c5_524_door', to: 'c5_507', weight: 8 },
     { from: 'c5_507', to: 'room_507', weight: 5 },
-    { from: 'c5_507', to: 'c5_elv_east', weight: 5 },
-    { from: 'c5_elv_east', to: 'elv_east_5F', weight: 5 },
-    { from: 'c5_elv_east', to: 'c5_stair_east', weight: 4 },
-    { from: 'c5_stair_east', to: 'stair_east_5F', weight: 5 },
-    { from: 'c5_stair_east', to: 'c5_505', weight: 5 },
+    { from: 'c5_507', to: 'c5_elv_hall', weight: 3 },
+    { from: 'c5_elv_hall', to: 'c5_elv_east', weight: 5 },
+    { from: 'c5_elv_east', to: 'elv_east_5F', weight: 3 },
+    { from: 'c5_elv_hall', to: 'c5_stair_hall', weight: 7 },
+    { from: 'c5_stair_hall', to: 'c5_stair_east', weight: 5 },
+    { from: 'c5_stair_east', to: 'stair_east_5F', weight: 2 },
+    { from: 'c5_stair_hall', to: 'c5_505', weight: 2 },
     { from: 'c5_505', to: 'room_505', weight: 5 },
-    { from: 'c5_505', to: 'room_527', weight: 6 },
-    { from: 'c5_505', to: 'c5_503', weight: 7 },
+    { from: 'c5_505', to: 'c5_527_door', weight: 4 },
+    { from: 'c5_527_door', to: 'room_527', weight: 6 },
+    { from: 'c5_527_door', to: 'c5_503', weight: 4 },
     { from: 'c5_503', to: 'room_503', weight: 5 },
-    { from: 'c5_503', to: 'c5_501', weight: 7 },
+    { from: 'c5_503', to: 'c5_501', weight: 8 },
     { from: 'c5_501', to: 'room_501', weight: 5 },
     { from: 'c5_501', to: 'room_530', weight: 6 },
 
@@ -1964,16 +2058,323 @@ class IndoorMultiFloorRouter {
   }
 
   /**
-   * 야외 출발지(startBuildingId)에 따라 IT대학의 최적 진입 출입구를 자동 판별
+   * 야외 출발지(startBuildingId) 및 선택된 이동 루트(큰길 우선 vs 최단거리)에 따라
+   * IT대학의 최적 진입 출입구를 동적으로 판별
    */
-  resolveEntranceForOutdoorOrigin(outdoorOriginId) {
+  resolveEntranceForOutdoorOrigin(outdoorOriginId, routePreference = 'shortest') {
+    const ent1F = this.data.entrances.find((e) => e.id === 'ent_1f_main') || this.data.entrances[0];
+    const ent2F = this.data.entrances.find((e) => e.id === 'ent_2f_south') || this.data.entrances[1] || ent1F;
+    const ent3F = this.data.entrances.find((e) => e.id === 'ent_3f_west') || this.data.entrances[2] || ent1F;
+
+    const westOrigins = [
+      'west_gate_cu',
+      'global_business',
+      'dormitory',
+      'amaranth_hall',
+      'music_college',
+      'law_college',
+    ];
+    if (outdoorOriginId && westOrigins.includes(outdoorOriginId)) {
+      return ent3F;
+    }
+
+    // 큰길 우선(mainRoad)인 경우 정문/동측에서 출발해도 중앙 사거리 -> 서측 학술로를 따라 2층 남측 출입구로 진입!
+    if (routePreference === 'mainRoad') {
+      return ent2F;
+    }
+
     if (!outdoorOriginId) {
-      return this.data.entrances[0]; // 기본값: 남동측 1층 주출입구 (1F)
+      return ent1F;
     }
     const matched = this.data.entrances.find(
       (ent) => Array.isArray(ent.approachFrom) && ent.approachFrom.includes(outdoorOriginId)
     );
-    return matched || this.data.entrances[0];
+    return matched || ent1F;
+  }
+
+  /**
+   * 실내 도면 위에서 마우스 클릭으로 지정한 임의 좌표(x%, y%)를 출발 노드로 등록하고
+   * 가장 가까운 복도 노드에 직교(90도) 연결하여 정밀 실내 시뮬레이션 지원
+   */
+  ensureCustomIndoorPointNode(floorId = '1F', xPct = 50, yPct = 76, customLabel = '도면 클릭 출발지') {
+    const normalizedFloor = String(floorId || '1F').toUpperCase().endsWith('F')
+      ? String(floorId).toUpperCase()
+      : `${parseInt(floorId, 10) || 1}F`;
+
+    const corridorsOnFloor = Object.values(this.nodes).filter(
+      (n) => n.floor === normalizedFloor && n.type === 'corridor'
+    );
+    if (corridorsOnFloor.length === 0) return null;
+
+    const clampedX = Math.max(5, Math.min(95, Number(xPct.toFixed(1))));
+    const clampedY = Math.max(6, Math.min(94, Number(yPct.toFixed(1))));
+
+    let nearestCorridor = corridorsOnFloor[0];
+    let minCorrDist = Infinity;
+    corridorsOnFloor.forEach((c) => {
+      const d = Math.hypot(c.x - clampedX, c.y - clampedY);
+      if (d < minCorrDist) {
+        minCorrDist = d;
+        nearestCorridor = c;
+      }
+    });
+
+    const customNodeId = 'custom_indoor_origin';
+    const customBridgeId = 'custom_indoor_origin_bridge';
+
+    // 기존 임시 간선 정리
+    this.edges = this.edges.filter(
+      (e) =>
+        e.from !== customNodeId &&
+        e.to !== customNodeId &&
+        e.from !== customBridgeId &&
+        e.to !== customBridgeId
+    );
+
+    const bridgeX = clampedX;
+    const bridgeY = nearestCorridor.y;
+
+    this.nodes[customBridgeId] = {
+      id: customBridgeId,
+      floor: normalizedFloor,
+      type: 'corridor',
+      name: `${normalizedFloor} 복도 합류점`,
+      x: bridgeX,
+      y: bridgeY,
+    };
+
+    const customNode = {
+      id: customNodeId,
+      floor: normalizedFloor,
+      type: 'custom_origin',
+      roomNumber: '지정출발',
+      name: `${customLabel} (${normalizedFloor})`,
+      shortLabel: '지정출발',
+      x: clampedX,
+      y: clampedY,
+    };
+    this.nodes[customNodeId] = customNode;
+
+    this.edges.push({
+      from: customNodeId,
+      to: customBridgeId,
+      weight: Math.max(1, Math.round(Math.hypot(clampedX - bridgeX, clampedY - bridgeY))),
+    });
+    this.edges.push({
+      from: customBridgeId,
+      to: nearestCorridor.id,
+      weight: Math.max(1, Math.round(Math.hypot(bridgeX - nearestCorridor.x, bridgeY - nearestCorridor.y))),
+    });
+
+    return customNode;
+  }
+
+  /**
+   * 3자리 호실 번호(예: '310', '202', '416') 입력 시 첫 번째 숫자를 층수로 자동 인식하여
+   * 기존 노드를 반환하거나, 등록되지 않은 호실 번호도 복도 중심선에 직각 연결된 동적 노드로 즉시 생성
+   */
+  ensureDynamicRoomNode(roomNumRaw) {
+    const cleanNum = String(roomNumRaw || '').replace(/[^0-9]/g, '');
+    if (cleanNum.length < 3) return null;
+
+    const exactId = `room_${cleanNum}`;
+    if (this.nodes[exactId]) {
+      return this.nodes[exactId];
+    }
+
+    // 부분 일치 검색 (예: 312 -> room_312 (312-B호), 404 -> room_404 (404-2호))
+    const prefixMatch = Object.values(this.nodes).find(
+      (n) =>
+        n.type === 'classroom' &&
+        (String(n.roomNumber || '').replace(/[^0-9]/g, '') === cleanNum ||
+          String(n.roomNumber || '').startsWith(cleanNum))
+    );
+    if (prefixMatch) return prefixMatch;
+
+    const floorDigit = parseInt(cleanNum.charAt(0), 10);
+    if (floorDigit < 1 || floorDigit > 5) return null;
+    const floorId = `${floorDigit}F`;
+
+    // 도면에 표기된 세부 호실 정밀 좌표 사전 (직각 복도 진입 보장)
+    const blueprintExactRoomCoords = {
+      '202': { x: 62.2, y: 84.8, corrY: 76.8 },
+      '4092': { x: 12.2, y: 85.0, corrY: 76.8 },
+      '502': { x: 89.2, y: 88.0, corrY: 83.8 },
+      '504': { x: 81.0, y: 88.0, corrY: 83.8 },
+      '506': { x: 72.5, y: 88.0, corrY: 83.8 },
+      '509': { x: 47.8, y: 87.0, corrY: 81.2 },
+      '511': { x: 39.5, y: 87.0, corrY: 81.2 },
+      '512': { x: 35.5, y: 87.0, corrY: 81.2 },
+      '516': { x: 19.2, y: 63.0, corrX: 15.5 },
+      '517': { x: 18.5, y: 72.2, corrX: 15.5 },
+      '518': { x: 20.2, y: 77.5, corrY: 81.2 },
+      '519': { x: 35.5, y: 76.0, corrY: 81.2 },
+      '520': { x: 39.5, y: 76.0, corrY: 81.2 },
+      '521': { x: 43.8, y: 76.0, corrY: 81.2 },
+      '522': { x: 47.8, y: 76.0, corrY: 81.2 },
+      '523': { x: 52.0, y: 76.0, corrY: 81.2 },
+      '525': { x: 63.5, y: 79.0, corrY: 83.8 },
+      '526': { x: 76.2, y: 74.0, corrY: 83.8 },
+      '528': { x: 85.0, y: 78.0, corrY: 83.8 },
+      '529': { x: 89.2, y: 78.0, corrY: 83.8 },
+    };
+
+    // 해당 층의 기존 강의실들 중 번호가 가장 가까운 호실과 복도 노드를 찾아 직각 연결
+    const roomsOnFloor = Object.values(this.nodes).filter(
+      (n) => n.floor === floorId && n.type === 'classroom'
+    );
+    const corridorsOnFloor = Object.values(this.nodes).filter(
+      (n) => n.floor === floorId && n.type === 'corridor'
+    );
+    if (corridorsOnFloor.length === 0) return null;
+
+    const exactSpec = blueprintExactRoomCoords[cleanNum];
+    let roomX = 50.0;
+    let roomY = 85.0;
+
+    if (exactSpec) {
+      roomX = exactSpec.x;
+      roomY = exactSpec.y;
+    } else {
+      const targetNum = parseInt(cleanNum, 10);
+      let refRoom = roomsOnFloor[0] || { x: 50.0, y: 85.0 };
+      let minDiff = Infinity;
+      roomsOnFloor.forEach((r) => {
+        const rNum = parseInt(String(r.roomNumber || '').replace(/[^0-9]/g, ''), 10);
+        if (!isNaN(rNum)) {
+          const diff = Math.abs(rNum - targetNum);
+          if (diff < minDiff) {
+            minDiff = diff;
+            refRoom = r;
+          }
+        }
+      });
+      roomX = refRoom.x;
+      roomY = refRoom.y;
+    }
+
+    // 가장 가까운 복도 노드 탐색 및 직각 문 앞 노드(doorNode) 생성
+    let nearestCorridor = corridorsOnFloor[0];
+    let minCorrDist = Infinity;
+    corridorsOnFloor.forEach((c) => {
+      const d = Math.hypot(c.x - roomX, c.y - roomY);
+      if (d < minCorrDist) {
+        minCorrDist = d;
+        nearestCorridor = c;
+      }
+    });
+
+    const doorNodeId = `c_dyn_door_${cleanNum}`;
+    const doorX = exactSpec && exactSpec.corrX ? exactSpec.corrX : roomX;
+    const doorY = exactSpec && exactSpec.corrY ? exactSpec.corrY : nearestCorridor.y;
+
+    this.nodes[doorNodeId] = {
+      id: doorNodeId,
+      floor: floorId,
+      type: 'corridor',
+      name: `${cleanNum}호 문 앞 복도`,
+      x: doorX,
+      y: doorY,
+    };
+
+    const newRoomNode = {
+      id: exactId,
+      floor: floorId,
+      type: 'classroom',
+      roomNumber: `${cleanNum}호`,
+      name: `${cleanNum}호 (IT대학 ${floorDigit}층 강의실)`,
+      dept: `IT대학 ${floorDigit}층`,
+      shortLabel: `${cleanNum}호`,
+      aliases: [`IT대학 ${cleanNum}호`, `${cleanNum}호`, `it ${cleanNum}`, `IT${cleanNum}`],
+      x: roomX,
+      y: roomY,
+    };
+
+    this.nodes[exactId] = newRoomNode;
+    this.edges.push({
+      from: nearestCorridor.id,
+      to: doorNodeId,
+      weight: Math.max(1, Math.round(Math.hypot(nearestCorridor.x - doorX, nearestCorridor.y - doorY))),
+    });
+    this.edges.push({
+      from: doorNodeId,
+      to: exactId,
+      weight: Math.max(2, Math.round(Math.hypot(doorX - roomX, doorY - roomY))),
+    });
+
+    return newRoomNode;
+  }
+
+  /**
+   * [요구사항 4] 현재 GPS 위경도 및 사용자가 선택한 층수(예: '3F')를 대조하여
+   * 해당 층에서 가장 가까운 호실(예: 3층 선택 시 308호 등)을 자동 매칭
+   */
+  matchRoomByGpsAndFloor(lat, lng, floorId = '3F') {
+    const normalizedFloor = String(floorId || '3F').toUpperCase().endsWith('F')
+      ? String(floorId).toUpperCase()
+      : `${parseInt(floorId, 10) || 3}F`;
+
+    const roomsOnFloor = Object.values(this.nodes).filter(
+      (n) => n.floor === normalizedFloor && n.type === 'classroom'
+    );
+    if (roomsOnFloor.length === 0) return null;
+
+    // IT대학 외곽 위경도 바운딩 박스 -> 도면 (x: 8~92%, y: 10~90%) 선형 매핑
+    const minLat = 37.20955;
+    const maxLat = 37.21055;
+    const minLng = 126.97485;
+    const maxLng = 126.97605;
+
+    const isInsideBuildingBounds =
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      lat >= minLat - 0.0005 &&
+      lat <= maxLat + 0.0005 &&
+      lng >= minLng - 0.0005 &&
+      lng <= maxLng + 0.0005;
+
+    if (!isInsideBuildingBounds) {
+      // 기본 대표 호실 (3층 -> 308호, 2층 -> 203호, 1층 -> 101호, 4층 -> 408호, 5층 -> 508호)
+      const preferredByFloor = {
+        '1F': 'room_101',
+        '2F': 'room_203',
+        '3F': 'room_308',
+        '4F': 'room_408',
+        '5F': 'room_508',
+      };
+      const prefId = preferredByFloor[normalizedFloor];
+      if (prefId && this.nodes[prefId]) return this.nodes[prefId];
+      return roomsOnFloor[0];
+    }
+
+    const mappedX = Math.max(8, Math.min(92, ((lng - minLng) / (maxLng - minLng)) * 84 + 8));
+    const mappedY = Math.max(10, Math.min(90, ((maxLat - lat) / (maxLat - minLat)) * 80 + 10));
+
+    let bestRoom = roomsOnFloor[0];
+    let bestDist = Infinity;
+    roomsOnFloor.forEach((room) => {
+      const d = Math.hypot(room.x - mappedX, room.y - mappedY);
+      if (d < bestDist) {
+        bestDist = d;
+        bestRoom = room;
+      }
+    });
+
+    return bestRoom;
+  }
+
+  /**
+   * [요구사항 4] 실내 호실(예: 308호)에서 출발하여 야외 목적지(예: 정문)로 나갈 때
+   * [308호 ➔ 3층 복도 ➔ 3층 계단/엘리베이터 ➔ 1층 출입구]로 이어지는 실내 탈출 경로 계산
+   */
+  findExitRouteFromRoom(startRoomId, outdoorDestId = 'main_gate', transitMode = 'stairs') {
+    const exitEntrance = this.resolveEntranceForOutdoorOrigin(outdoorDestId);
+    const exitNodeId = exitEntrance ? exitEntrance.nodeId : 'ent_1f_main';
+    const route = this.findRoute(startRoomId, exitNodeId, transitMode);
+    return {
+      route,
+      exitEntrance,
+    };
   }
 }
 

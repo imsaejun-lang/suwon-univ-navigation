@@ -9,12 +9,12 @@ const SUWON_CAMPUS_CONFIG = {
   // 수원대학교 중심 좌표 (위도 37.210, 경도 126.979 부근)
   center: [37.2100, 126.9768],
   defaultZoom: 16,
-  minZoom: 15,
-  maxZoom: 19,
-  // 캠퍼스 외부로 화면이 너무 멀리 벗어나지 않도록 바운더리 제한 (경상대/기숙사 서측 끝단 ~ 공학관 동측 끝단 포함)
+  minZoom: 13,
+  maxZoom: 22,
+  // 캠퍼스 외부 및 주변 지역까지 여유롭게 축소·탐색할 수 있도록 바운더리 대폭 확장
   maxBounds: [
-    [37.2035, 126.9680], // 남서쪽 한계 (SW)
-    [37.2168, 126.9865], // 북동쪽 한계 (NE)
+    [37.1850, 126.9400], // 남서쪽 한계 (SW)
+    [37.2350, 127.0150], // 북동쪽 한계 (NE)
   ],
 };
 
@@ -200,16 +200,16 @@ const CAMPUS_NODES = {
     amenityLabel: 'B1 CU 편의점 · 메이커스페이스',
     badgeColor: '#08386b',
     icon: 'building-2',
-    lat: 37.21112,
-    lng: 126.97995,
-    entranceLat: 37.21125,
-    entranceLng: 126.97955,
+    lat: 37.211157,
+    lng: 126.979535,
+    entranceLat: 37.211157,
+    entranceLng: 126.979535,
     photoUrl: 'assets/buildings/b_37.png',
     thumbUrl: 'assets/buildings/b_37.png',
     keywords: ['미래혁신관', '미혁', '메이커스페이스', '창업지원단', 'CU편의점', '카페', '간호학과'],
     description: '메이커스페이스, 첨단 강의실, CU 편의점 및 카페가 입점한 대규모 현대식 복합 교육관입니다.',
     facilities: ['1F 로비 카페', 'B1 CU 편의점', '메이커스페이스', '대형 계단강의실', '첨단 세미나실'],
-    rooms: ['101호 대형강의실', '102호 전산실습실', '201호 메이커스페이스', '301호 간호학실습실'],
+    rooms: ['101호 대형강의실', '102호 전산실습실', '201호 메이커스페이스', '301호 간호학실습실', '308호 전공강의실'],
     floors: '지하 3층 ~ 지상 8층',
     indoorAvailable: true,
     indoorPreview: '1F 아트리움 로비 · 계단강의실 · CU편의점 · 코워킹 스페이스',
@@ -785,30 +785,30 @@ const CAMPUS_NODES = {
   amaranth_hall: {
     id: 'amaranth_hall',
     campusNo: '23',
-    name: '아마랜스홀',
-    fullName: '문화예술융합대학 (아마랜스홀 · 복지관)',
-    subtitle: '수원대학교 23번 건물 · 문화예술/복지관',
-    englishName: 'Amaranth Hall & Welfare Building',
+    name: '복지관 (아마랜스홀)',
+    fullName: '복지관 (아마랜스홀 · 문화예술융합대학)',
+    subtitle: '수원대학교 23번 건물 · 복지관(아마랜스홀)',
+    englishName: 'Welfare Building (Amaranth Hall)',
     type: 'building',
     filterCategories: ['building', 'food', 'amenity'],
     category: '문화예술/복지',
-    foodLabel: '아마랜스 카페 · 교직원/학생 식당',
-    amenityLabel: '소극장 · 공연연습실 · 편의시설',
+    foodLabel: '복지관 학생/교직원 식당 · 아마랜스 카페',
+    amenityLabel: '복지매점 · 소극장 · 공연연습실 · 편의시설',
     badgeColor: '#08386b',
     icon: 'theater',
-    lat: 37.20995,
-    lng: 126.97365,
-    entranceLat: 37.20998,
-    entranceLng: 126.97385,
+    lat: 37.21092,
+    lng: 126.97185,
+    entranceLat: 37.21105,
+    entranceLng: 126.97195,
     photoUrl: 'assets/buildings/b_18.png',
     thumbUrl: 'assets/buildings/b_18.png',
-    keywords: ['아마랜스홀', '문화예술융합대학', '복지관', '연극영화', '무용', '문화콘텐츠', '벨칸토아트센터'],
-    description: '공연예술·연극·영화·무용 실습 공간과 복지 편의시설이 함께 자리한 복합 예술·복지관입니다.',
-    facilities: ['블랙박스 소극장', '무용실습실', '영상편집실', '복지매점/카페'],
+    keywords: ['복지관', '아마랜스홀', '복지관(아마랜스홀)', '문화예술융합대학', '연극영화', '무용', '문화콘텐츠', '학생식당'],
+    description: '수원대학교 서측 기숙사·음악대학 인근에 위치한 복지관(아마랜스홀)으로 학생 복지 편의시설과 공연예술 실습 공간이 함께 자리하고 있습니다.',
+    facilities: ['복지관 식당/카페', '블랙박스 소극장', '무용실습실', '영상편집실', '복지매점'],
     rooms: ['1F 로비 · 복지시설', '2F 공연실습실', '3F 연기/무용 스튜디오'],
     floors: '지하 2층 ~ 지상 4층',
     indoorAvailable: true,
-    indoorPreview: 'B2~4F 공연예술 스튜디오 및 복지시설',
+    indoorPreview: 'B2~4F 복지관 편의시설 및 공연예술 스튜디오',
     floorPlans: [
       { floor: 'B2', label: '지하 2층', file: '수원대학교 건물도면/수원대학교 건물도면/22.복지관/00.pdf', summary: '소극장 · 무대제작실' },
       { floor: 'B1', label: '지하 1층', file: '수원대학교 건물도면/수원대학교 건물도면/22.복지관/0.pdf', summary: '무용/연기 연습실 · 식당홀' },
@@ -896,13 +896,21 @@ const CAMPUS_NODES = {
   // ==========================================
   // 5. 캠퍼스 보행로 교차점 및 갈림길 노드 (Walkway Graph Nodes)
   // ==========================================
+  j_gate_curve: {
+    id: 'j_gate_curve',
+    name: '정문 진입 커브길',
+    type: 'junction',
+    isMajorJunction: true,
+    lat: 37.21419,
+    lng: 126.978886,
+  },
   j_gate_inner: {
     id: 'j_gate_inner',
     name: '정문 진입로 삼거리',
     type: 'junction',
     isMajorJunction: true,
-    lat: 37.21335,
-    lng: 126.97828,
+    lat: 37.213105,
+    lng: 126.97821,
   },
   j_sports_road: {
     id: 'j_sports_road',
@@ -917,24 +925,24 @@ const CAMPUS_NODES = {
     name: '대운동장 북측 갈림길',
     type: 'junction',
     isMajorJunction: true,
-    lat: 37.21180,
-    lng: 126.97784,
+    lat: 37.211738,
+    lng: 126.97777,
   },
   j_future_west: {
     id: 'j_future_west',
     name: '미래혁신관 서측 갈림길',
     type: 'junction',
     isMajorJunction: true,
-    lat: 37.21164,
-    lng: 126.97918,
+    lat: 37.21048,
+    lng: 126.97936,
   },
   j_field_west: {
     id: 'j_field_west',
     name: '대운동장 서측 갈림길',
     type: 'junction',
     isMajorJunction: true,
-    lat: 37.21120,
-    lng: 126.97740,
+    lat: 37.211037,
+    lng: 126.977298,
   },
   j_it_walkway_ne: {
     id: 'j_it_walkway_ne',
@@ -966,7 +974,7 @@ const CAMPUS_NODES = {
     type: 'junction',
     isMajorJunction: true,
     lat: 37.20955,
-    lng: 126.97705,
+    lng: 126.977019,
   },
   j_lib_north: {
     id: 'j_lib_north',
@@ -997,16 +1005,16 @@ const CAMPUS_NODES = {
     name: '종합강의동 북측 삼거리',
     type: 'junction',
     isMajorJunction: true,
-    lat: 37.20962,
-    lng: 126.97861,
+    lat: 37.209649,
+    lng: 126.978838,
   },
   j_eng_cross: {
     id: 'j_eng_cross',
     name: '공과대학 앞 사거리',
     type: 'junction',
     isMajorJunction: true,
-    lat: 37.20987,
-    lng: 126.97916,
+    lat: 37.209926,
+    lng: 126.979219,
   },
   j_eng_south: {
     id: 'j_eng_south',
@@ -1116,10 +1124,12 @@ const CAMPUS_NODES = {
 
 /**
  * 캠퍼스 보행로(간선, Edges) 데이터 - 22개 전체 건물을 빈틈없이 연결
+ * (대운동장 북측 철망/막힌 지름길 제거 및 실제 캠퍼스 순환 차도·보행로 정밀 매핑)
  */
 const CAMPUS_EDGES = [
   // 1. 정문 ~ 인문사회대 ~ 체육대학 ~ 대운동장 북측 (캠퍼스 메인 간선 차도)
-  { from: 'main_gate', to: 'j_gate_inner', roadName: '정문 진입 주도로', isDriveway: true, isMainRoad: true },
+  { from: 'main_gate', to: 'j_gate_curve', roadName: '정문 진입 주도로', isDriveway: true, isMainRoad: true },
+  { from: 'j_gate_curve', to: 'j_gate_inner', roadName: '정문 진입 주도로', isDriveway: true, isMainRoad: true },
   { from: 'j_gate_inner', to: 'humanities_college', roadName: '인문사회대학 진입로', isDriveway: false },
   { from: 'j_gate_inner', to: 'j_sports_road', roadName: '와우 캠퍼스 중앙로 (차도)', isDriveway: true, isMainRoad: true },
   { from: 'j_sports_road', to: 'sports_college', roadName: '체육대학 정문 진입로', isDriveway: false },
@@ -1131,11 +1141,8 @@ const CAMPUS_EDGES = [
   { from: 'j_back_gate_cross', to: 'eng_building_2', roadName: '제2공학관 후문 연결로', isDriveway: false },
   { from: 'j_back_gate_cross', to: 'sculpture_hall', roadName: '조형관-후문 연결로', isDriveway: false },
 
-  // 2. 대운동장 북측 ~ 미래혁신관 ~ 공과대학 ~ 공학관군
-  { from: 'j_field_north', to: 'j_future_west', roadName: '미래혁신관 북측 보행로', isDriveway: false },
-  { from: 'j_future_west', to: 'future_innovation', roadName: '미래혁신관 정문 진입로', isDriveway: false },
-  { from: 'j_future_west', to: 'j_eng_cross', roadName: '미래혁신관 서측 순환로', isDriveway: false },
-  { from: 'j_eng_cross', to: 'future_innovation', roadName: '미래혁신관 남측 보행로', isDriveway: false },
+  // 2. 공과대학 사거리 ~ 미래혁신관 ~ 공학관군 (대운동장 남측/동측 정식 순환 도로 연결)
+  { from: 'j_eng_cross', to: 'future_innovation', roadName: '미래혁신관 진입 차도', isDriveway: true, isMainRoad: true },
   { from: 'j_eng_cross', to: 'eng_main', roadName: '혁신공과대학 정문 진입로', isDriveway: false },
   { from: 'j_eng_cross', to: 'advanced_tech_inst', roadName: '고운첨단과학기술연구원 진입로', isDriveway: false },
   { from: 'j_eng_cross', to: 'j_lecture_north', roadName: '동측 캠퍼스 연결 차도', isDriveway: true, isMainRoad: true },
@@ -1147,7 +1154,8 @@ const CAMPUS_EDGES = [
 
   // 3. 대운동장 서측 ~ IT대학 ~ 중앙 사거리 (넓은 아스팔트 차도 및 지름길 숲길)
   { from: 'j_field_north', to: 'j_field_west', roadName: '대운동장 서측 차도', isDriveway: true, isMainRoad: true },
-  { from: 'j_field_west', to: 'j_field_south', roadName: '대운동장 서측 차도', isDriveway: true, isMainRoad: true },
+  { from: 'j_field_west', to: 'j_central_cross', roadName: '대운동장 서측 차도', isDriveway: true, isMainRoad: true },
+  { from: 'j_field_west', to: 'j_field_south', roadName: '대운동장 서측 보행로', isDriveway: false },
   { from: 'j_field_south', to: 'j_it_plaza', roadName: '대운동장 남측 보행로', isDriveway: false },
   { from: 'j_field_south', to: 'j_central_cross', roadName: '캠퍼스 중앙 광장로 (차도)', isDriveway: true, isMainRoad: true },
   { from: 'j_field_west', to: 'j_it_walkway_ne', roadName: '단풍나무 숲길 지름길', isTrail: true, isDriveway: false },
@@ -1155,6 +1163,7 @@ const CAMPUS_EDGES = [
   { from: 'j_it_plaza', to: 'it_college', roadName: 'IT대학 1층 주출입구 광장 보행로', isDriveway: false },
 
   // 4. 캠퍼스 중앙 사거리 ~ 학생회관 ~ 종합강의동 (학생 유동인구가 가장 많은 핵심 큰길)
+  { from: 'j_central_cross', to: 'j_lecture_north', roadName: '중앙-종합강의동 메인 차도', isDriveway: true, isMainRoad: true },
   { from: 'j_central_cross', to: 'j_student_north', roadName: '학생회관 앞 차도', isDriveway: true, isMainRoad: true },
   { from: 'j_student_north', to: 'student_union', roadName: '학생회관 정문 진입로', isDriveway: false },
   { from: 'j_student_north', to: 'j_lecture_north', roadName: '종합강의동 앞 차도', isDriveway: true, isMainRoad: true },
@@ -1177,27 +1186,29 @@ const CAMPUS_EDGES = [
   { from: 'j_main_plaza', to: 'global_talent', roadName: '글로벌인재대학 진입로', isDriveway: false },
   { from: 'central_library', to: 'j_main_plaza', roadName: '도서관-본관 산책로', isTrail: true, isDriveway: false },
 
-  // 6. 서측 캠퍼스 (중앙도서관 ~ IT대학 ~ 자연과학대 ~ 아마랜스홀 ~ 법정대 ~ 음악대 ~ 기숙사 ~ 글로벌경상관)
+  // 6. 서측 캠퍼스 (중앙도서관 ~ IT대학 ~ 자연과학대 ~ 법정대 ~ 음악대 ~ 복지관(아마랜스홀) ~ 기숙사 ~ 글로벌경상관)
   { from: 'j_central_cross', to: 'j_lib_north', roadName: '도서관 북측 차도', isDriveway: true, isMainRoad: true },
   { from: 'j_lib_north', to: 'j_it_plaza', roadName: 'IT대학 남측 보행 연결로', isDriveway: false },
   { from: 'j_lib_north', to: 'j_lib_it_conn', roadName: '서측 학술로 (차도)', isDriveway: true, isMainRoad: true },
-  { from: 'j_lib_it_conn', to: 'it_college', roadName: 'IT대학 2층 남측 출입구 데크 보행로', isDriveway: false },
+  { from: 'j_lib_it_conn', to: 'it_college', roadName: 'IT대학 2층 남측 출입구 진입로', isDriveway: true, isMainRoad: true },
   { from: 'j_lib_it_conn', to: 'central_library', roadName: '중앙도서관 서측 진입로', isDriveway: false },
   { from: 'j_lib_north', to: 'central_library', roadName: '중앙도서관 정문 계단길', isDriveway: false },
   { from: 'j_lib_it_conn', to: 'science_college', roadName: '자연과학대학 정문 진입로', isDriveway: false },
   { from: 'j_lib_it_conn', to: 'j_sci_west', roadName: '서측 캠퍼스 순환 차도', isDriveway: true, isMainRoad: true },
   { from: 'science_college', to: 'j_sci_west', roadName: '자연과학대학 서측 보행로', isDriveway: false },
-  { from: 'j_sci_west', to: 'amaranth_hall', roadName: '아마랜스홀 진입로', isDriveway: false },
+  { from: 'j_sci_west', to: 'it_college', roadName: 'IT대학 3층 서측 언덕 진입로', isDriveway: false },
   { from: 'j_sci_west', to: 'j_law_east', roadName: '사회관(법정대) 진입 차도', isDriveway: true, isMainRoad: true },
-  { from: 'amaranth_hall', to: 'j_law_east', roadName: '아마랜스홀 서측 연결로', isDriveway: false },
   { from: 'j_law_east', to: 'law_college', roadName: '법정대학(사회관) 정문 입구', isDriveway: false },
   { from: 'j_law_east', to: 'j_music_south', roadName: '음악대학 진입 언덕 차도', isDriveway: true, isMainRoad: true },
   { from: 'j_music_south', to: 'music_college', roadName: '음악대학 정문 광장', isDriveway: false },
   { from: 'j_music_south', to: 'j_music_north', roadName: '서측 외곽 순환 차도', isDriveway: true, isMainRoad: true },
   { from: 'music_college', to: 'j_music_north', roadName: '음악대학 북측 연결로', isDriveway: false },
-  { from: 'j_music_north', to: 'j_dorm_east', roadName: '기숙사·경상관 연결 차도', isDriveway: true, isMainRoad: true },
+  { from: 'j_music_north', to: 'amaranth_hall', roadName: '복지관(아마랜스홀) 동측 진입로', isDriveway: false },
+  { from: 'j_music_north', to: 'j_dorm_east', roadName: '기숙사·복지관 연결 차도', isDriveway: true, isMainRoad: true },
+  { from: 'j_dorm_east', to: 'amaranth_hall', roadName: '복지관(아마랜스홀) 정문 진입로', isDriveway: false },
   { from: 'j_dorm_east', to: 'dormitory', roadName: '고운기숙사 진입로', isDriveway: false },
   { from: 'j_dorm_east', to: 'global_business', roadName: '글로벌경상관 정문 진입로', isDriveway: false },
+  { from: 'dormitory', to: 'amaranth_hall', roadName: '기숙사-복지관(아마랜스홀) 보행로', isDriveway: false },
   { from: 'dormitory', to: 'global_business', roadName: '기숙사-글로벌경상관 보행로', isDriveway: false },
 
   // 7. 글로벌경상관 CU 쪽문 (서측 외부 연결 통로) 및 IT대학 서측 언덕길 (3F 직결)

@@ -511,6 +511,7 @@ button {
     opacity: 0;
     transform: translate(-50%, -12px);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, 0);
@@ -664,78 +665,144 @@ button {
 }
 
 /* ==========================================================================
-   4. 지도 위 커스텀 건물 마커 & 내 위치 마커 (UI 예시 01·02 완벽 재현)
+   4. 지도 위 커스텀 건물 마커 & 내 위치 마커 (네이버 지도 스타일 깔끔한 텍스트 + 선택 시 강조 핀)
    ========================================================================== */
 
-/* UI 예시 스타일 건물 카드 마커 + 하단 노란색 입구 포인트 */
+/* 건물 마커 래퍼: 지도 회전 시에도 항상 수평 유지 (--map-rotation-neg) */
 .usw-building-marker-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform: translate(-50%, -92%);
+  transform: translate(-50%, -50%) rotate(var(--map-rotation-neg, 0deg));
+  transform-origin: center center;
   cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: auto;
 }
 
-.usw-building-marker-wrap:hover {
-  transform: translate(-50%, -96%) scale(1.05);
+/* [평상시] 배경 박스 없이 시야를 가리지 않는 깔끔한 흰색 외곽선 텍스트 */
+.usw-building-marker-wrap.is-clean-text {
+  transform: translate(-50%, -50%) rotate(var(--map-rotation-neg, 0deg));
+}
+
+.usw-building-marker-wrap.is-clean-text:hover {
+  transform: translate(-50%, -56%) rotate(var(--map-rotation-neg, 0deg)) scale(1.06);
+  z-index: 650;
+}
+
+.usw-clean-label-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.35);
+  margin-bottom: 1.5px;
+}
+
+.usw-clean-building-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  line-height: 1.15;
+  text-shadow:
+    -1.6px -1.6px 0 rgba(255, 255, 255, 0.98),
+    1.6px -1.6px 0 rgba(255, 255, 255, 0.98),
+    -1.6px 1.6px 0 rgba(255, 255, 255, 0.98),
+    1.6px 1.6px 0 rgba(255, 255, 255, 0.98),
+    0px 2px 4px rgba(15, 23, 42, 0.18);
+  transition: color 0.15s ease;
+}
+
+.usw-building-marker-wrap.is-clean-text:hover .usw-clean-building-label {
+  color: #0068ff;
+}
+
+/* [검색/출발지/목적지 선택 시] 눈에 확 띄는 강조 핀 배지 */
+.usw-building-marker-wrap.is-selected,
+.usw-building-marker-wrap.is-origin,
+.usw-building-marker-wrap.is-search-match {
+  transform: translate(-50%, -95%) rotate(var(--map-rotation-neg, 0deg)) scale(1.05);
+  z-index: 900 !important;
 }
 
 .usw-building-card {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: #ffffff;
-  color: var(--usw-navy);
-  padding: 7px 13px;
-  border-radius: 13px;
-  box-shadow: 0 4px 14px rgba(8, 56, 107, 0.16);
+  gap: 5px;
+  background: var(--usw-navy);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  box-shadow: 0 8px 22px rgba(8, 56, 107, 0.42);
   white-space: nowrap;
-  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  border: 2px solid #ffffff;
   transition: all 0.18s ease;
 }
 
+.usw-building-marker-wrap.is-origin .usw-building-card {
+  background: linear-gradient(135deg, #03c75a 0%, #059669 100%);
+  box-shadow: 0 8px 20px rgba(3, 199, 90, 0.38);
+}
+
+.usw-building-marker-wrap.is-search-match .usw-building-card {
+  background: linear-gradient(135deg, #0068ff 0%, #1d4ed8 100%);
+  box-shadow: 0 8px 20px rgba(0, 104, 255, 0.38);
+}
+
+.usw-building-card .b-role-pill {
+  font-size: 9.5px;
+  font-weight: 900;
+  padding: 1.5px 5.5px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+}
+
 .usw-building-card svg {
-  width: 16px;
-  height: 16px;
-  color: var(--usw-navy);
+  width: 14px;
+  height: 14px;
+  color: #ffffff;
   flex-shrink: 0;
 }
 
 .usw-building-card .b-name {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
-/* 선택된 건물 마커 (UI 예시 02: 짙은 네이비 배경 + 흰색 아이콘/텍스트) */
-.usw-building-marker-wrap.is-selected {
-  transform: translate(-50%, -96%) scale(1.07);
+.usw-marker-pin-tail {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid var(--usw-navy);
+  margin-top: -1px;
 }
 
-.usw-building-marker-wrap.is-selected .usw-building-card {
-  background: var(--usw-navy);
-  color: #ffffff;
-  border-color: var(--usw-navy);
-  box-shadow: 0 8px 22px rgba(8, 56, 107, 0.38);
+.usw-building-marker-wrap.is-origin .usw-marker-pin-tail {
+  border-top-color: #059669;
 }
 
-.usw-building-marker-wrap.is-selected .usw-building-card svg {
-  color: #ffffff;
+.usw-building-marker-wrap.is-search-match .usw-marker-pin-tail {
+  border-top-color: #1d4ed8;
 }
 
 /* 카드 아래 노란색 포인트 점 */
 .usw-marker-gold-dot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--gold-dot);
   border: 2px solid #ffffff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  margin-top: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  margin-top: 1px;
 }
 
-/* 내 위치 마커 (UI 예시의 반투명 원 + 네이비 점 + '내 위치' 텍스트) */
+/* 내 위치 마커 (지도 회전 시에도 텍스트 수평 유지) */
 .user-gps-marker-wrap {
   position: relative;
   width: 64px;
@@ -744,6 +811,7 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  transform: rotate(var(--map-rotation-neg, 0deg));
 }
 
 .user-gps-halo {
@@ -805,12 +873,12 @@ button {
 
 /* 배경 서브 건물 텍스트 라벨 (교양학관, 음악대학, 대운동장 등) */
 .campus-bg-label {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #64748b;
-  text-shadow: -1.5px -1.5px 0 rgba(255, 255, 255, 0.9), 1.5px -1.5px 0 rgba(255, 255, 255, 0.9), -1.5px 1.5px 0 rgba(255, 255, 255, 0.9), 1.5px 1.5px 0 rgba(255, 255, 255, 0.9);
+  text-shadow: -1.5px -1.5px 0 rgba(255, 255, 255, 0.92), 1.5px -1.5px 0 rgba(255, 255, 255, 0.92), -1.5px 1.5px 0 rgba(255, 255, 255, 0.92), 1.5px 1.5px 0 rgba(255, 255, 255, 0.92);
   white-space: nowrap;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(var(--map-rotation-neg, 0deg));
   pointer-events: none;
 }
 
@@ -842,7 +910,7 @@ button {
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.28);
   border: 2px solid #ffffff;
   white-space: nowrap;
-  transform: translate(-50%, -135%);
+  transform: translate(-50%, -135%) rotate(var(--map-rotation-neg, 0deg));
 }
 
 .route-endpoint-pin.start-pin {
@@ -863,141 +931,170 @@ button {
   border: 1.5px solid #ffffff;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
   white-space: nowrap;
-  transform: translate(-50%, -120%);
+  transform: translate(-50%, -120%) rotate(var(--map-rotation-neg, 0deg));
 }
 
 /* ==========================================================================
-   5. 하단 바텀 시트 (Bottom Sheet: UI 예시 01·02 + 길찾기 시트)
-   ========================================================================== */
-/* ==========================================================================
-   5. 하단 바텀 시트 (드래그 이동 / 리사이즈 / 3단계 크기 전환 / 글래스모피즘)
+   5. 하단 고정 바텀 시트 (네이버 지도식 1~3단계 핸들바 스냅 전용)
    ========================================================================== */
 .bottom-sheet {
-  position: fixed;
-  left: 50%;
-  bottom: var(--tab-bar-height);
-  transform: translate(-50%, 0);
-  width: min(520px, calc(100vw - 20px));
-  max-height: calc(76dvh - var(--tab-bar-height));
-  background: rgba(255, 255, 255, 0.88);
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: var(--tab-bar-height) !important;
+  transform: translateX(-50%) !important;
+  width: min(520px, 100vw) !important;
+  max-height: calc(50dvh - var(--tab-bar-height));
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border-radius: 26px 26px 0 0;
-  box-shadow: 0 16px 45px rgba(8, 56, 107, 0.22), 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-radius: 24px 24px 0 0 !important;
+  box-shadow: 0 -8px 34px rgba(8, 56, 107, 0.18), 0 -1px 6px rgba(0, 0, 0, 0.06);
   z-index: 1010;
   display: flex;
   flex-direction: column;
-  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1),
-              width 0.22s ease,
-              height 0.22s ease,
-              border-radius 0.22s ease;
-  border: 1px solid rgba(255, 255, 255, 0.95);
+  transition: max-height 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  border-top: 1px solid rgba(226, 232, 240, 0.95);
   user-select: none;
+  overflow: hidden;
 }
 
-/* 드래그 자유 이동 모드 (Floating Panel) */
-.bottom-sheet.mode-floating {
-  border-radius: 22px !important;
-  transform: none !important;
-  transition: width 0.15s ease, height 0.15s ease !important;
-  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.28) !important;
+/* 1단계 (snap-1): 최소화 (하단 한 줄로 소요시간·남은거리·도착예정시각·진행바 표시) */
+.bottom-sheet.snap-1 {
+  max-height: 78px !important;
+  height: 78px !important;
+  border-radius: 20px 20px 0 0 !important;
 }
 
-/* 1단계: 최소화 (한 줄 슬림 모드) */
-.bottom-sheet.mode-mini {
-  max-height: 62px !important;
-  height: 62px !important;
-  border-radius: 20px 20px 0 0;
-  overflow: hidden !important;
-}
-.bottom-sheet.mode-floating.mode-mini {
-  border-radius: 20px !important;
-}
-.bottom-sheet.mode-mini .sheet-view,
-.bottom-sheet.mode-mini .sheet-drag-handle-area {
+.bottom-sheet.snap-1 .sheet-view {
   display: none !important;
 }
-.bottom-sheet.mode-mini .sheet-mini-bar {
+
+.bottom-sheet.snap-1 .sheet-mini-bar {
   display: flex !important;
 }
 
-/* 2단계: 작게 보기 (컴팩트 모드) */
-.bottom-sheet.mode-compact {
-  max-height: 250px !important;
-  height: 250px !important;
-  border-radius: 22px;
+/* 2단계 (snap-2): 기본 중간 높이 (소요시간, 거리, 경로 옵션, 핵심 요약 표시 / 상세 타임라인 접힘) */
+.bottom-sheet.snap-2 {
+  max-height: calc(52dvh - var(--tab-bar-height)) !important;
+  height: auto !important;
 }
-.bottom-sheet.mode-compact .sheet-view {
-  gap: 8px;
-  padding: 6px 18px 12px;
-}
-.bottom-sheet.mode-compact .test-origin-chips-bar,
-.bottom-sheet.mode-compact .building-facilities-row {
+
+.bottom-sheet.snap-2 .sheet-mini-bar {
   display: none !important;
 }
 
-/* 3단계: 좌측 사이드바 고정 모드 (네이버 지도 PC 스타일) */
-.bottom-sheet.mode-sidebar {
-  position: fixed !important;
-  left: 14px !important;
-  top: 76px !important;
-  bottom: 14px !important;
-  width: 390px !important;
-  max-width: calc(100vw - 28px) !important;
-  max-height: calc(100vh - 90px) !important;
-  height: calc(100vh - 90px) !important;
-  transform: none !important;
-  border-radius: 22px !important;
-  box-shadow: 0 20px 50px rgba(8, 56, 107, 0.25) !important;
+.bottom-sheet.snap-2 #sheetDetailsSection {
+  display: none !important;
 }
 
-.bottom-sheet.collapsed {
-  transform: translate(-50%, calc(100% - 68px));
+/* 3단계 (snap-3): 전체 화면 확장 (출발~도착 상세 타임라인 + 회전 안내 + 도착지 건물 사진 카드 표시) */
+.bottom-sheet.snap-3 {
+  max-height: calc(92dvh - var(--tab-bar-height)) !important;
+  height: calc(92dvh - var(--tab-bar-height)) !important;
 }
 
-/* 최소화(한 줄 모드) 슬림 바 */
-.sheet-mini-bar {
+.bottom-sheet.snap-3 .sheet-mini-bar {
+  display: none !important;
+}
+
+.bottom-sheet.snap-3 #sheetDetailsSection {
+  display: flex !important;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bottom-sheet.snap-3 .checkpoint-timeline {
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
+/* 네이버 지도 1단계 스타일 최소화 슬림 바 */
+.sheet-mini-bar.naver-snap1-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px 18px 10px;
+  height: 100%;
+  cursor: pointer;
+  background: transparent;
+  gap: 7px;
+}
+
+.snap1-top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  height: 100%;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.95);
-  gap: 8px;
+  gap: 10px;
 }
 
-.mini-bar-left {
+.snap1-metrics-inline {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 7px;
   min-width: 0;
-  flex: 1;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
-.mini-pulse-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--naver-green, #03c75a);
-  animation: pulseDot 1.4s infinite;
-  flex-shrink: 0;
+.snap1-time {
+  font-size: 18px;
+  font-weight: 900;
+  color: #0068ff;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 
-.mini-bar-title {
-  font-size: 13.5px;
+.snap1-dist {
+  font-size: 15px;
   font-weight: 800;
   color: #0f172a;
+  white-space: nowrap;
+}
+
+.snap1-eta {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.mini-bar-metrics {
-  font-size: 12px;
-  font-weight: 700;
+.snap1-progress-track {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: visible;
+}
+
+.snap1-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0068ff 0%, #38bdf8 100%);
+  transition: width 0.25s ease;
+}
+
+.snap1-progress-head {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #0068ff;
   color: #0068ff;
-  white-space: nowrap;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 104, 255, 0.35);
+  transition: left 0.25s ease;
 }
 
 .mini-bar-actions {
@@ -1011,7 +1108,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: 8px;
   font-size: 11.5px;
   font-weight: 700;
@@ -1021,8 +1118,8 @@ button {
 }
 
 .mini-action-btn svg {
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
 }
 
 .mini-action-btn.primary {
@@ -1038,92 +1135,15 @@ button {
 .mini-action-btn.expand {
   background: #f1f5f9;
   color: #334155;
+  padding: 5px 7px;
 }
 
-.mini-action-btn:hover {
-  transform: translateY(-1px);
-}
-
-/* 크기 조절 리사이즈 핸들 */
-.sheet-resize-handle {
-  position: absolute;
-  z-index: 1050;
-  touch-action: none;
-}
-.sheet-resize-handle.top {
-  top: -6px;
-  left: 24px;
-  right: 24px;
-  height: 12px;
-  cursor: ns-resize;
-}
-.sheet-resize-handle.top-left {
-  top: -6px;
-  left: -6px;
-  width: 20px;
-  height: 20px;
-  cursor: nwse-resize;
-}
-.sheet-resize-handle.top-right {
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  cursor: nesw-resize;
-}
-.sheet-resize-handle.left {
-  left: -6px;
-  top: 24px;
-  bottom: 24px;
-  width: 12px;
-  cursor: ew-resize;
-}
-.sheet-resize-handle.right {
-  right: -6px;
-  top: 24px;
-  bottom: 24px;
-  width: 12px;
-  cursor: ew-resize;
-}
-
-/* 윈도우 컨트롤러 툴바 (최소화, 컴팩트, 사이드바, 리셋, 닫기) */
+/* 윈도우 컨트롤러 툴바 (닫기 버튼만 유지) */
 .sheet-window-controls {
   display: flex;
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
-}
-
-.sheet-ctrl-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background: rgba(248, 250, 252, 0.9);
-  color: #475569;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  padding: 0;
-}
-
-.sheet-ctrl-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-.sheet-ctrl-btn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-  transform: translateY(-1px);
-}
-
-.sheet-ctrl-btn.active {
-  background: var(--usw-navy);
-  color: #ffffff;
-  border-color: var(--usw-navy);
 }
 
 /* [큰길 우선] vs [최단 거리] 탭 버튼 바 */
@@ -1222,6 +1242,7 @@ button {
   cursor: pointer;
   transition: opacity 0.2s, stroke-width 0.2s;
 }
+
 .route-alt-polyline:hover {
   opacity: 1 !important;
   filter: drop-shadow(0 2px 8px rgba(0, 104, 255, 0.45));
@@ -2871,6 +2892,7 @@ button {
     opacity: 0.25;
     transform: translateY(10px) scale(0.97);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -2881,19 +2903,20 @@ button {
   position: relative;
   width: 100%;
   height: 100%;
-  background: #fafcff;
-  border-radius: 22px;
-  border: 2.5px solid #93c5fd;
+  aspect-ratio: 1140 / 930;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 2px solid #93c5fd;
   box-shadow:
     0 18px 45px rgba(8, 56, 107, 0.14),
-    0 0 0 5px rgba(255, 255, 255, 0.85);
+    0 0 0 4px rgba(255, 255, 255, 0.9);
   overflow: hidden;
 }
 
 .indoor-floorplan-img {
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: contain;
   display: block;
 }
 
@@ -2925,6 +2948,7 @@ button {
   0% {
     opacity: 0.72;
   }
+
   100% {
     opacity: 1;
   }
@@ -2940,7 +2964,7 @@ button {
 
 .indoor-badge {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(var(--indoor-rotation-neg, 0deg));
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
@@ -2957,7 +2981,7 @@ button {
 }
 
 .indoor-badge:hover {
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, -50%) rotate(var(--indoor-rotation-neg, 0deg)) scale(1.1);
   z-index: 25;
 }
 
@@ -2997,10 +3021,11 @@ button {
 
 @keyframes targetBadgeBounce {
   0% {
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) rotate(var(--indoor-rotation-neg, 0deg)) scale(1);
   }
+
   100% {
-    transform: translate(-50%, -58%) scale(1.07);
+    transform: translate(-50%, -58%) rotate(var(--indoor-rotation-neg, 0deg)) scale(1.07);
   }
 }
 
@@ -3102,7 +3127,7 @@ button {
 /* 실내 내 위치 마커 */
 .indoor-user-marker {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(var(--indoor-rotation-neg, 0deg));
   z-index: 35;
   pointer-events: none;
 }
@@ -3146,6 +3171,7 @@ button {
     transform: translate(-50%, -50%) scale(0.6);
     opacity: 0.9;
   }
+
   100% {
     transform: translate(-50%, -50%) scale(1.7);
     opacity: 0;
@@ -3295,6 +3321,7 @@ button {
     opacity: 0;
     transform: translateY(16px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -3643,10 +3670,13 @@ button {
 }
 
 @keyframes versionDotPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(1.25);
     opacity: 0.7;
@@ -3692,8 +3722,13 @@ button {
 }
 
 @keyframes spinUpdateIcon {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 2. 신규 업데이트 감지 플로팅 배너 */
@@ -3721,6 +3756,7 @@ button {
     opacity: 0;
     transform: translate(-50%, -24px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, 0) scale(1);
@@ -3735,9 +3771,19 @@ button {
 }
 
 @keyframes rocketShake {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-2px) rotate(-6deg); }
-  75% { transform: translateY(2px) rotate(6deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-2px) rotate(-6deg);
+  }
+
+  75% {
+    transform: translateY(2px) rotate(6deg);
+  }
 }
 
 .update-banner-body {
@@ -3843,6 +3889,7 @@ button {
     opacity: 0;
     transform: translate(-50%, 30px);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, 0);
@@ -4117,8 +4164,17 @@ button {
 }
 
 @keyframes guidePulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.6; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.4);
+    opacity: 0.6;
+  }
 }
 
 .guide-text-col {
@@ -4201,10 +4257,13 @@ button {
 }
 
 @keyframes pulseArrivePin {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 4px 16px rgba(225, 29, 72, 0.4), 0 0 0 4px rgba(244, 63, 94, 0.25);
     transform: scale(1);
   }
+
   50% {
     box-shadow: 0 6px 22px rgba(225, 29, 72, 0.55), 0 0 0 8px rgba(244, 63, 94, 0.15);
     transform: scale(1.04);
@@ -4276,6 +4335,627 @@ button {
     font-size: 12px;
   }
 }
+
+/* ==========================================================================
+   Step 5: 나침반/지도 회전 컨트롤, 3단계 도착지 사진 카드, 실내 층·호실 출발 모달
+   ========================================================================== */
+
+/* 1. 야외 지도 회전 및 네이버 지도식 나침반 컨트롤 */
+#map {
+  transition: transform 0.16s ease-out;
+  transform-origin: center center;
+}
+
+#map.is-rotated {
+  /* 회전 시 가장자리 빈 공간이 보이지 않도록 여유 스케일 확보 */
+  will-change: transform;
+}
+
+.compass-control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  pointer-events: auto;
+}
+
+.compass-btn {
+  width: 50px !important;
+  height: 54px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1.5px solid rgba(8, 56, 107, 0.16) !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  padding: 4px !important;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.compass-btn:hover {
+  transform: translateY(-1px);
+  border-color: #0068ff !important;
+}
+
+.compass-btn.heading-up-active {
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(0, 104, 255, 0.38) !important;
+}
+
+.compass-needle-wrap {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease-out;
+}
+
+.compass-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.compass-mode-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #334155;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.compass-btn.heading-up-active .compass-mode-label {
+  color: #ffffff;
+}
+
+.compass-rotate-mini-btns {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 2px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.1);
+}
+
+.compass-rot-btn {
+  width: 22px;
+  height: 20px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+
+.compass-rot-btn:hover {
+  background: #e2e8f0;
+  color: #0068ff;
+}
+
+/* 2. 바텀 시트 3단계(전체 화면) 도착지 건물 사진 카드 (네이버 지도 3단계 레퍼런스) */
+.route-dest-building-card {
+  margin-top: 6px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rdbc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rdbc-pin-badge {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.rdbc-title-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rdbc-building-name {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.rdbc-building-sub {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.rdbc-photo-wrap {
+  position: relative;
+  width: 100%;
+  height: 156px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #cbd5e1;
+}
+
+.rdbc-building-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rdbc-photo-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.82) 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 3. 실내 층·호실 출발 트리거 버튼 및 모달 ("현재 위치한 층을 골라주세요") */
+.origin-chip.indoor-origin-trigger-btn {
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%) !important;
+  color: #ffffff !important;
+  border-color: #0068ff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 3px 10px rgba(0, 104, 255, 0.25);
+}
+
+.modal-card.floor-select-modal-card {
+  width: min(460px, 100%);
+  max-height: 90dvh;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.floor-select-desc {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.45;
+  margin-top: -4px;
+}
+
+.floor-select-section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.floor-select-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.floor-select-dropdown {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.floor-select-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.floor-select-chip-btn {
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.floor-select-chip-btn:hover {
+  border-color: #0068ff;
+  background: #eff6ff;
+}
+
+.floor-select-chip-btn.active {
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%);
+  border-color: #0068ff;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(0, 104, 255, 0.28);
+}
+
+.fsc-main {
+  font-size: 14.5px;
+  font-weight: 900;
+}
+
+.fsc-sub {
+  font-size: 10.5px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.floor-select-room-match-box {
+  background: #f0f7ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fsrm-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #08386b;
+}
+
+.fsrm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0068ff;
+  box-shadow: 0 0 0 3px rgba(0, 104, 255, 0.2);
+}
+
+.fsrm-room-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fsrm-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.floor-select-integrated-preview {
+  background: #f8fafc;
+  border: 1px dashed #94a3b8;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.btn-confirm-floor-start {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #03c75a 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 800;
+  border: none;
+  box-shadow: 0 8px 20px rgba(3, 199, 90, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn-confirm-floor-start:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* 4. 스마트 키워드 검색 배지 */
+.smart-match-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1.5px 6px;
+  border-radius: 99px;
+  background: #dbeafe;
+  color: #0068ff;
+}
+
+/* ==========================================================================
+   Step 6: 최종 고도화 (Zoom 비례 건물명, 위성 모드, 1단계 스냅 바, 보행로 제외/교정, 건물 자동 매칭)
+   ========================================================================== */
+
+/* 1. 확대/축소(Zoom) 비례 건물명 표시 및 얇은 외곽선 텍스트 */
+.usw-clean-label-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.usw-clean-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #08386b;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.28);
+}
+
+.usw-clean-label-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  white-space: nowrap;
+  text-shadow:
+    -1.2px -1.2px 0 rgba(255, 255, 255, 0.96),
+    1.2px -1.2px 0 rgba(255, 255, 255, 0.96),
+    -1.2px 1.2px 0 rgba(255, 255, 255, 0.96),
+    1.2px 1.2px 0 rgba(255, 255, 255, 0.96),
+    0px 1px 3px rgba(15, 23, 42, 0.16);
+  transition: opacity 0.18s ease, transform 0.18s ease, color 0.15s ease;
+}
+
+.usw-building-marker-wrap:hover .usw-clean-label-text {
+  color: #0068ff;
+}
+
+/* 축소 시(Zoom < 16): 일반 건물명과 서브 라벨을 숨기고 주요 랜드마크(본관, 중앙도서관)만 작게 표시 (단 선택/출발/검색된 건물은 유지) */
+#map.map-zoom-low .usw-building-marker-wrap.is-normal-building:not(.is-selected):not(.is-origin):not(.is-search-match) {
+  display: none !important;
+}
+
+#map.map-zoom-low .campus-bg-label {
+  display: none !important;
+}
+
+#map.map-zoom-low .usw-building-marker-wrap.is-major-landmark:not(.is-selected):not(.is-origin):not(.is-search-match) .usw-clean-label-text {
+  font-size: 11px;
+  font-weight: 800;
+  color: #08386b;
+}
+
+/* 위성 지도(Satellite View) 활성화 시 텍스트 가독성 강화 */
+#map.satellite-mode-active .usw-clean-label-text {
+  color: #ffffff;
+  text-shadow:
+    -1.4px -1.4px 0 rgba(15, 23, 42, 0.96),
+    1.4px -1.4px 0 rgba(15, 23, 42, 0.96),
+    -1.4px 1.4px 0 rgba(15, 23, 42, 0.96),
+    1.4px 1.4px 0 rgba(15, 23, 42, 0.96),
+    0px 2px 5px rgba(0, 0, 0, 0.65);
+}
+
+#map.satellite-mode-active .usw-clean-dot {
+  background: #38bdf8;
+  border-color: #0f172a;
+}
+
+#map.satellite-mode-active .campus-bg-label {
+  color: #e2e8f0;
+  text-shadow:
+    -1.3px -1.3px 0 rgba(15, 23, 42, 0.95),
+    1.3px -1.3px 0 rgba(15, 23, 42, 0.95),
+    -1.3px 1.3px 0 rgba(15, 23, 42, 0.95),
+    1.3px 1.3px 0 rgba(15, 23, 42, 0.95);
+}
+
+/* 2. 우측 상단 [🛰️ 위성 모드] 토글 버튼 */
+.satellite-toggle-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1.5px solid rgba(8, 56, 107, 0.16) !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.15) !important;
+  padding: 4px !important;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.satellite-toggle-btn .sat-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.satellite-toggle-btn .layer-text {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.03em;
+}
+
+.satellite-toggle-btn.satellite-active {
+  background: linear-gradient(135deg, #0f172a 0%, #0284c7 100%) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4) !important;
+}
+
+.satellite-toggle-btn.satellite-active .layer-text {
+  color: #ffffff !important;
+}
+
+/* 3. 네이버 지도 1단계 최소화 바 (`미래혁신관 308호 (약 8분 · 520m) | 안내 종료`) */
+.mini-bar-dest-title {
+  font-size: 14.5px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.mini-bar-metrics-inline {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.mini-bar-metrics-inline .snap1-time {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0068ff;
+}
+
+.mini-bar-metrics-inline .snap1-dist {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mini-stop-nav-btn {
+  padding: 5px 10px !important;
+  border-radius: 8px !important;
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  border: 1px solid #fecaca !important;
+}
+
+.mini-stop-nav-btn:hover {
+  background: #fecaca !important;
+}
+
+/* 4. [🛠️ 보행로 제외/교정] 통행불가 배지 & 툴바 */
+.blocked-edge-badge {
+  background: rgba(15, 23, 42, 0.92);
+  color: #fca5a5;
+  border: 1.5px solid #ef4444;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 3px 10px rgba(239, 68, 68, 0.35);
+}
+
+.ret-blocked-pill {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.ret-btn.clear-blocked {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+}
+
+.ret-btn.clear-blocked:hover {
+  background: #ffe4e6;
+}
+
+/* 5. GPS 기반 '내 위치 기반 건물 자동 매칭' 배지 & 1-터치 층수 칩 */
+.auto-matched-building-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1.5px solid #93c5fd;
+  color: #08386b;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.16s ease;
+}
+
+.auto-matched-building-banner:hover {
+  border-color: #0068ff;
+  box-shadow: 0 4px 12px rgba(0, 104, 255, 0.15);
+}
+
+.amb-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #0068ff;
+  box-shadow: 0 0 0 3px rgba(0, 104, 255, 0.22);
+  flex-shrink: 0;
+}
+
+.amb-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.amb-text strong {
+  color: #0068ff;
+  font-weight: 900;
+}
+
+.amb-hint {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2px 7px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.fsc-num {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+
+
 
 
 /* ==========================================================================
@@ -4322,10 +5002,13 @@ button {
 }
 
 @keyframes versionDotPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(1.25);
     opacity: 0.7;
@@ -4371,8 +5054,13 @@ button {
 }
 
 @keyframes spinUpdateIcon {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 2. 신규 업데이트 감지 플로팅 배너 */
@@ -4400,6 +5088,7 @@ button {
     opacity: 0;
     transform: translate(-50%, -24px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, 0) scale(1);
@@ -4414,9 +5103,19 @@ button {
 }
 
 @keyframes rocketShake {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-2px) rotate(-6deg); }
-  75% { transform: translateY(2px) rotate(6deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-2px) rotate(-6deg);
+  }
+
+  75% {
+    transform: translateY(2px) rotate(6deg);
+  }
 }
 
 .update-banner-body {
@@ -4522,6 +5221,7 @@ button {
     opacity: 0;
     transform: translate(-50%, 30px);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, 0);
@@ -4796,8 +5496,17 @@ button {
 }
 
 @keyframes guidePulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.6; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.4);
+    opacity: 0.6;
+  }
 }
 
 .guide-text-col {
@@ -4880,10 +5589,13 @@ button {
 }
 
 @keyframes pulseArrivePin {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 4px 16px rgba(225, 29, 72, 0.4), 0 0 0 4px rgba(244, 63, 94, 0.25);
     transform: scale(1);
   }
+
   50% {
     box-shadow: 0 6px 22px rgba(225, 29, 72, 0.55), 0 0 0 8px rgba(244, 63, 94, 0.15);
     transform: scale(1.04);
@@ -4955,6 +5667,627 @@ button {
     font-size: 12px;
   }
 }
+
+/* ==========================================================================
+   Step 5: 나침반/지도 회전 컨트롤, 3단계 도착지 사진 카드, 실내 층·호실 출발 모달
+   ========================================================================== */
+
+/* 1. 야외 지도 회전 및 네이버 지도식 나침반 컨트롤 */
+#map {
+  transition: transform 0.16s ease-out;
+  transform-origin: center center;
+}
+
+#map.is-rotated {
+  /* 회전 시 가장자리 빈 공간이 보이지 않도록 여유 스케일 확보 */
+  will-change: transform;
+}
+
+.compass-control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  pointer-events: auto;
+}
+
+.compass-btn {
+  width: 50px !important;
+  height: 54px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1.5px solid rgba(8, 56, 107, 0.16) !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  padding: 4px !important;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.compass-btn:hover {
+  transform: translateY(-1px);
+  border-color: #0068ff !important;
+}
+
+.compass-btn.heading-up-active {
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(0, 104, 255, 0.38) !important;
+}
+
+.compass-needle-wrap {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease-out;
+}
+
+.compass-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.compass-mode-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #334155;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.compass-btn.heading-up-active .compass-mode-label {
+  color: #ffffff;
+}
+
+.compass-rotate-mini-btns {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 2px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.1);
+}
+
+.compass-rot-btn {
+  width: 22px;
+  height: 20px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+
+.compass-rot-btn:hover {
+  background: #e2e8f0;
+  color: #0068ff;
+}
+
+/* 2. 바텀 시트 3단계(전체 화면) 도착지 건물 사진 카드 (네이버 지도 3단계 레퍼런스) */
+.route-dest-building-card {
+  margin-top: 6px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rdbc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rdbc-pin-badge {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.rdbc-title-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rdbc-building-name {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.rdbc-building-sub {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.rdbc-photo-wrap {
+  position: relative;
+  width: 100%;
+  height: 156px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #cbd5e1;
+}
+
+.rdbc-building-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rdbc-photo-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.82) 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 3. 실내 층·호실 출발 트리거 버튼 및 모달 ("현재 위치한 층을 골라주세요") */
+.origin-chip.indoor-origin-trigger-btn {
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%) !important;
+  color: #ffffff !important;
+  border-color: #0068ff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 3px 10px rgba(0, 104, 255, 0.25);
+}
+
+.modal-card.floor-select-modal-card {
+  width: min(460px, 100%);
+  max-height: 90dvh;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.floor-select-desc {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.45;
+  margin-top: -4px;
+}
+
+.floor-select-section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.floor-select-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.floor-select-dropdown {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.floor-select-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.floor-select-chip-btn {
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.floor-select-chip-btn:hover {
+  border-color: #0068ff;
+  background: #eff6ff;
+}
+
+.floor-select-chip-btn.active {
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%);
+  border-color: #0068ff;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(0, 104, 255, 0.28);
+}
+
+.fsc-main {
+  font-size: 14.5px;
+  font-weight: 900;
+}
+
+.fsc-sub {
+  font-size: 10.5px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.floor-select-room-match-box {
+  background: #f0f7ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fsrm-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #08386b;
+}
+
+.fsrm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0068ff;
+  box-shadow: 0 0 0 3px rgba(0, 104, 255, 0.2);
+}
+
+.fsrm-room-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fsrm-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.floor-select-integrated-preview {
+  background: #f8fafc;
+  border: 1px dashed #94a3b8;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.btn-confirm-floor-start {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #03c75a 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 800;
+  border: none;
+  box-shadow: 0 8px 20px rgba(3, 199, 90, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn-confirm-floor-start:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* 4. 스마트 키워드 검색 배지 */
+.smart-match-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1.5px 6px;
+  border-radius: 99px;
+  background: #dbeafe;
+  color: #0068ff;
+}
+
+/* ==========================================================================
+   Step 6: 최종 고도화 (Zoom 비례 건물명, 위성 모드, 1단계 스냅 바, 보행로 제외/교정, 건물 자동 매칭)
+   ========================================================================== */
+
+/* 1. 확대/축소(Zoom) 비례 건물명 표시 및 얇은 외곽선 텍스트 */
+.usw-clean-label-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.usw-clean-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #08386b;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.28);
+}
+
+.usw-clean-label-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  white-space: nowrap;
+  text-shadow:
+    -1.2px -1.2px 0 rgba(255, 255, 255, 0.96),
+    1.2px -1.2px 0 rgba(255, 255, 255, 0.96),
+    -1.2px 1.2px 0 rgba(255, 255, 255, 0.96),
+    1.2px 1.2px 0 rgba(255, 255, 255, 0.96),
+    0px 1px 3px rgba(15, 23, 42, 0.16);
+  transition: opacity 0.18s ease, transform 0.18s ease, color 0.15s ease;
+}
+
+.usw-building-marker-wrap:hover .usw-clean-label-text {
+  color: #0068ff;
+}
+
+/* 축소 시(Zoom < 16): 일반 건물명과 서브 라벨을 숨기고 주요 랜드마크(본관, 중앙도서관)만 작게 표시 (단 선택/출발/검색된 건물은 유지) */
+#map.map-zoom-low .usw-building-marker-wrap.is-normal-building:not(.is-selected):not(.is-origin):not(.is-search-match) {
+  display: none !important;
+}
+
+#map.map-zoom-low .campus-bg-label {
+  display: none !important;
+}
+
+#map.map-zoom-low .usw-building-marker-wrap.is-major-landmark:not(.is-selected):not(.is-origin):not(.is-search-match) .usw-clean-label-text {
+  font-size: 11px;
+  font-weight: 800;
+  color: #08386b;
+}
+
+/* 위성 지도(Satellite View) 활성화 시 텍스트 가독성 강화 */
+#map.satellite-mode-active .usw-clean-label-text {
+  color: #ffffff;
+  text-shadow:
+    -1.4px -1.4px 0 rgba(15, 23, 42, 0.96),
+    1.4px -1.4px 0 rgba(15, 23, 42, 0.96),
+    -1.4px 1.4px 0 rgba(15, 23, 42, 0.96),
+    1.4px 1.4px 0 rgba(15, 23, 42, 0.96),
+    0px 2px 5px rgba(0, 0, 0, 0.65);
+}
+
+#map.satellite-mode-active .usw-clean-dot {
+  background: #38bdf8;
+  border-color: #0f172a;
+}
+
+#map.satellite-mode-active .campus-bg-label {
+  color: #e2e8f0;
+  text-shadow:
+    -1.3px -1.3px 0 rgba(15, 23, 42, 0.95),
+    1.3px -1.3px 0 rgba(15, 23, 42, 0.95),
+    -1.3px 1.3px 0 rgba(15, 23, 42, 0.95),
+    1.3px 1.3px 0 rgba(15, 23, 42, 0.95);
+}
+
+/* 2. 우측 상단 [🛰️ 위성 모드] 토글 버튼 */
+.satellite-toggle-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1.5px solid rgba(8, 56, 107, 0.16) !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.15) !important;
+  padding: 4px !important;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.satellite-toggle-btn .sat-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.satellite-toggle-btn .layer-text {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.03em;
+}
+
+.satellite-toggle-btn.satellite-active {
+  background: linear-gradient(135deg, #0f172a 0%, #0284c7 100%) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4) !important;
+}
+
+.satellite-toggle-btn.satellite-active .layer-text {
+  color: #ffffff !important;
+}
+
+/* 3. 네이버 지도 1단계 최소화 바 (`미래혁신관 308호 (약 8분 · 520m) | 안내 종료`) */
+.mini-bar-dest-title {
+  font-size: 14.5px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.mini-bar-metrics-inline {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.mini-bar-metrics-inline .snap1-time {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0068ff;
+}
+
+.mini-bar-metrics-inline .snap1-dist {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mini-stop-nav-btn {
+  padding: 5px 10px !important;
+  border-radius: 8px !important;
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  border: 1px solid #fecaca !important;
+}
+
+.mini-stop-nav-btn:hover {
+  background: #fecaca !important;
+}
+
+/* 4. [🛠️ 보행로 제외/교정] 통행불가 배지 & 툴바 */
+.blocked-edge-badge {
+  background: rgba(15, 23, 42, 0.92);
+  color: #fca5a5;
+  border: 1.5px solid #ef4444;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 3px 10px rgba(239, 68, 68, 0.35);
+}
+
+.ret-blocked-pill {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.ret-btn.clear-blocked {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+}
+
+.ret-btn.clear-blocked:hover {
+  background: #ffe4e6;
+}
+
+/* 5. GPS 기반 '내 위치 기반 건물 자동 매칭' 배지 & 1-터치 층수 칩 */
+.auto-matched-building-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1.5px solid #93c5fd;
+  color: #08386b;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.16s ease;
+}
+
+.auto-matched-building-banner:hover {
+  border-color: #0068ff;
+  box-shadow: 0 4px 12px rgba(0, 104, 255, 0.15);
+}
+
+.amb-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #0068ff;
+  box-shadow: 0 0 0 3px rgba(0, 104, 255, 0.22);
+  flex-shrink: 0;
+}
+
+.amb-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.amb-text strong {
+  color: #0068ff;
+  font-weight: 900;
+}
+
+.amb-hint {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2px 7px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.fsc-num {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+
+
 
 
 /* ==========================================================================
@@ -5001,10 +6334,13 @@ button {
 }
 
 @keyframes versionDotPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(1.25);
     opacity: 0.7;
@@ -5050,8 +6386,13 @@ button {
 }
 
 @keyframes spinUpdateIcon {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 2. 신규 업데이트 감지 플로팅 배너 */
@@ -5079,6 +6420,7 @@ button {
     opacity: 0;
     transform: translate(-50%, -24px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, 0) scale(1);
@@ -5093,9 +6435,19 @@ button {
 }
 
 @keyframes rocketShake {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-2px) rotate(-6deg); }
-  75% { transform: translateY(2px) rotate(6deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-2px) rotate(-6deg);
+  }
+
+  75% {
+    transform: translateY(2px) rotate(6deg);
+  }
 }
 
 .update-banner-body {
@@ -5201,6 +6553,7 @@ button {
     opacity: 0;
     transform: translate(-50%, 30px);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, 0);
@@ -5475,8 +6828,17 @@ button {
 }
 
 @keyframes guidePulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.6; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.4);
+    opacity: 0.6;
+  }
 }
 
 .guide-text-col {
@@ -5559,10 +6921,13 @@ button {
 }
 
 @keyframes pulseArrivePin {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 4px 16px rgba(225, 29, 72, 0.4), 0 0 0 4px rgba(244, 63, 94, 0.25);
     transform: scale(1);
   }
+
   50% {
     box-shadow: 0 6px 22px rgba(225, 29, 72, 0.55), 0 0 0 8px rgba(244, 63, 94, 0.15);
     transform: scale(1.04);
@@ -5635,3 +7000,765 @@ button {
   }
 }
 
+/* ==========================================================================
+   Step 5: 나침반/지도 회전 컨트롤, 3단계 도착지 사진 카드, 실내 층·호실 출발 모달
+   ========================================================================== */
+
+/* 1. 야외 지도 회전 및 네이버 지도식 나침반 컨트롤 */
+#map {
+  transition: transform 0.16s ease-out;
+  transform-origin: center center;
+}
+
+#map.is-rotated {
+  /* 회전 시 가장자리 빈 공간이 보이지 않도록 여유 스케일 확보 */
+  will-change: transform;
+}
+
+.compass-control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  pointer-events: auto;
+}
+
+.compass-btn {
+  width: 50px !important;
+  height: 54px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1.5px solid rgba(8, 56, 107, 0.16) !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  padding: 4px !important;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.compass-btn:hover {
+  transform: translateY(-1px);
+  border-color: #0068ff !important;
+}
+
+.compass-btn.heading-up-active {
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(0, 104, 255, 0.38) !important;
+}
+
+.compass-needle-wrap {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease-out;
+}
+
+.compass-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.compass-mode-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #334155;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.compass-btn.heading-up-active .compass-mode-label {
+  color: #ffffff;
+}
+
+.compass-rotate-mini-btns {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 2px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.1);
+}
+
+.compass-rot-btn {
+  width: 22px;
+  height: 20px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+
+.compass-rot-btn:hover {
+  background: #e2e8f0;
+  color: #0068ff;
+}
+
+/* 2. 바텀 시트 3단계(전체 화면) 도착지 건물 사진 카드 (네이버 지도 3단계 레퍼런스) */
+.route-dest-building-card {
+  margin-top: 6px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rdbc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rdbc-pin-badge {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.rdbc-title-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rdbc-building-name {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.rdbc-building-sub {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.rdbc-photo-wrap {
+  position: relative;
+  width: 100%;
+  height: 156px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #cbd5e1;
+}
+
+.rdbc-building-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rdbc-photo-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.82) 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 3. 실내 층·호실 출발 트리거 버튼 및 모달 ("현재 위치한 층을 골라주세요") */
+.origin-chip.indoor-origin-trigger-btn {
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%) !important;
+  color: #ffffff !important;
+  border-color: #0068ff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 3px 10px rgba(0, 104, 255, 0.25);
+}
+
+.modal-card.floor-select-modal-card {
+  width: min(460px, 100%);
+  max-height: 90dvh;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.floor-select-desc {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.45;
+  margin-top: -4px;
+}
+
+.floor-select-section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.floor-select-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.floor-select-dropdown {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.floor-select-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.floor-select-chip-btn {
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.floor-select-chip-btn:hover {
+  border-color: #0068ff;
+  background: #eff6ff;
+}
+
+.floor-select-chip-btn.active {
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%);
+  border-color: #0068ff;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(0, 104, 255, 0.28);
+}
+
+.fsc-main {
+  font-size: 14.5px;
+  font-weight: 900;
+}
+
+.fsc-sub {
+  font-size: 10.5px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.floor-select-room-match-box {
+  background: #f0f7ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fsrm-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #08386b;
+}
+
+.fsrm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0068ff;
+  box-shadow: 0 0 0 3px rgba(0, 104, 255, 0.2);
+}
+
+.fsrm-room-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fsrm-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.floor-select-integrated-preview {
+  background: #f8fafc;
+  border: 1px dashed #94a3b8;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.btn-confirm-floor-start {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #03c75a 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 800;
+  border: none;
+  box-shadow: 0 8px 20px rgba(3, 199, 90, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn-confirm-floor-start:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* 4. 스마트 키워드 검색 배지 */
+.smart-match-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1.5px 6px;
+  border-radius: 99px;
+  background: #dbeafe;
+  color: #0068ff;
+}
+
+/* ==========================================================================
+   Step 6: 최종 고도화 (Zoom 비례 건물명, 위성 모드, 1단계 스냅 바, 보행로 제외/교정, 건물 자동 매칭)
+   ========================================================================== */
+
+/* 1. 확대/축소(Zoom) 비례 건물명 표시 및 얇은 외곽선 텍스트 */
+.usw-clean-label-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.usw-clean-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #08386b;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.28);
+}
+
+.usw-clean-label-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  white-space: nowrap;
+  text-shadow:
+    -1.2px -1.2px 0 rgba(255, 255, 255, 0.96),
+    1.2px -1.2px 0 rgba(255, 255, 255, 0.96),
+    -1.2px 1.2px 0 rgba(255, 255, 255, 0.96),
+    1.2px 1.2px 0 rgba(255, 255, 255, 0.96),
+    0px 1px 3px rgba(15, 23, 42, 0.16);
+  transition: opacity 0.18s ease, transform 0.18s ease, color 0.15s ease;
+}
+
+.usw-building-marker-wrap:hover .usw-clean-label-text {
+  color: #0068ff;
+}
+
+/* 축소 시(Zoom < 16): 일반 건물명과 서브 라벨을 숨기고 주요 랜드마크(본관, 중앙도서관)만 작게 표시 (단 선택/출발/검색된 건물은 유지) */
+#map.map-zoom-low .usw-building-marker-wrap.is-normal-building:not(.is-selected):not(.is-origin):not(.is-search-match) {
+  display: none !important;
+}
+
+#map.map-zoom-low .campus-bg-label {
+  display: none !important;
+}
+
+#map.map-zoom-low .usw-building-marker-wrap.is-major-landmark:not(.is-selected):not(.is-origin):not(.is-search-match) .usw-clean-label-text {
+  font-size: 11px;
+  font-weight: 800;
+  color: #08386b;
+}
+
+/* 위성 지도(Satellite View) 활성화 시 텍스트 가독성 강화 */
+#map.satellite-mode-active .usw-clean-label-text {
+  color: #ffffff;
+  text-shadow:
+    -1.4px -1.4px 0 rgba(15, 23, 42, 0.96),
+    1.4px -1.4px 0 rgba(15, 23, 42, 0.96),
+    -1.4px 1.4px 0 rgba(15, 23, 42, 0.96),
+    1.4px 1.4px 0 rgba(15, 23, 42, 0.96),
+    0px 2px 5px rgba(0, 0, 0, 0.65);
+}
+
+#map.satellite-mode-active .usw-clean-dot {
+  background: #38bdf8;
+  border-color: #0f172a;
+}
+
+#map.satellite-mode-active .campus-bg-label {
+  color: #e2e8f0;
+  text-shadow:
+    -1.3px -1.3px 0 rgba(15, 23, 42, 0.95),
+    1.3px -1.3px 0 rgba(15, 23, 42, 0.95),
+    -1.3px 1.3px 0 rgba(15, 23, 42, 0.95),
+    1.3px 1.3px 0 rgba(15, 23, 42, 0.95);
+}
+
+/* 2. 우측 상단 [🛰️ 위성 모드] 토글 버튼 */
+.satellite-toggle-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1.5px solid rgba(8, 56, 107, 0.16) !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.15) !important;
+  padding: 4px !important;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.satellite-toggle-btn .sat-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.satellite-toggle-btn .layer-text {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.03em;
+}
+
+.satellite-toggle-btn.satellite-active {
+  background: linear-gradient(135deg, #0f172a 0%, #0284c7 100%) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4) !important;
+}
+
+.satellite-toggle-btn.satellite-active .layer-text {
+  color: #ffffff !important;
+}
+
+/* 3. 네이버 지도 1단계 최소화 바 (`미래혁신관 308호 (약 8분 · 520m) | 안내 종료`) */
+.mini-bar-dest-title {
+  font-size: 14.5px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.mini-bar-metrics-inline {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.mini-bar-metrics-inline .snap1-time {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0068ff;
+}
+
+.mini-bar-metrics-inline .snap1-dist {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mini-stop-nav-btn {
+  padding: 5px 10px !important;
+  border-radius: 8px !important;
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  border: 1px solid #fecaca !important;
+}
+
+.mini-stop-nav-btn:hover {
+  background: #fecaca !important;
+}
+
+/* 4. [🛠️ 보행로 제외/교정] 통행불가 배지 & 툴바 */
+.blocked-edge-badge {
+  background: rgba(15, 23, 42, 0.92);
+  color: #fca5a5;
+  border: 1.5px solid #ef4444;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 3px 10px rgba(239, 68, 68, 0.35);
+}
+
+.ret-blocked-pill {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.ret-btn.clear-blocked {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+}
+
+.ret-btn.clear-blocked:hover {
+  background: #ffe4e6;
+}
+
+/* 5. GPS 기반 '내 위치 기반 건물 자동 매칭' 배지 & 1-터치 층수 칩 */
+.auto-matched-building-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1.5px solid #93c5fd;
+  color: #08386b;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.16s ease;
+}
+
+.auto-matched-building-banner:hover {
+  border-color: #0068ff;
+  box-shadow: 0 4px 12px rgba(0, 104, 255, 0.15);
+}
+
+.amb-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #0068ff;
+  box-shadow: 0 0 0 3px rgba(0, 104, 255, 0.22);
+  flex-shrink: 0;
+}
+
+.amb-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.amb-text strong {
+  color: #0068ff;
+  font-weight: 900;
+}
+
+.amb-hint {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2px 7px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.fsc-num {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+/* ==========================================================================
+   Step 7: 바텀 시트 3단계(전체 화면) 스크롤/잘림 완전 해결, 안내 취소 버튼 & 지도 클릭 출발지 지정
+   ========================================================================== */
+
+/* 1. 바텀 시트 2단계 / 3단계(전체 화면)에서 '어디로 가볼까요?' 및 '저장한 장소' 스크롤 잘림 해결 */
+.bottom-sheet .sheet-view {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bottom-sheet.snap-2 .explore-preview-list,
+.bottom-sheet.snap-2 #savedBuildingsList {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(34dvh - var(--tab-bar-height));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 14px;
+}
+
+.bottom-sheet.snap-3 .sheet-view {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  padding-bottom: 64px !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bottom-sheet.snap-3 .explore-preview-list,
+.bottom-sheet.snap-3 #savedBuildingsList {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  padding-bottom: 56px !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 2. 길안내 중간 취소 / 안내 종료 버튼 스타일 */
+.sheet-action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-cancel-nav {
+  height: 48px;
+  padding: 0 13px;
+  border-radius: 13px;
+  background: #fee2e2;
+  border: 1.5px solid #fecaca;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.btn-cancel-nav:hover {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+.btn-cancel-nav svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sim-cancel-chip {
+  padding: 2.5px 8px;
+  border-radius: 5px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-left: 3px;
+  transition: background 0.15s ease;
+}
+
+.sim-cancel-chip:hover {
+  background: #fecaca;
+}
+
+/* 3. 시뮬레이션용 [🖱️ 지도에서 출발지 직접 클릭] 버튼 & 마우스 커서 */
+#map.pick-origin-cursor,
+#map.pick-origin-cursor .leaflet-interactive {
+  cursor: crosshair !important;
+}
+
+.test-origin-btn.pick-map-origin-btn {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #0068ff;
+  font-weight: 800;
+}
+
+.test-origin-btn.pick-map-origin-btn.active {
+  background: linear-gradient(135deg, #0068ff 0%, #0284c7 100%);
+  border-color: #0068ff;
+  color: #ffffff;
+  box-shadow: 0 3px 12px rgba(0, 104, 255, 0.35);
+}
+
+.floating-pill-btn.pick-origin-pill.active {
+  background: linear-gradient(135deg, #0068ff 0%, #0284c7 100%) !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 6px 18px rgba(0, 104, 255, 0.38) !important;
+}
+
+.floating-pill-btn.pick-origin-pill.active .sim-pulse-dot {
+  background: #ffffff !important;
+}
+
+/* 4. 실내 내비게이션 [🖱️ 도면 클릭 출발] 및 [안내 종료] 버튼 */
+.indoor-pick-origin-btn.active {
+  background: #0068ff !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+}
+
+.indoor-cancel-btn {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border: 1px solid rgba(248, 113, 113, 0.45) !important;
+  color: #fca5a5 !important;
+  font-weight: 800 !important;
+}
+
+.indoor-cancel-btn:hover {
+  background: rgba(239, 68, 68, 0.28) !important;
+  color: #ffffff !important;
+}

@@ -73,25 +73,6 @@
       </div>
       <ul id="autocompleteList" class="autocomplete-list"></ul>
     </div>
-
-    <!-- 4. 실시간 턴바이턴(Turn-by-Turn) 내비게이션 음성 자막 HUD 배너 -->
-    <div id="navVoiceHud" class="nav-voice-hud hidden" aria-live="polite">
-      <div class="hud-turn-icon-box" id="hudTurnIconBox">
-        <i data-lucide="navigation"></i>
-      </div>
-      <div class="hud-text-content">
-        <div class="hud-meta-row">
-          <span class="hud-badge" id="hudStepBadge">실시간 음성 길안내</span>
-          <span class="sound-wave" id="hudSoundWave">
-            <span></span><span></span><span></span><span></span>
-          </span>
-        </div>
-        <p class="hud-main-text" id="hudVoiceText">IT대학 입구까지 안내를 시작합니다.</p>
-      </div>
-      <button type="button" id="hudRepeatVoiceBtn" class="hud-replay-btn" title="음성 안내 다시 듣기">
-        <i data-lucide="volume-2"></i>
-      </button>
-    </div>
   </header>
 
   <!-- 신규 버전 배포 감지 시 노출되는 최상단 업데이트 알림 배너 -->
@@ -126,27 +107,31 @@
     </button>
   </aside>
 
-  <!-- 좌측 상단 나침반 버튼 (UI 예시의 N ▲ 알약 버튼) -->
+  <!-- 좌측 상단 나침반 & 지도 회전 컨트롤 (북쪽 고정 North-Up ↔ 내 진행 방향 Heading-Up 전환) -->
   <div class="left-floating-controls">
-    <button type="button" id="resetCampusViewBtn" class="compass-pill-btn" title="정북 방향 및 캠퍼스 중심 복귀"
-      aria-label="나침반 및 캠퍼스 중심 복귀">
-      <span class="compass-n">N</span>
-      <span class="compass-arrow">&#9650;</span>
-    </button>
-
-    <!-- 보행로 그래프 디버그 토글 미니 버튼 -->
-    <button type="button" id="toggleGraphDebugBtn" class="mini-graph-btn active" title="캠퍼스 보행로 네트워크(노드/간선) 표시 켜기/끄기">
-      <i data-lucide="git-branch"></i>
-      <span>보행로</span>
-    </button>
+    <div class="compass-control-group" role="group" aria-label="지도 나침반 및 화면 회전 컨트롤">
+      <button type="button" id="resetCampusViewBtn" class="compass-pill-btn"
+        title="나침반 클릭: [북쪽 고정 모드] ↔ [내 진행 방향 자동 회전 모드] 전환"
+        aria-label="나침반 방향 고정 모드 전환">
+        <span class="compass-needle-wrap" id="compassNeedleWrap">
+          <span class="compass-n">N</span>
+          <span class="compass-arrow" id="compassArrowIcon">&#9650;</span>
+        </span>
+        <span class="compass-mode-label" id="compassModeLabel">북쪽고정</span>
+      </button>
+      <div class="map-rotate-mini-bar">
+        <button type="button" id="rotateMapLeftBtn" class="rotate-mini-btn" title="지도 반시계 방향 회전 (-30° / Alt+드래그 가능)">↺</button>
+        <button type="button" id="rotateMapRightBtn" class="rotate-mini-btn" title="지도 시계 방향 회전 (+30° / 두 손가락 회전 가능)">↻</button>
+      </div>
+    </div>
   </div>
 
-  <!-- 우측 플로팅 컨트롤 영역 (UI 예시의 [로드뷰] 카드 + [내 위치] 타겟 버튼 + TTS/시뮬레이션) -->
+  <!-- 우측 플로팅 컨트롤 영역 ([🛰️ 위성 모드] 토글 + [내 위치] 타겟 버튼 + TTS/시뮬레이션/출발지 직접 클릭) -->
   <aside class="right-floating-controls" id="rightFloatingControls" aria-label="지도 및 내비게이션 컨트롤">
-    <!-- 1. 로드뷰 / 위성뷰 전환 카드 버튼 (UI 예시 우측 상단 카메라 카드) -->
-    <button type="button" id="mapLayerToggleBtn" class="roadview-card-btn" title="위성뷰 / 캠퍼스 로드뷰 전환">
-      <i data-lucide="camera" class="rv-icon"></i>
-      <span id="mapLayerLabel">로드뷰</span>
+    <!-- 1. [🛰️ 위성 모드] 온/오프 토글 버튼 (기본 지도 ↔ 실제 위성 사진 전환) -->
+    <button type="button" id="mapLayerToggleBtn" class="roadview-card-btn satellite-toggle-btn" title="기본 지도 ↔ 실제 위성 사진(Satellite View) 전환">
+      <span class="sat-emoji-icon" id="mapLayerEmoji">🛰️</span>
+      <span id="mapLayerLabel">위성 모드</span>
     </button>
 
     <!-- 2. 내 위치(GPS) 원형 타겟 버튼 (UI 예시의 조준선 아이콘) -->
@@ -163,93 +148,61 @@
     </button>
 
     <!-- 4. [가상 이동 시뮬레이션] 플로팅 테스트 버튼 -->
-    <button type="button" id="floatingSimBtn" class="sim-floating-pill" title="내 위치 마커가 경로를 따라 자동 이동하며 TTS 음성을 테스트합니다">
+    <button type="button" id="floatingSimBtn" class="sim-floating-pill" title="내 위치 마커가 경로를 따라 자동 이동하며 지나온 길을 실시간 삭제합니다">
       <span class="sim-pulse-dot"></span>
       <span id="floatingSimIconWrap" class="icon-slot"><i data-lucide="play-circle"></i></span>
       <span id="floatingSimLabel">시뮬레이션</span>
     </button>
 
-    <!-- 5. [길 교정 모드] 마우스 클릭 도로/경로 직접 편집 관리자 툴 -->
-    <button type="button" id="floatingRoadEditorBtn" class="sim-floating-pill road-editor-pill"
-      title="지도 위 큰길을 직접 클릭하여 도로 굴곡을 다듬고 JSON으로 복사합니다">
-      <span class="editor-tool-dot"></span>
-      <span id="floatingRoadEditorIconWrap" class="icon-slot"><i data-lucide="wrench"></i></span>
-      <span id="floatingRoadEditorLabel">길 교정 모드</span>
+    <!-- 5. [🖱️ 출발지 클릭] 지도 위 원하는 도로/위치를 마우스로 찍어 시뮬레이션 출발지로 직접 설정 -->
+    <button type="button" id="floatingPickOriginBtn" class="sim-floating-pill pick-origin-pill"
+      title="지도 위 원하는 도로·지점을 마우스로 직접 클릭하여 시뮬레이션 출발지로 설정합니다">
+      <span class="pick-origin-dot"></span>
+      <span class="icon-slot"><i data-lucide="mouse-pointer-click"></i></span>
+      <span id="floatingPickOriginLabel">출발지 클릭</span>
     </button>
   </aside>
 
-  <!-- [길 교정 모드 (Road Calibration Tool)] 플로팅 관리자 툴바 -->
-  <div id="roadEditorToolbar" class="road-editor-toolbar hidden" role="toolbar" aria-label="경로 및 도로 직접 교정 툴바">
-    <div class="ret-top-row">
-      <div class="ret-title-box">
-        <span class="ret-badge">🛠️ 길 교정 모드 (관리자 툴)</span>
-        <span id="retPointCount" class="ret-count-pill">0개 포인트</span>
-      </div>
-      <button type="button" id="retCloseBtn" class="ret-icon-close-btn" title="길 교정 모드 닫기">
-        <i data-lucide="x"></i>
-      </button>
-    </div>
-    <p class="ret-tip-msg">
-      💡 <strong>지도 위 실제 큰길을 마우스로 콕콕 클릭</strong>하면 도로 커브 점이 실시간 추가됩니다.<br>
-      생성된 점을 마우스로 드래그하여 정확한 도로 선 위로 이동할 수 있습니다.
-    </p>
-    <div class="ret-actions-row">
-      <button type="button" id="retUndoBtn" class="ret-action-btn" title="마지막으로 추가한 점 하나 삭제">
-        <i data-lucide="undo-2"></i>
-        <span>취소 (Undo)</span>
-      </button>
-      <button type="button" id="retClearBtn" class="ret-action-btn ret-danger" title="모든 교정 점 삭제">
-        <i data-lucide="trash-2"></i>
-        <span>전체 초기화</span>
-      </button>
-      <button type="button" id="retApplyBtn" class="ret-action-btn ret-primary" title="편집된 도로선을 현재 길안내 경로에 즉시 덮어씌웁니다">
-        <i data-lucide="check-circle-2"></i>
-        <span>현재 경로에 반영</span>
-      </button>
-      <button type="button" id="retCopyJsonBtn" class="ret-action-btn ret-copy"
-        title="교정된 도로 좌표(lat, lng)를 클립보드에 복사합니다">
-        <i data-lucide="copy"></i>
-        <span>JSON 복사</span>
-      </button>
-    </div>
-  </div>
-
   <!-- =======================================================================
-       하단 바텀 시트 (드래그 이동 / 리사이즈 / 3단계 크기 전환 / 글래스모피즘 지원)
+       하단 바텀 시트 (하단 고정 + 핸들바 기반 네이버 지도식 1단계/2단계/3단계 스냅)
        ======================================================================= -->
-  <section id="bottomSheet" class="bottom-sheet" aria-label="캠퍼스 건물 및 길찾기 시트">
-    <!-- 크기 조절 리사이즈 핸들 -->
-    <div class="sheet-resize-handle top" data-handle="top" title="위아래 크기 조절"></div>
-    <div class="sheet-resize-handle top-left" data-handle="top-left" title="모서리 크기 조절"></div>
-    <div class="sheet-resize-handle top-right" data-handle="top-right" title="모서리 크기 조절"></div>
-    <div class="sheet-resize-handle left" data-handle="left" title="좌우 크기 조절"></div>
-    <div class="sheet-resize-handle right" data-handle="right" title="좌우 크기 조절"></div>
-
-    <!-- 최소화(한 줄 모드) 시 활성화되는 슬림 정보 바 -->
-    <div id="sheetMiniBar" class="sheet-mini-bar hidden" title="클릭 시 창을 다시 펼칩니다">
-      <div class="mini-bar-left">
-        <span class="mini-pulse-dot"></span>
-        <strong id="miniBarTitle" class="mini-bar-title">IT대학</strong>
-        <span id="miniBarMetrics" class="mini-bar-metrics">약 6분 · 420m</span>
-      </div>
-      <div class="mini-bar-actions">
-        <button type="button" id="miniStartNavBtn" class="mini-action-btn primary" title="안내 시작">
-          <i data-lucide="navigation"></i>
-          <span id="miniStartNavBtnText">안내</span>
-        </button>
-        <button type="button" id="miniOpenIndoorBtn" class="mini-action-btn indoor" title="실내 도면 보기">
-          <i data-lucide="building-2"></i>
-          <span>실내</span>
-        </button>
-        <button type="button" id="miniExpandBtn" class="mini-action-btn expand" title="창 크게 펼치기">
-          <i data-lucide="chevron-up"></i>
-          <span>펼치기</span>
-        </button>
-      </div>
+  <section id="bottomSheet" class="bottom-sheet snap-2" aria-label="캠퍼스 건물 및 길찾기 시트">
+    <!-- 상단 중앙 회색 가로 작대기 (핸들바: 위아래 스와이프 또는 클릭으로 1단계 ↔ 2단계 ↔ 3단계 전환) -->
+    <div class="sheet-drag-handle-area" id="sheetHandleArea" title="위아래로 쓸어올리거나 클릭하여 1~3단계 높이 전환">
+      <div class="sheet-drag-bar"></div>
     </div>
 
-    <div class="sheet-drag-handle-area" id="sheetHandleArea" title="드래그하여 창 위치 자유 이동 (클릭 시 접기/펼치기)">
-      <div class="sheet-drag-bar"></div>
+    <!-- [1단계: 최소화 한 줄 모드 (snap-1)] 네이버 지도 1단계 스타일 한 줄 콤팩트 표시 -->
+    <div id="sheetMiniBar" class="sheet-mini-bar hidden" title="위로 올리거나 클릭하면 2단계 기본 창으로 펼쳐집니다">
+      <div class="mini-bar-top-row">
+        <div class="mini-bar-left" id="miniBarClickExpandArea">
+          <strong id="miniBarTitle" class="mini-bar-dest-title">미래혁신관 308호</strong>
+          <span id="miniBarMetrics" class="mini-bar-metrics-inline">(약 <b id="miniBarTime">8분</b> · <b id="miniBarDist">520m</b>)</span>
+          <span id="miniBarEta" class="snap1-eta-text sr-only">도착 예정</span>
+        </div>
+        <div class="mini-bar-actions">
+          <span class="mini-bar-divider" aria-hidden="true">|</span>
+          <button type="button" id="miniStopNavBtn" class="mini-stop-nav-btn" title="길안내 종료">
+            안내 종료
+          </button>
+          <button type="button" id="miniStartNavBtn" class="mini-action-btn primary" title="실시간 안내 시작">
+            <i data-lucide="navigation"></i>
+            <span id="miniStartNavBtnText">안내</span>
+          </button>
+          <button type="button" id="miniOpenIndoorBtn" class="mini-action-btn indoor hidden" title="실내 도면 보기">
+            <i data-lucide="building-2"></i>
+            <span>실내</span>
+          </button>
+          <button type="button" id="miniExpandBtn" class="mini-action-btn expand" title="상세 경로 펼치기 (2단계/3단계)">
+            <i data-lucide="menu"></i>
+          </button>
+        </div>
+      </div>
+      <!-- 네이버 지도 1단계 하단 진행 바 -->
+      <div class="snap1-progress-track">
+        <div class="snap1-progress-head" id="snap1ProgressHead" style="left: 0%">▶</div>
+        <div class="snap1-progress-fill" id="snap1ProgressFill" style="width: 0%"></div>
+      </div>
     </div>
 
     <!-- [State 01] 앱을 켰을 때: "어디로 가볼까요?" 홈 탐색 뷰 (UI 예시 01) -->
@@ -339,15 +292,19 @@
             <span class="dest-pill-text" id="sheetEndName">IT대학 입구</span>
           </div>
 
-          <!-- 주요 출발 지점 빠른 선택 테스트 칩 (정문 / 후문 / 경상관 CU 쪽문) -->
+          <!-- 주요 출발 지점 빠른 선택 테스트 칩 (정문 / 후문 / 경상관 CU 쪽문 / 지도 직접 클릭 / 실내 출발) -->
           <div class="test-origin-chips-bar" id="testOriginChipsBar">
-            <span class="test-origin-bar-label">🚩 출발지 프리셋:</span>
+            <span class="test-origin-bar-label">🚩 출발:</span>
             <button type="button" class="test-origin-btn active" data-origin-id="main_gate" title="정문 주출입구에서 출발">🚪
               정문</button>
             <button type="button" class="test-origin-btn" data-origin-id="back_gate" title="제4공학관·고시길 후문에서 출발">🚪
               후문</button>
             <button type="button" class="test-origin-btn" data-origin-id="west_gate_cu"
               title="글로벌경상관 CU 쪽문(서측 외부)에서 출발">🏪 경상관 CU 쪽문</button>
+            <button type="button" id="pickOriginOnMapBtn" class="test-origin-btn pick-map-origin-btn"
+              title="지도 위의 원하는 도로/위치를 마우스로 직접 클릭하여 시뮬레이션 출발지로 지정합니다">🖱️ 지도에서 출발지 직접 클릭</button>
+            <button type="button" id="openFloorSelectModalBtn" class="test-origin-btn indoor-origin-btn"
+              title="현재 위치한 건물 층수 선택 ➔ 호실 자동 매칭 및 실내외 통합 길안내">🏢 실내 층·호실 출발</button>
           </div>
 
           <!-- [야외 출입구 추천 가이드 박스] 목적지 건물 진입 출입구 직관적 하이라이트 -->
@@ -374,24 +331,8 @@
           </div>
         </div>
 
-        <!-- 3단계 빠른 창 크기 조절 & 드래그 위치 리셋 윈도우 컨트롤러 -->
-        <div class="sheet-window-controls" aria-label="창 크기 및 위치 조절 컨트롤">
-          <button type="button" id="sheetBtnMinimize" class="sheet-ctrl-btn" title="최소화 (지도 전체 보기 · 한 줄 모드)">
-            <i data-lucide="minus"></i>
-            <span class="sr-only">최소화</span>
-          </button>
-          <button type="button" id="sheetBtnCompact" class="sheet-ctrl-btn" title="작게 보기 (컴팩트 모드)">
-            <i data-lucide="square"></i>
-            <span class="sr-only">작게 보기</span>
-          </button>
-          <button type="button" id="sheetBtnSidebar" class="sheet-ctrl-btn" title="좌측 사이드바 고정 모드 (네이버 지도 PC 스타일)">
-            <i data-lucide="panel-left"></i>
-            <span class="sr-only">좌측 사이드바</span>
-          </button>
-          <button type="button" id="sheetBtnReset" class="sheet-ctrl-btn" title="창 크기 및 위치 초기화 (리셋)">
-            <i data-lucide="rotate-ccw"></i>
-            <span class="sr-only">리셋</span>
-          </button>
+        <!-- 닫기 버튼 (불필요한 -, ㅁ, 사이드바, 리셋 창 조절 버튼 제거) -->
+        <div class="sheet-window-controls" aria-label="경로 창 닫기">
           <button type="button" id="closeSheetBtn" class="sheet-x-btn" title="경로 닫기" aria-label="닫기">
             <i data-lucide="x"></i>
           </button>
@@ -445,10 +386,11 @@
             <span class="live-indicator" id="simLiveDot"></span>
             <span id="simStatusText">가상 이동 시뮬레이션 진행 중</span>
           </div>
-          <div class="sim-speed-controls" role="group" aria-label="시뮬레이션 속도 배속">
+          <div class="sim-speed-controls" role="group" aria-label="시뮬레이션 속도 배속 및 취소">
             <button type="button" class="speed-chip active" data-speed="1">1x</button>
             <button type="button" class="speed-chip" data-speed="2">2x</button>
             <button type="button" class="speed-chip" data-speed="3">3x</button>
+            <button type="button" id="simCancelBtn" class="sim-cancel-chip" title="길안내를 즉시 취소하고 초기 탐색 화면으로 돌아갑니다">✕ 안내 취소</button>
           </div>
         </div>
         <div class="progress-track">
@@ -478,7 +420,7 @@
         </button>
       </div>
 
-      <!-- 메인 액션 버튼: [안내 시작 (GPS·TTS)] & [가상 이동 시뮬레이션] -->
+      <!-- 메인 액션 버튼: [안내 시작 (실시간 GPS)] & [가상 이동 시뮬레이션] & [안내 종료] -->
       <div class="sheet-action-buttons">
         <button type="button" id="startNavBtn" class="btn-primary-nav">
           <i data-lucide="navigation"></i>
@@ -489,16 +431,36 @@
           <i data-lucide="footprints"></i>
           <span id="sheetSimBtnText">가상 이동 시뮬레이션</span>
         </button>
+
+        <button type="button" id="stopNavBtn" class="btn-cancel-nav" title="길안내 및 경로 표시를 모두 취소하고 초기 지도 화면으로 돌아갑니다">
+          <i data-lucide="x-circle"></i>
+          <span>안내 종료</span>
+        </button>
       </div>
 
-      <!-- 건물 시설 태그 & 구간별 음성 안내 체크포인트 타임라인 -->
-      <div class="sheet-details-section">
+      <!-- [3단계 전체 화면 상세 경로 뷰] 구간별 회전 안내 타임라인 & 도착지 건물 사진 카드 -->
+      <div class="sheet-details-section" id="sheetDetailsSection">
         <div class="building-facilities-row" id="sheetFacilitiesList"></div>
         <div class="checkpoint-list-header">
-          <span>구간별 보행 및 음성 안내 체크포인트</span>
+          <span>출발지 ~ 도착지 상세 경로 및 회전 안내</span>
           <span class="checkpoint-hint">클릭 시 해당 지점 이동 · 음성 출력</span>
         </div>
         <ul id="checkpointTimeline" class="checkpoint-timeline"></ul>
+
+        <!-- 네이버 지도 3단계 스타일 도착지 건물 공식 사진 카드 -->
+        <div id="routeDestBuildingCard" class="route-dest-building-card">
+          <div class="rdbc-header">
+            <span class="rdbc-pin-badge">도착</span>
+            <div class="rdbc-title-col">
+              <strong id="rdbcBuildingName">수원대학교 IT대학</strong>
+              <span id="rdbcBuildingSub">경기도 화성시 봉담읍 와우안길 17</span>
+            </div>
+          </div>
+          <div class="rdbc-photo-wrap">
+            <img id="rdbcBuildingImg" src="assets/buildings/b_it.png" alt="도착 건물 사진" />
+            <div class="rdbc-photo-caption" id="rdbcEntranceCaption">권장 출입구로 진입하세요.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -618,8 +580,8 @@
         </div>
       </div>
 
-      <!-- 3. 우측 네이버 지도 실내지도 스타일 층수 선택 버튼 (5F, 4F, 3F, 2F, 1F) + 줌 컨트롤 -->
-      <aside class="indoor-right-controls" aria-label="실내 층수 선택 및 확대 축소">
+      <!-- 3. 우측 네이버 지도 실내지도 스타일 층수 선택 버튼 (5F, 4F, 3F, 2F, 1F) + 줌/회전 컨트롤 -->
+      <aside class="indoor-right-controls" aria-label="실내 층수 선택 및 확대 축소·회전">
         <div class="naver-floor-selector-card">
           <span class="floor-selector-caption">층 선택</span>
           <div id="indoorRightFloorSelector" class="naver-floor-btn-group" role="group" aria-label="건물 층 선택"></div>
@@ -629,7 +591,11 @@
           <button type="button" id="indoorZoomInBtn" class="indoor-zoom-btn" title="도면 확대" aria-label="도면 확대">+</button>
           <button type="button" id="indoorZoomOutBtn" class="indoor-zoom-btn" title="도면 축소"
             aria-label="도면 축소">&minus;</button>
-          <button type="button" id="indoorZoomResetBtn" class="indoor-zoom-btn reset" title="도면 화면 맞춤"
+          <button type="button" id="indoorRotateLeftBtn" class="indoor-zoom-btn" title="실내 도면 반시계 방향 회전 (-30° / 두 손가락 회전 가능)"
+            aria-label="도면 반시계 회전">↺</button>
+          <button type="button" id="indoorRotateRightBtn" class="indoor-zoom-btn" title="실내 도면 시계 방향 회전 (+30° / 두 손가락 회전 가능)"
+            aria-label="도면 시계 회전">↻</button>
+          <button type="button" id="indoorZoomResetBtn" class="indoor-zoom-btn reset" title="도면 화면 맞춤 및 회전 초기화"
             aria-label="화면 맞춤">맞춤</button>
         </div>
       </aside>
@@ -693,15 +659,20 @@
           <span id="indoorStartSimText">실내 이동 시뮬레이션</span>
         </button>
 
+        <button type="button" id="indoorPickOriginBtn" class="btn-indoor-floor-toggle" title="도면 위 원하는 위치를 마우스로 클릭해 시뮬레이션 출발지로 지정합니다">
+          <i data-lucide="mouse-pointer-click"></i>
+          <span>🖱️ 도면 클릭 출발</span>
+        </button>
+
         <button type="button" id="indoorSwitchFloorPreviewBtn" class="btn-indoor-floor-toggle">
           <i data-lucide="layers"></i>
           <span id="indoorSwitchFloorPreviewText">도착 층(2F) 도면 보기</span>
         </button>
 
-        <button type="button" id="indoorOutdoorToEntranceBtn" class="btn-indoor-outdoor-link"
-          title="선택한 IT대학 출입구까지 야외 캠퍼스 경로 안내">
-          <i data-lucide="footprints"></i>
-          <span>이 입구까지 야외 길찾기</span>
+        <button type="button" id="indoorCancelNavBtn" class="btn-indoor-outdoor-link indoor-cancel-btn"
+          title="실내 길안내를 즉시 종료하고 초기 화면으로 돌아갑니다">
+          <i data-lucide="x-circle"></i>
+          <span>안내 종료</span>
         </button>
       </div>
     </div>
@@ -839,6 +810,75 @@
       <button type="button" id="confirmIosInstallBtn" class="btn-confirm-ios">
         확인했습니다
       </button>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       [실내 출발 · 내 위치 기반 건물 자동 매칭 & 출발 층수 선택 모달]
+       ======================================================================= -->
+  <div id="floorSelectModal" class="modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="floorSelectModalTitle">
+    <div class="modal-card floor-select-modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="modal-step-badge" id="floorSelectBuildingBadge">📍 실시간 GPS 실내 위치 감지</span>
+          <h3 id="floorSelectModalTitle" class="modal-title">현재 IT대학 몇 층에 계신가요?</h3>
+        </div>
+        <button type="button" id="closeFloorSelectModalBtn" class="sheet-x-btn" aria-label="층 선택 모달 닫기">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <!-- 내 위치 기반 건물 자동 매칭 배지 버튼 (클릭 시 수동 건물 변경 드롭다운 열림) -->
+      <button type="button" id="autoMatchedBuildingBanner" class="auto-matched-building-banner" title="클릭하여 다른 건물로 직접 보정할 수 있습니다">
+        <span class="amb-left">
+          <span class="amb-dot"></span>
+          <span class="amb-text">내 위치 기반 건물 자동 매칭: <strong id="autoMatchedBuildingName">IT대학</strong></span>
+        </span>
+        <span class="amb-change-hint">(틀렸다면 클릭 ∨)</span>
+      </button>
+
+      <!-- 건물 수동 보정 드롭다운 (배지 클릭 시 펼쳐짐) -->
+      <div id="floorSelectBuildingRow" class="floor-select-building-row hidden">
+        <label for="floorSelectBuildingDropdown" class="fs-label">다른 건물로 직접 선택 (수동 보정)</label>
+        <select id="floorSelectBuildingDropdown" class="fs-select"></select>
+      </div>
+
+      <p class="floor-select-desc" id="floorSelectModalDesc">
+        현재 계신 <strong>층수 버튼만 터치</strong>하면 GPS와 도면 인식을 통해 현위치(예: IT대학 308호 앞)를 출발점으로 하여 목적지(정문 등)까지 실내외 연속 최단 경로 안내를 즉시 시작합니다.
+      </p>
+
+      <!-- 해당 건물에 실제로 존재하는 층수 버튼만 렌더링되는 영역 -->
+      <div class="floor-select-grid-wrap">
+        <span class="fs-label" id="floorSelectAvailableLabel">출발 층수 선택 (터치 시 즉시 현위치 매칭)</span>
+        <div id="floorSelectButtonsGrid" class="floor-select-buttons-grid" role="radiogroup"
+          aria-label="현재 위치한 층수 선택"></div>
+      </div>
+
+      <!-- 층수 선택 후 GPS 좌표 대조로 자동 매칭된 호실 & 통합 경로 프리뷰 -->
+      <div id="floorSelectRoomMatchBox" class="floor-select-room-match-box">
+        <div class="fs-match-header">
+          <span class="fs-gps-badge">📍 GPS + 도면 인식 현위치</span>
+          <strong id="floorSelectAutoRoomText" class="fs-auto-room-name">IT대학 308호 앞</strong>
+        </div>
+        <div class="fs-room-override-row">
+          <label for="floorSelectRoomDropdown" class="fs-sub-label">현위치 호실 보정:</label>
+          <select id="floorSelectRoomDropdown" class="fs-room-select"></select>
+        </div>
+        <div id="floorSelectIntegratedPreview" class="fs-integrated-preview">
+          IT대학 308호 앞 ➔ 3층 복도 ➔ 3층 계단/엘리베이터 ➔ 1층 출입구 ➔ 야외 보행로 ➔ 정문
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="cancelFloorSelectBtn" class="btn-indoor-view">
+          <span>취소</span>
+        </button>
+        <button type="button" id="confirmFloorSelectStartBtn" class="btn-find-route">
+          <i data-lucide="navigation"></i>
+          <span id="confirmFloorSelectBtnText">실내외 연속 최단 경로 안내 시작</span>
+        </button>
+      </div>
     </div>
   </div>
 
