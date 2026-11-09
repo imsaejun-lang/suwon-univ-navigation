@@ -111,8 +111,7 @@
   <div class="left-floating-controls">
     <div class="compass-control-group" role="group" aria-label="지도 나침반 및 화면 회전 컨트롤">
       <button type="button" id="resetCampusViewBtn" class="compass-pill-btn"
-        title="나침반 클릭: [북쪽 고정 모드] ↔ [내 진행 방향 자동 회전 모드] 전환"
-        aria-label="나침반 방향 고정 모드 전환">
+        title="나침반 클릭: [북쪽 고정 모드] ↔ [내 진행 방향 자동 회전 모드] 전환" aria-label="나침반 방향 고정 모드 전환">
         <span class="compass-needle-wrap" id="compassNeedleWrap">
           <span class="compass-n">N</span>
           <span class="compass-arrow" id="compassArrowIcon">&#9650;</span>
@@ -120,8 +119,10 @@
         <span class="compass-mode-label" id="compassModeLabel">북쪽고정</span>
       </button>
       <div class="map-rotate-mini-bar">
-        <button type="button" id="rotateMapLeftBtn" class="rotate-mini-btn" title="지도 반시계 방향 회전 (-30° / Alt+드래그 가능)">↺</button>
-        <button type="button" id="rotateMapRightBtn" class="rotate-mini-btn" title="지도 시계 방향 회전 (+30° / 두 손가락 회전 가능)">↻</button>
+        <button type="button" id="rotateMapLeftBtn" class="rotate-mini-btn"
+          title="지도 반시계 방향 회전 (-30° / Alt+드래그 가능)">↺</button>
+        <button type="button" id="rotateMapRightBtn" class="rotate-mini-btn"
+          title="지도 시계 방향 회전 (+30° / 두 손가락 회전 가능)">↻</button>
       </div>
     </div>
   </div>
@@ -129,7 +130,8 @@
   <!-- 우측 플로팅 컨트롤 영역 ([🛰️ 위성 모드] 토글 + [내 위치] 타겟 버튼 + TTS/시뮬레이션/출발지 직접 클릭) -->
   <aside class="right-floating-controls" id="rightFloatingControls" aria-label="지도 및 내비게이션 컨트롤">
     <!-- 1. [🛰️ 위성 모드] 온/오프 토글 버튼 (기본 지도 ↔ 실제 위성 사진 전환) -->
-    <button type="button" id="mapLayerToggleBtn" class="roadview-card-btn satellite-toggle-btn" title="기본 지도 ↔ 실제 위성 사진(Satellite View) 전환">
+    <button type="button" id="mapLayerToggleBtn" class="roadview-card-btn satellite-toggle-btn"
+      title="기본 지도 ↔ 실제 위성 사진(Satellite View) 전환">
       <span class="sat-emoji-icon" id="mapLayerEmoji">🛰️</span>
       <span id="mapLayerLabel">위성 모드</span>
     </button>
@@ -148,14 +150,15 @@
     </button>
 
     <!-- 4. [가상 이동 시뮬레이션] 플로팅 테스트 버튼 -->
-    <button type="button" id="floatingSimBtn" class="sim-floating-pill" title="내 위치 마커가 경로를 따라 자동 이동하며 지나온 길을 실시간 삭제합니다">
+    <button type="button" id="floatingSimBtn" class="sim-floating-pill"
+      title="시뮬레이션 모드 켜기/끄기 (가상 출발지 지정 및 모의 주행 테스트)">
       <span class="sim-pulse-dot"></span>
       <span id="floatingSimIconWrap" class="icon-slot"><i data-lucide="play-circle"></i></span>
       <span id="floatingSimLabel">시뮬레이션</span>
     </button>
 
-    <!-- 5. [🖱️ 출발지 클릭] 지도 위 원하는 도로/위치를 마우스로 찍어 시뮬레이션 출발지로 직접 설정 -->
-    <button type="button" id="floatingPickOriginBtn" class="sim-floating-pill pick-origin-pill"
+    <!-- 5. [🖱️ 출발지 클릭] 시뮬레이션 모드 ON일 때만 노출 -->
+    <button type="button" id="floatingPickOriginBtn" class="sim-floating-pill pick-origin-pill hidden"
       title="지도 위 원하는 도로·지점을 마우스로 직접 클릭하여 시뮬레이션 출발지로 설정합니다">
       <span class="pick-origin-dot"></span>
       <span class="icon-slot"><i data-lucide="mouse-pointer-click"></i></span>
@@ -177,7 +180,8 @@
       <div class="mini-bar-top-row">
         <div class="mini-bar-left" id="miniBarClickExpandArea">
           <strong id="miniBarTitle" class="mini-bar-dest-title">미래혁신관 308호</strong>
-          <span id="miniBarMetrics" class="mini-bar-metrics-inline">(약 <b id="miniBarTime">8분</b> · <b id="miniBarDist">520m</b>)</span>
+          <span id="miniBarMetrics" class="mini-bar-metrics-inline">(약 <b id="miniBarTime">8분</b> · <b
+              id="miniBarDist">520m</b>)</span>
           <span id="miniBarEta" class="snap1-eta-text sr-only">도착 예정</span>
         </div>
         <div class="mini-bar-actions">
@@ -247,20 +251,15 @@
 
       <p class="building-guide-copy" id="detailBuildingCopy">건물을 확인하고, 실내로 이어가세요</p>
 
-      <!-- UI 예시 02의 핵심 듀얼 버튼: [실내 보기] & [길찾기] -->
+      <!-- UI 예시 02의 핵심 듀얼 버튼: [실내 보기] & [길안내 시작] -->
       <div class="building-dual-actions">
         <button type="button" id="openFloorPlanBtn" class="btn-indoor-view">
           <i data-lucide="camera"></i>
           <span>실내 보기</span>
         </button>
-        <button type="button" id="goRouteViewBtn" class="btn-find-route">
-          <svg class="route-s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="6" cy="19" r="2.5"></circle>
-            <path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"></path>
-            <circle cx="18" cy="5" r="2.5"></circle>
-          </svg>
-          <span>길찾기</span>
+        <button type="button" id="goRouteViewBtn" class="btn-find-route" title="현재 내 GPS 위치에서 목적지까지 실시간 길안내를 시작합니다">
+          <i data-lucide="navigation"></i>
+          <span id="goRouteViewBtnText">길안내 시작</span>
         </button>
       </div>
     </div>
@@ -277,7 +276,8 @@
           <h2 class="dest-building-name" id="sheetBuildingName">IT대학</h2>
           <div class="route-origin-dest-bar">
             <span class="origin-pill">출발</span>
-            <select id="startNodeSelect" aria-label="출발지 선택">
+            <span class="origin-display-text" id="sheetOriginText">📍 내 위치 (실시간 GPS)</span>
+            <select id="startNodeSelect" class="hidden" aria-label="출발지 선택 (시뮬레이션 전용)">
               <option value="main_gate">정문 (주출입구)</option>
               <option value="back_gate">후문 (제4공학관·고시길)</option>
               <option value="west_gate_cu">경상관 CU 쪽문 (서측 외부)</option>
@@ -292,17 +292,15 @@
             <span class="dest-pill-text" id="sheetEndName">IT대학 입구</span>
           </div>
 
-          <!-- 주요 출발 지점 빠른 선택 테스트 칩 (정문 / 후문 / 경상관 CU 쪽문 / 지도 직접 클릭 / 실내 출발) -->
-          <div class="test-origin-chips-bar" id="testOriginChipsBar">
-            <span class="test-origin-bar-label">🚩 출발:</span>
-            <button type="button" class="test-origin-btn active" data-origin-id="main_gate" title="정문 주출입구에서 출발">🚪
-              정문</button>
-            <button type="button" class="test-origin-btn" data-origin-id="back_gate" title="제4공학관·고시길 후문에서 출발">🚪
-              후문</button>
+          <!-- [시뮬레이션 모드 전용] 주요 출발 지점 빠른 선택 테스트 칩 -->
+          <div class="test-origin-chips-bar hidden" id="testOriginChipsBar">
+            <span class="test-origin-bar-label">🚩 테스트 출발:</span>
+            <button type="button" class="test-origin-btn" data-origin-id="main_gate" title="정문 주출입구에서 출발">🚪 정문</button>
+            <button type="button" class="test-origin-btn" data-origin-id="back_gate" title="제4공학관·고시길 후문에서 출발">🚪 후문</button>
             <button type="button" class="test-origin-btn" data-origin-id="west_gate_cu"
               title="글로벌경상관 CU 쪽문(서측 외부)에서 출발">🏪 경상관 CU 쪽문</button>
             <button type="button" id="pickOriginOnMapBtn" class="test-origin-btn pick-map-origin-btn"
-              title="지도 위의 원하는 도로/위치를 마우스로 직접 클릭하여 시뮬레이션 출발지로 지정합니다">🖱️ 지도에서 출발지 직접 클릭</button>
+              title="지도 위의 원하는 도로/위치를 마우스로 직접 클릭하여 시뮬레이션 출발지로 지정합니다">🖱️ 지도 직접 클릭</button>
             <button type="button" id="openFloorSelectModalBtn" class="test-origin-btn indoor-origin-btn"
               title="현재 위치한 건물 층수 선택 ➔ 호실 자동 매칭 및 실내외 통합 길안내">🏢 실내 층·호실 출발</button>
           </div>
@@ -390,7 +388,8 @@
             <button type="button" class="speed-chip active" data-speed="1">1x</button>
             <button type="button" class="speed-chip" data-speed="2">2x</button>
             <button type="button" class="speed-chip" data-speed="3">3x</button>
-            <button type="button" id="simCancelBtn" class="sim-cancel-chip" title="길안내를 즉시 취소하고 초기 탐색 화면으로 돌아갑니다">✕ 안내 취소</button>
+            <button type="button" id="simCancelBtn" class="sim-cancel-chip" title="길안내를 즉시 취소하고 초기 탐색 화면으로 돌아갑니다">✕ 안내
+              취소</button>
           </div>
         </div>
         <div class="progress-track">
@@ -427,7 +426,7 @@
           <span id="startNavBtnText">안내 시작</span>
         </button>
 
-        <button type="button" id="sheetSimBtn" class="btn-secondary-sim">
+        <button type="button" id="sheetSimBtn" class="btn-secondary-sim hidden" title="시뮬레이션 모드에서 가상 이동 테스트를 실행합니다">
           <i data-lucide="footprints"></i>
           <span id="sheetSimBtnText">가상 이동 시뮬레이션</span>
         </button>
@@ -457,7 +456,7 @@
             </div>
           </div>
           <div class="rdbc-photo-wrap">
-            <img id="rdbcBuildingImg" src="assets/buildings/b_it.png" alt="도착 건물 사진" />
+            <img id="rdbcBuildingImg" src="assets/buildings/b_27.png" alt="도착 건물 사진" />
             <div class="rdbc-photo-caption" id="rdbcEntranceCaption">권장 출입구로 진입하세요.</div>
           </div>
         </div>
@@ -518,26 +517,79 @@
         </button>
 
         <div class="indoor-title-box">
-          <span class="indoor-mode-badge">STEP 2 · 2D 실내 내비게이션</span>
-          <h2 id="indoorHeaderBuildingTitle" class="indoor-building-title">IT대학 203호 실내 길안내</h2>
+          <span class="indoor-mode-badge" id="indoorModeBadge">STEP 2 · 2D 실내 내비게이션</span>
+          <h2 id="indoorHeaderBuildingTitle" class="indoor-building-title">IT대학 실내 길안내</h2>
         </div>
 
-        <div class="indoor-room-selector-wrap">
-          <label for="indoorTargetRoomSelect" class="sr-only">목적지 강의실 선택</label>
-          <select id="indoorTargetRoomSelect" class="indoor-room-select" title="목적지 강의실 호수 선택"></select>
+        <!-- [요구사항 3] 실내 출발 호실 보정 셀렉트 & 목적지 호실 셀렉트 래퍼 -->
+        <div class="indoor-room-selectors-group">
+          <div id="indoorOriginRoomWrap" class="indoor-room-selector-wrap origin-wrap">
+            <span class="room-selector-prefix">출발</span>
+            <label for="indoorOriginRoomSelect" class="sr-only">현재 출발 호실 선택</label>
+            <select id="indoorOriginRoomSelect" class="indoor-room-select indoor-origin-select" title="출발 호실 변경 (GPS 오차 보정)"></select>
+          </div>
+
+          <div id="indoorRoomSelectorDivider" class="indoor-room-selector-divider">➔</div>
+
+          <div class="indoor-room-selector-wrap dest-wrap">
+            <span class="room-selector-prefix">도착</span>
+            <label for="indoorTargetRoomSelect" class="sr-only">목적지 강의실 선택</label>
+            <select id="indoorTargetRoomSelect" class="indoor-room-select" title="목적지 강의실 호수 선택"></select>
+          </div>
         </div>
 
         <button type="button" id="indoorOpenOriginalPdfBtn" class="indoor-pdf-btn" title="업로드된 원본 건축 평면도 PDF 열기">
           <i data-lucide="file-text"></i>
           <span>원본 도면</span>
         </button>
+
+        <!-- [요구사항 3] 실내 위치 미세조정 드래그 모드 토글 버튼 -->
+        <button type="button" id="indoorToggleNodeEditorBtn" class="indoor-editor-toggle-btn" title="강의실 위치를 도면에 맞게 마우스/터치로 드래그하여 미세조정">
+          <i data-lucide="ruler"></i>
+          <span>📐 위치 맞춤</span>
+        </button>
       </div>
 
-      <!-- 다중 출입구 선택 바 (어느 입구로 들어가느냐에 따라 건물의 진입 층수가 1F / 2F / 3F로 달라짐!) -->
-      <div class="indoor-entrance-bar">
+      <!-- [요구사항 2, 3] GPS 현재 위치 인식 상태 바 (호실 자동 특정 & 빠른 위치 보정 버튼) -->
+      <div id="indoorGpsStatusBar" class="indoor-gps-status-bar">
+        <div class="gps-status-content">
+          <span class="gps-live-dot"></span>
+          <span id="indoorGpsStatusText" class="gps-status-text">📍 현재 위치 인식: IT대학 3층 308호</span>
+        </div>
+        <div class="gps-status-action">
+          <button type="button" id="indoorQuickFixOriginBtn" class="btn-quick-fix-origin" title="GPS 오차 시 내 호실 즉시 변경">
+            <i data-lucide="map-pin"></i>
+            <span id="indoorQuickFixOriginBtnText">출발 위치 변경 ▾</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- [요구사항 3] 실내 위치 미세조정 드래그 보정 툴바 -->
+      <div id="indoorNodeEditorBar" class="indoor-node-editor-bar hidden">
+        <div class="editor-bar-info">
+          <span class="editor-mode-badge">📐 강의실 위치 맞춤 모드 ON</span>
+          <span id="indoorEditorStatusText" class="editor-status-text">호실 마커나 복도 점을 마우스/손가락으로 드래그해 도면 방 칸에 맞추세요.</span>
+        </div>
+        <div class="editor-bar-actions">
+          <button type="button" id="indoorSaveCustomNodesBtn" class="btn-editor-action save" title="수정된 좌표를 저장하고 클립보드로 복사">
+            <i data-lucide="save"></i>
+            <span>💾 위치 저장</span>
+          </button>
+          <button type="button" id="indoorResetCustomNodesBtn" class="btn-editor-action reset" title="기본 도면 좌표로 초기화">
+            <i data-lucide="rotate-ccw"></i>
+            <span>초기화</span>
+          </button>
+          <button type="button" id="indoorCloseNodeEditorBtn" class="btn-editor-action close" title="위치 맞춤 모드 종료">
+            <span>완료</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 다중 출입구 선택 바 (야외 진입 또는 탈출 모드에서 표시) -->
+      <div id="indoorEntranceBar" class="indoor-entrance-bar">
         <div class="entrance-bar-label">
           <i data-lucide="door-open"></i>
-          <span>진입 출입구 선택 (입구 위치에 따라 시작 층수가 달라집니다):</span>
+          <span id="indoorEntranceBarLabel">진입 출입구 선택 (입구 위치에 따라 시작 층수가 달라집니다):</span>
         </div>
         <div id="indoorEntranceChipsRow" class="indoor-entrance-chips-row" role="tablist" aria-label="IT대학 진입 출입구 선택">
         </div>
@@ -561,7 +613,7 @@
 
       <!-- 2D 평면도 이미지 + SVG 듀얼 애니메이션 화살표 경로 + 고대비 라벨 배지 스테이지 -->
       <div id="indoorCanvasStage" class="indoor-canvas-stage">
-        <div class="indoor-blueprint-frame">
+        <div id="indoorBlueprintFrame" class="indoor-blueprint-frame">
           <img id="indoorFloorPlanImg" src="assets/floorplans/it_floor_1f.png" alt="IT대학 층별 2D 실내 평면도"
             class="indoor-floorplan-img" draggable="false" />
 
@@ -571,6 +623,9 @@
 
           <!-- 강의실 호수 / 엘리베이터 / 계단 / 화장실 / 출입구 고대비 라벨 배지 오버레이 -->
           <div id="indoorBadgesOverlay" class="indoor-badges-overlay"></div>
+
+          <!-- [요구사항 3] 강의실 및 복도 노드 드래그 편집 오버레이 (위치 맞춤 모드 시 활성화) -->
+          <div id="indoorNodeEditorOverlay" class="indoor-node-editor-overlay hidden"></div>
 
           <!-- 실내 이동 시뮬레이션 내 위치 마커 -->
           <div id="indoorUserMarker" class="indoor-user-marker hidden">
@@ -591,10 +646,10 @@
           <button type="button" id="indoorZoomInBtn" class="indoor-zoom-btn" title="도면 확대" aria-label="도면 확대">+</button>
           <button type="button" id="indoorZoomOutBtn" class="indoor-zoom-btn" title="도면 축소"
             aria-label="도면 축소">&minus;</button>
-          <button type="button" id="indoorRotateLeftBtn" class="indoor-zoom-btn" title="실내 도면 반시계 방향 회전 (-30° / 두 손가락 회전 가능)"
-            aria-label="도면 반시계 회전">↺</button>
-          <button type="button" id="indoorRotateRightBtn" class="indoor-zoom-btn" title="실내 도면 시계 방향 회전 (+30° / 두 손가락 회전 가능)"
-            aria-label="도면 시계 회전">↻</button>
+          <button type="button" id="indoorRotateLeftBtn" class="indoor-zoom-btn"
+            title="실내 도면 반시계 방향 회전 (-30° / 두 손가락 회전 가능)" aria-label="도면 반시계 회전">↺</button>
+          <button type="button" id="indoorRotateRightBtn" class="indoor-zoom-btn"
+            title="실내 도면 시계 방향 회전 (+30° / 두 손가락 회전 가능)" aria-label="도면 시계 회전">↻</button>
           <button type="button" id="indoorZoomResetBtn" class="indoor-zoom-btn reset" title="도면 화면 맞춤 및 회전 초기화"
             aria-label="화면 맞춤">맞춤</button>
         </div>
@@ -659,7 +714,8 @@
           <span id="indoorStartSimText">실내 이동 시뮬레이션</span>
         </button>
 
-        <button type="button" id="indoorPickOriginBtn" class="btn-indoor-floor-toggle" title="도면 위 원하는 위치를 마우스로 클릭해 시뮬레이션 출발지로 지정합니다">
+        <button type="button" id="indoorPickOriginBtn" class="btn-indoor-floor-toggle"
+          title="도면 위 원하는 위치를 마우스로 클릭해 시뮬레이션 출발지로 지정합니다">
           <i data-lucide="mouse-pointer-click"></i>
           <span>🖱️ 도면 클릭 출발</span>
         </button>
@@ -830,7 +886,8 @@
       </div>
 
       <!-- 내 위치 기반 건물 자동 매칭 배지 버튼 (클릭 시 수동 건물 변경 드롭다운 열림) -->
-      <button type="button" id="autoMatchedBuildingBanner" class="auto-matched-building-banner" title="클릭하여 다른 건물로 직접 보정할 수 있습니다">
+      <button type="button" id="autoMatchedBuildingBanner" class="auto-matched-building-banner"
+        title="클릭하여 다른 건물로 직접 보정할 수 있습니다">
         <span class="amb-left">
           <span class="amb-dot"></span>
           <span class="amb-text">내 위치 기반 건물 자동 매칭: <strong id="autoMatchedBuildingName">IT대학</strong></span>
@@ -845,14 +902,15 @@
       </div>
 
       <p class="floor-select-desc" id="floorSelectModalDesc">
-        현재 계신 <strong>층수 버튼만 터치</strong>하면 GPS와 도면 인식을 통해 현위치(예: IT대학 308호 앞)를 출발점으로 하여 목적지(정문 등)까지 실내외 연속 최단 경로 안내를 즉시 시작합니다.
+        현재 계신 <strong>층수 버튼만 터치</strong>하면 GPS와 도면 인식을 통해 현위치(예: IT대학 308호 앞)를 출발점으로 하여 목적지(정문 등)까지 실내외 연속 최단 경로 안내를 즉시
+        시작합니다.
       </p>
 
       <!-- 해당 건물에 실제로 존재하는 층수 버튼만 렌더링되는 영역 -->
       <div class="floor-select-grid-wrap">
         <span class="fs-label" id="floorSelectAvailableLabel">출발 층수 선택 (터치 시 즉시 현위치 매칭)</span>
-        <div id="floorSelectButtonsGrid" class="floor-select-buttons-grid" role="radiogroup"
-          aria-label="현재 위치한 층수 선택"></div>
+        <div id="floorSelectButtonsGrid" class="floor-select-buttons-grid" role="radiogroup" aria-label="현재 위치한 층수 선택">
+        </div>
       </div>
 
       <!-- 층수 선택 후 GPS 좌표 대조로 자동 매칭된 호실 & 통합 경로 프리뷰 -->

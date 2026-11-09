@@ -421,6 +421,16 @@ button {
   transform: translateY(-1px);
 }
 
+.sim-floating-pill.sim-mode-active {
+  background: #2563eb;
+  border-color: #93c5fd;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+}
+
+.sim-floating-pill.sim-mode-active .sim-pulse-dot {
+  background: #22c55e;
+}
+
 .sim-floating-pill.running {
   background: var(--naver-green);
   box-shadow: 0 6px 18px rgba(3, 199, 90, 0.38);
@@ -1638,6 +1648,19 @@ button {
   border-radius: 99px;
 }
 
+.origin-display-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--usw-navy);
+  background: #edf2f7;
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #e2e8f0;
+}
+
 #startNodeSelect {
   font-size: 13px;
   font-weight: 700;
@@ -2628,27 +2651,146 @@ button {
   margin-top: 2px;
 }
 
+.indoor-room-selectors-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 540px;
+}
+
 .indoor-room-selector-wrap {
-  min-width: 210px;
+  position: relative;
+  flex: 1;
+  min-width: 170px;
+  display: flex;
+  align-items: center;
+}
+
+.room-selector-prefix {
+  position: absolute;
+  left: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.origin-wrap .room-selector-prefix {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.dest-wrap .room-selector-prefix {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.indoor-room-selector-divider {
+  font-size: 14px;
+  font-weight: 800;
+  color: #64748b;
+  flex-shrink: 0;
 }
 
 .indoor-room-select {
   width: 100%;
   height: 38px;
-  padding: 0 12px;
+  padding: 0 10px 0 42px;
   border-radius: 10px;
   border: 1.5px solid #cbd5e1;
   background: #f8fafc;
   color: #0f172a;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 800;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.indoor-origin-select {
+  border-color: #38bdf8;
+  background: #f0f9ff;
 }
 
 .indoor-room-select:focus {
   outline: none;
   border-color: #0068ff;
   background: #ffffff;
+}
+
+/* 실시간 실내 GPS 인식 상태 바 & 위치 빠른 보정 */
+.indoor-gps-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #ffffff;
+  padding: 7px 14px;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.gps-status-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gps-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+  animation: pulseGpsDot 1.6s infinite ease-in-out;
+}
+
+@keyframes pulseGpsDot {
+  0%, 100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}
+
+.gps-status-text {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.01em;
+}
+
+.btn-quick-fix-origin {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-quick-fix-origin:hover {
+  background: #0068ff;
+  border-color: #0068ff;
+}
+
+.btn-quick-fix-origin svg {
+  width: 12px;
+  height: 12px;
 }
 
 .indoor-pdf-btn {
@@ -2667,6 +2809,133 @@ button {
 .indoor-pdf-btn svg {
   width: 15px;
   height: 15px;
+}
+
+/* [요구사항 3] 실내 위치 미세조정 토글 버튼 */
+.indoor-editor-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1.5px solid #86efac;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.indoor-editor-toggle-btn:hover {
+  background: #dcfce7;
+}
+
+.indoor-editor-toggle-btn.active {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #15803d;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+}
+
+.indoor-editor-toggle-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* [요구사항 3] 실내 노드 위치 미세조정 툴바 */
+.indoor-node-editor-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #ffffff;
+  border-bottom: 2px solid #38bdf8;
+  gap: 12px;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+}
+
+.indoor-node-editor-bar.hidden {
+  display: none !important;
+}
+
+.editor-bar-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+
+.editor-status-text {
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-editor-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-editor-action.save {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #059669;
+}
+.btn-editor-action.save:hover {
+  background: #059669;
+}
+
+.btn-editor-action.reset {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+.btn-editor-action.reset:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.btn-editor-action.close {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+.btn-editor-action.close:hover {
+  background: #2563eb;
 }
 
 /* 다중 출입구 선택 바 */
@@ -2873,9 +3142,6 @@ button {
 /* 2D 평면도 스테이지 */
 .indoor-canvas-stage {
   position: relative;
-  width: min(92vw, 960px);
-  max-height: calc(100% - 24px);
-  aspect-ratio: 1140 / 930;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2899,25 +3165,106 @@ button {
   }
 }
 
+/* [요구사항 1] 도면 이미지와 좌표 오버레이 컨테이너 사이즈 1:1 완전 동기화 */
 .indoor-blueprint-frame {
   position: relative;
-  width: 100%;
-  height: 100%;
+  /* 원본 건축 평면도(1140 x 930) 비율과 100% 동일하게 고정 */
   aspect-ratio: 1140 / 930;
+  width: min(92vw, calc((100vh - 220px) * 1140 / 930), 1080px);
+  max-width: 95vw;
+  max-height: calc(100vh - 200px);
+  height: auto;
   background: #ffffff;
-  border-radius: 18px;
+  border-radius: 16px;
   border: 2px solid #93c5fd;
   box-shadow:
     0 18px 45px rgba(8, 56, 107, 0.14),
     0 0 0 4px rgba(255, 255, 255, 0.9);
   overflow: hidden;
+  user-select: none;
 }
 
 .indoor-floorplan-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  /* 여백으로 인한 좌표 불일치를 방지하고 1:1 프레임에 완전 밀착 */
+  object-fit: fill;
   display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* [요구사항 3] 도면 위 드래그 핸들 오버레이 레이어 */
+.indoor-node-editor-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 25;
+  pointer-events: auto;
+}
+
+.indoor-node-editor-overlay.hidden {
+  display: none !important;
+}
+
+.node-drag-handle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: grab;
+  touch-action: none;
+  z-index: 30;
+  user-select: none;
+}
+
+.node-drag-handle:active,
+.node-drag-handle.dragging {
+  cursor: grabbing;
+  z-index: 60;
+}
+
+.node-drag-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 0 0 2px #1d4ed8, 0 3px 8px rgba(0, 0, 0, 0.35);
+  transition: transform 0.1s ease;
+}
+
+.node-drag-handle.classroom .node-drag-dot {
+  background: #ef4444;
+  box-shadow: 0 0 0 2px #b91c1c, 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+.node-drag-handle.corridor .node-drag-dot {
+  width: 13px;
+  height: 13px;
+  background: #a855f7;
+  box-shadow: 0 0 0 2px #7e22ce, 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.node-drag-handle:hover .node-drag-dot,
+.node-drag-handle.dragging .node-drag-dot {
+  transform: scale(1.4);
+}
+
+.node-drag-label {
+  margin-top: 2px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1px 4px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 /* SVG 경로 레이어 */

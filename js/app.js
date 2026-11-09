@@ -14,7 +14,9 @@
     activeCategory: 'building', // 'building' | 'food' | 'amenity'
     activeSheetView: 'explore', // 'explore' | 'building' | 'route' | 'saved'
     activeBottomTab: 'map', // 'map' | 'route' | 'saved'
-    startNodeId: 'main_gate', // 기본 출발지: 정문
+    startNodeId: null, // 일반 모드에서는 '정문' 고정이 아닌 실시간 GPS가 무조건 기본 출발지
+    isSimulationMode: false, // 시뮬레이션 모드 (기본 OFF: 100% 실시간 GPS로만 동작)
+    targetRoomMeta: null, // 검색 또는 선택된 호실(예: IT대학 310호) 상세 메타정보
     customGpsCoord: null,
     isPickOriginMode: false, // 시뮬레이션용 지도 클릭 출발지 지정 모드
     lastTrimSegIdx: 0, // 지나온 경로 삭제 시 역방향 점프 방지 인덱스
@@ -138,12 +140,14 @@
     dom.detailBuildingCopy = document.getElementById('detailBuildingCopy');
     dom.openFloorPlanBtn = document.getElementById('openFloorPlanBtn');
     dom.goRouteViewBtn = document.getElementById('goRouteViewBtn');
+    dom.goRouteViewBtnText = document.getElementById('goRouteViewBtnText');
 
     dom.sheetViewRoute = document.getElementById('sheetViewRoute');
     dom.closeSheetBtn = document.getElementById('closeSheetBtn');
     dom.sheetRouteTag = document.getElementById('sheetRouteTag');
     dom.sheetCategoryTag = document.getElementById('sheetCategoryTag');
     dom.sheetBuildingName = document.getElementById('sheetBuildingName');
+    dom.sheetOriginText = document.getElementById('sheetOriginText');
     dom.startNodeSelect = document.getElementById('startNodeSelect');
     dom.testOriginChipsBar = document.getElementById('testOriginChipsBar');
     dom.pickOriginOnMapBtn = document.getElementById('pickOriginOnMapBtn');
@@ -518,6 +522,8 @@
     if (dom.startNavBtnText) dom.startNavBtnText.textContent = '안내 시작';
 
     state.selectedDestId = null;
+    state.targetRoomMeta = null;
+    state.pendingIndoorRoomId = null;
     state.highlightedBuildingIds.clear();
     refreshBuildingMarkersStyle();
     updateQuickChipsActiveState();
@@ -649,12 +655,13 @@
     if (!state.userMarker) {
       state.userMarker = L.marker([lat, lng], {
         icon,
-        draggable: true,
+        draggable: Boolean(state.isSimulationMode),
         zIndexOffset: 1000,
       }).addTo(state.map);
 
-      // 마커를 드래그하면 실제 도보 이동/경로 이탈 또는 시뮬레이션 출발지 직접 이동을 테스트할 수 있도록 연동
+      // 시뮬레이션 모드일 때만 마커 드래그로 임의 출발지 이동 허용
       state.userMarker.on('drag', (e) => {
+        if (!state.isSimulationMode) return;
         const pos = e.target.getLatLng();
         state.userPosition.lat = pos.lat;
         state.userPosition.lng = pos.lng;
@@ -664,6 +671,7 @@
       });
 
       state.userMarker.on('dragend', async (e) => {
+        if (!state.isSimulationMode) return;
         const pos = e.target.getLatLng();
         state.userPosition.lat = pos.lat;
         state.userPosition.lng = pos.lng;
@@ -687,6 +695,11 @@
     } else {
       state.userMarker.setLatLng([lat, lng]);
       state.userMarker.setIcon(icon);
+      if (state.isSimulationMode) {
+        state.userMarker.dragging?.enable();
+      } else {
+        state.userMarker.dragging?.disable();
+      }
     }
 
     // [내 진행 방향 기준 자동 회전 모드 (Heading-Up)] 활성 시 지도 회전 동기화
@@ -807,9 +820,9 @@
   }
 
   /**
-   * [State 02] 건물을 선택했을 때 상세 뷰 열기 (UI 예시 02: 미래혁신관 + 학교 공식 사진 + [실내 보기] / [길찾기])
+   * [State 02] 건물을 선택했을 때 상세 뷰 열기 (UI 예시 02: 목적지 확인 + 학교 공식 사진 + [실내 보기] / [길안내 시작])
    */
-  function openBuildingDetailView(buildingId) {
+  function openBuildingDetailView(buildingId, options = {}) {
     const building = CAMPUS_NODES[buildingId];
     if (!building) return;
 
@@ -819,17 +832,37 @@
     }
 
     state.selectedDestId = buildingId;
+    if (options.room) {
+      state.targetRoomMeta = options.room;
+      if (options.room.id || options.room.roomId) {
+        state.pendingIndoorRoomId = options.room.id || options.room.roomId;
+      }
+    } else {
+      state.targetRoomMeta = null;
+    }
+
     refreshBuildingMarkersStyle();
     updateQuickChipsActiveState();
 
     // 바텀 시트 02 데이터 바인딩
-    dom.detailBuildingName.textContent = building.name;
-    dom.detailBuildingSub.textContent = building.subtitle || '수원대학교 · 건물 안내';
+    if (state.targetRoomMeta) {
+      const r = state.targetRoomMeta;
+      dom.detailBuildingName.textContent = r.title || `${building.name} ${r.roomNumber}`;
+      dom.detailBuildingSub.textContent = r.dept
+        ? `${building.name} · ${r.floor} ${r.dept}`
+        : `${building.fullName || building.name} · ${r.floor || '실내 호실'}`;
+      dom.detailFloorBadge.textContent = `${r.floor || '지상'} (${r.roomNumber})`;
+      dom.detailBuildingCopy.textContent = `${r.name || r.dept || building.name} 목적지입니다. [길안내 시작]을 누르면 실시간 GPS 내 위치에서 바로 길안내를 시작합니다.`;
+    } else {
+      dom.detailBuildingName.textContent = building.name;
+      dom.detailBuildingSub.textContent = building.subtitle || '수원대학교 · 건물 안내';
+      dom.detailFloorBadge.textContent = building.floors || '캠퍼스 주요 건물';
+      dom.detailBuildingCopy.textContent = building.indoorAvailable
+        ? '건물을 확인하고, [길안내 시작]을 눌러 실시간 내 위치에서 안내를 시작하세요.'
+        : building.description;
+    }
+
     dom.detailBuildingImg.src = building.photoUrl || 'assets/future_innovation.png';
-    dom.detailFloorBadge.textContent = building.floors || '캠퍼스 주요 건물';
-    dom.detailBuildingCopy.textContent = building.indoorAvailable
-      ? '건물을 확인하고, 실내로 이어가세요'
-      : building.description;
 
     // 북마크 상태 반영
     dom.bookmarkBuildingBtn.classList.toggle(
@@ -839,10 +872,10 @@
 
     switchSheetView('building');
 
-    // 선택된 건물이 화면 중앙 상단에 잘 보이도록 지도 패닝
-    state.map.panTo([building.lat - 0.0008, building.lng], {
+    // [핵심 요구사항 2-1] 지도의 화면(카메라 중심)이 즉시 해당 목적지 위치로 부드럽게 이동(flyTo)
+    state.map.flyTo([building.lat - 0.0008, building.lng], 18, {
       animate: true,
-      duration: 0.45,
+      duration: 0.85,
     });
   }
 
@@ -860,10 +893,25 @@
 
     state.lastTrimSegIdx = 0;
 
-    if (!state.customGpsCoord && state.startNodeId === targetId) {
-      const fallbackStart = targetId === 'main_gate' ? 'main_building' : 'main_gate';
-      state.startNodeId = fallbackStart;
-      if (dom.startNodeSelect) dom.startNodeSelect.value = fallbackStart;
+    // [핵심 요구사항 1] 일반 모드에서는 '정문' 기본 출발 고정 코드를 완전히 제거하고 실시간 GPS 좌표를 기본 출발지로 적용
+    if (!state.isSimulationMode) {
+      if (!state.customGpsCoord) {
+        const liveGps = (gpsTracker && gpsTracker.lastPosition) ? gpsTracker.lastPosition : null;
+        const realLat = liveGps ? liveGps.lat : state.userPosition.lat;
+        const realLng = liveGps ? liveGps.lng : state.userPosition.lng;
+        state.customGpsCoord = {
+          lat: realLat,
+          lng: realLng,
+          name: '내 위치 (실시간 GPS)',
+        };
+      }
+      state.startNodeId = null;
+    } else {
+      // 시뮬레이션 모드일 때만 테스트 출발지 노드 사용
+      if (!state.customGpsCoord && (!state.startNodeId || state.startNodeId === targetId)) {
+        state.startNodeId = targetId === 'main_gate' ? 'main_building' : 'main_gate';
+        if (dom.startNodeSelect) dom.startNodeSelect.value = state.startNodeId;
+      }
     }
 
     // 야외 길안내 시 사용자 고정 요청이 없으면 이전 입구 상태를 초기화
@@ -876,14 +924,14 @@
     refreshBuildingMarkersStyle();
     updateQuickChipsActiveState();
     updateTestOriginChipsActiveState();
-    if (dom.startNodeSelect && !state.customGpsCoord) {
+    if (dom.startNodeSelect && !state.customGpsCoord && state.startNodeId) {
       dom.startNodeSelect.value = state.startNodeId;
     }
 
-    // 출발 위치 마커 설정: 임의 지정/GPS 좌표가 있으면 해당 좌표에, 없으면 선택된 출발지 노드에 표시
+    // 출발 위치 마커 설정: 실시간 GPS / 임의 지정 좌표가 있으면 해당 좌표에 표시
     if (state.customGpsCoord) {
       createOrUpdateUserMarker(state.customGpsCoord.lat, state.customGpsCoord.lng, 180);
-    } else {
+    } else if (state.startNodeId) {
       const startNode = CAMPUS_NODES[state.startNodeId];
       if (startNode) {
         const startLat = startNode.entranceLat || startNode.lat;
@@ -1408,9 +1456,22 @@
     dom.sheetCategoryTag.textContent = route.isOSRM
       ? `${dest.category || '캠퍼스 건물'} · 🌐 ${modeBadge}`
       : `${dest.category || '캠퍼스 건물'} · ${modeBadge}`;
-    dom.sheetBuildingName.textContent = dest.fullName || dest.name;
 
-    // 출발지 드롭다운 동기화 (클릭/GPS 출발지인 경우 전용 옵션 표시)
+    if (state.targetRoomMeta && state.targetRoomMeta.title) {
+      dom.sheetBuildingName.textContent = state.targetRoomMeta.title;
+    } else {
+      dom.sheetBuildingName.textContent = dest.fullName || dest.name;
+    }
+
+    // 출발지 레이블 동기화 (일반 모드는 '📍 내 위치 (실시간 GPS)', 시뮬레이션 모드는 지정 출발지)
+    if (dom.sheetOriginText) {
+      const originTitle = state.customGpsCoord
+        ? (state.customGpsCoord.name || '📍 내 위치 (실시간 GPS)')
+        : (state.startNodeId && CAMPUS_NODES[state.startNodeId] ? CAMPUS_NODES[state.startNodeId].name : '📍 내 위치 (실시간 GPS)');
+      dom.sheetOriginText.textContent = originTitle.startsWith('📍') ? originTitle : `📍 ${originTitle}`;
+    }
+
+    // 출발지 드롭다운 동기화 (시뮬레이션 모드에서만 사용)
     if (dom.startNodeSelect) {
       let customOpt = dom.startNodeSelect.querySelector('option[value="__custom__"]');
       if (state.customGpsCoord) {
@@ -1423,7 +1484,7 @@
         dom.startNodeSelect.value = '__custom__';
       } else {
         if (customOpt) customOpt.remove();
-        dom.startNodeSelect.value = state.startNodeId;
+        if (state.startNodeId) dom.startNodeSelect.value = state.startNodeId;
       }
     }
 
@@ -1440,13 +1501,15 @@
             state.startNodeId,
             route.routePreference || state.activeRoutePreference
           );
+      const roomSuffix = state.targetRoomMeta && state.targetRoomMeta.roomNumber ? ` (${state.targetRoomMeta.roomNumber})` : '';
       if (resolvedEnt) {
-        dom.sheetEndName.textContent = `IT대학 ${resolvedEnt.name} (${resolvedEnt.entryFloor} 진입)`;
+        dom.sheetEndName.textContent = `IT대학 ${resolvedEnt.name}${roomSuffix}`;
       } else {
-        dom.sheetEndName.textContent = `${dest.name} 입구`;
+        dom.sheetEndName.textContent = `IT대학 입구${roomSuffix}`;
       }
     } else {
-      dom.sheetEndName.textContent = `${dest.name} 입구`;
+      const roomSuffix = state.targetRoomMeta && state.targetRoomMeta.roomNumber ? ` (${state.targetRoomMeta.roomNumber})` : '';
+      dom.sheetEndName.textContent = `${dest.name}${roomSuffix}`;
     }
 
     dom.sheetEstTime.textContent = `약 ${route.estimatedMinutes}분`;
@@ -1455,12 +1518,16 @@
 
     // [1단계(최소화 한 줄 모드) 네이버 지도식 미니바 목적지명 + 수치 동기화]
     if (dom.miniBarTitle && dest) {
-      let roomSuffix = '';
-      if (dest.id === 'it_college' && state.pendingIndoorRoomId && window.IT_COLLEGE_INDOOR_DATA) {
-        const rNode = window.IT_COLLEGE_INDOOR_DATA.nodes[state.pendingIndoorRoomId];
-        if (rNode && rNode.roomNumber) roomSuffix = ` ${rNode.roomNumber}`;
+      if (state.targetRoomMeta && state.targetRoomMeta.title) {
+        dom.miniBarTitle.textContent = state.targetRoomMeta.title;
+      } else {
+        let roomSuffix = '';
+        if (dest.id === 'it_college' && state.pendingIndoorRoomId && window.IT_COLLEGE_INDOOR_DATA) {
+          const rNode = window.IT_COLLEGE_INDOOR_DATA.nodes[state.pendingIndoorRoomId];
+          if (rNode && rNode.roomNumber) roomSuffix = ` ${rNode.roomNumber}`;
+        }
+        dom.miniBarTitle.textContent = `${dest.name}${roomSuffix}`;
       }
-      dom.miniBarTitle.textContent = `${dest.name}${roomSuffix}`;
     }
     updateSnap1MiniBarMetrics(route.estimatedMinutes, route.totalDistance, 0);
 
@@ -1705,8 +1772,23 @@
       simulator.pause();
     }
 
-    const roomId = options.roomId || state.pendingIndoorRoomId || 'room_203';
+    const roomId = options.roomId || state.pendingIndoorRoomId || 'room_310';
     state.pendingIndoorRoomId = roomId;
+
+    // [요구사항 1] 실내 동일 건물 내 이동인 경우 야외 경로 계산을 건너뛰고 순수 실내 안내로 진입
+    if (options.directionMode === 'indoor') {
+      indoorNav.open({
+        directionMode: 'indoor',
+        startRoomId: options.startRoomId || state.floorSelectState.matchedRoomId || 'room_308',
+        destRoomId: roomId,
+        roomId: roomId,
+        initialFloor: options.initialFloor || state.floorSelectState.selectedFloor || '3F',
+        isRealGpsNavigating: options.isRealGpsNavigating !== false,
+        speak: options.speak !== false,
+      });
+      if (window.lucide) window.lucide.createIcons();
+      return;
+    }
 
     // 야외 경로가 아직 계산되지 않았거나 다른 건물을 가리키고 있었다면
     // 먼저 현재 출발지(또는 클릭 좌표)에서 IT대학 입구까지의 야외 경로를 계산하여 도착 입구를 100% 동기화
@@ -1997,6 +2079,10 @@
       'snap-3'
     );
     panel.classList.add(`snap-${validStage}`);
+
+    if (dom.sheetMiniBar) {
+      dom.sheetMiniBar.classList.toggle('hidden', validStage !== 1);
+    }
 
     if (window.lucide) window.lucide.createIcons();
   }
@@ -2466,10 +2552,10 @@
     const floorKo = (state.floorSelectState.selectedFloor || '3F').replace('F', '층');
     const roomNum = state.floorSelectState.matchedRoomNumber || '308호';
 
-    // 목적지가 현재 출발 건물과 같다면 기본 목적지를 '정문'으로 설정하여 실내->야외 탈출 경로 예시와 일치시킴
+    // 목적지가 설정되어 있지 않거나 현재 출발 건물과 같다면 미래혁신관 등을 기본 목적지로 설정
     const outdoorDestId =
-      state.selectedDestId && state.selectedDestId !== bld.id ? state.selectedDestId : 'main_gate';
-    const destNode = CAMPUS_NODES[outdoorDestId] || CAMPUS_NODES.main_gate;
+      state.selectedDestId && state.selectedDestId !== bld.id ? state.selectedDestId : 'future_innovation';
+    const destNode = CAMPUS_NODES[outdoorDestId] || CAMPUS_NODES.future_innovation;
 
     let exitEntName = '1층 주출입구';
     if (bld.id === 'it_college' && indoorNav) {
@@ -2487,19 +2573,52 @@
   }
 
   /**
-   * 층수·호실 선택 완료 시 [호실 ➔ 복도 ➔ 계단/엘리베이터 ➔ 1층 출입구 ➔ 야외 도로 ➔ 목적지] 통합 길안내 실행
+   * 층수·호실 선택 완료 시 길안내 실행
+   * [요구사항 1] 3가지 출발 시나리오 분리:
+   * 1. 실내 동일 건물 내 이동 (예: 308호 ➔ 310호) -> 1층 출입구 미경유, 순수 실내 복도 직통 안내
+   * 2. 실내 출발 ➔ 건물 밖 야외/타 건물 (예: 308호 ➔ 정문) -> 308호 ➔ 복도 ➔ 계단/엘리베이터 ➔ 출구 출입구 ➔ 야외 도로
+   * 3. 야외 ➔ 건물 내 강의실 -> 야외 GPS ➔ 건물 입구 ➔ 강의실
    */
   async function startIntegratedIndoorToOutdoorNavigation() {
     const bldId = state.floorSelectState.buildingId || 'it_college';
     const bld = CAMPUS_NODES[bldId] || CAMPUS_NODES.it_college;
-    const roomId = state.floorSelectState.matchedRoomId || 'room_308';
+    const startRoomId = state.floorSelectState.matchedRoomId || 'room_308';
     const roomNum = state.floorSelectState.matchedRoomNumber || '308호';
-    const floorKo = (state.floorSelectState.selectedFloor || '3F').replace('F', '층');
+    const chosenFloor = state.floorSelectState.selectedFloor || '3F';
+    const floorKo = chosenFloor.replace('F', '층');
 
-    // 목적지가 설정되어 있지 않거나 출발 건물과 같으면 '정문(main_gate)'을 목적지로 자동 지정
+    // 목적지 호실 판별 (검색한 호실이 있다면 해당 호실, 없으면 기본 310호)
+    const targetRoomId =
+      state.pendingIndoorRoomId ||
+      (state.targetRoomMeta && state.targetRoomMeta.roomId) ||
+      'room_310';
+
+    const isSameBuilding =
+      bldId === 'it_college' &&
+      (state.selectedDestId === 'it_college' ||
+        (state.targetRoomMeta && state.targetRoomMeta.buildingId === 'it_college'));
+
+    // [시나리오 1] 실내 동일 건물 내 이동 (예: IT대학 3층 308호 ➔ IT대학 3층 310호 또는 타 층 강의실)
+    // 1층 출입구를 절대 거치지 않고, 3층 내 위치(308호)에서 310호로 복도 직통 순수 실내 경로 안내!
+    if (isSameBuilding && indoorNav) {
+      dom.floorSelectModal?.classList.add('hidden');
+      indoorNav.open({
+        directionMode: 'indoor',
+        startRoomId: startRoomId,
+        destRoomId: targetRoomId,
+        roomId: targetRoomId,
+        initialFloor: chosenFloor,
+        isRealGpsNavigating: true,
+        speak: true,
+      });
+      return;
+    }
+
+    // [시나리오 2] 실내에서 야외/타 건물로 이동 (예: IT대학 3층 308호 ➔ 정문)
+    // 3층 내 현재 위치(308호)에서 출발 ➔ 3층 계단/엘리베이터 ➔ 출입구 ➔ 야외 도로 순서로 안내!
     const targetOutdoorDestId =
-      state.selectedDestId && state.selectedDestId !== bldId ? state.selectedDestId : 'main_gate';
-    const destNode = CAMPUS_NODES[targetOutdoorDestId] || CAMPUS_NODES.main_gate;
+      state.selectedDestId && state.selectedDestId !== bldId ? state.selectedDestId : 'future_innovation';
+    const destNode = CAMPUS_NODES[targetOutdoorDestId] || CAMPUS_NODES.future_innovation;
 
     state.startNodeId = bldId;
     state.selectedDestId = targetOutdoorDestId;
@@ -2515,8 +2634,7 @@
       snapStage: 2,
     });
 
-    // 2. IT대학인 경우 2D 실내 도면을 '실내 호실 출발(exit)' 모드로 즉시 열어
-    //    [308호 -> 3층 복도 -> 엘리베이터/계단 -> 1층 남동측 주출입구 -> 정문]을 한 번에 안내!
+    // 2. IT대학인 경우 2D 실내 도면을 '실내 호실 출발(exit)' 모드로 즉시 열어 안내!
     if (bldId === 'it_college' && indoorNav) {
       const exitEnt = indoorNav.router.resolveEntranceForOutdoorOrigin(
         targetOutdoorDestId,
@@ -2524,11 +2642,14 @@
       );
       indoorNav.open({
         directionMode: 'exit',
-        roomId,
+        startRoomId: startRoomId,
+        roomId: startRoomId,
         entranceId: exitEnt ? exitEnt.id : 'ent_1f_main',
         outdoorDestId: targetOutdoorDestId,
         outdoorDestName: destNode.name,
         routePreference: state.activeRoutePreference || 'shortest',
+        initialFloor: chosenFloor,
+        isRealGpsNavigating: true,
         speak: true,
       });
     } else {
@@ -2709,6 +2830,47 @@
     };
   }
 
+  /**
+   * [핵심 요구사항 2] 실내 강의실(예: IT대학 310호) 목적지 선택 시
+   * 1) 지도를 해당 목적지 위치로 flyTo 부드럽게 이동
+   * 2) 하단 바텀 시트에 목적지 정보 및 눈에 잘 띄는 [길안내 시작] 버튼 표시
+   */
+  function selectDestinationRoom(buildingId, roomId) {
+    const building = CAMPUS_NODES[buildingId];
+    if (!building) return;
+
+    let room = null;
+    if (buildingId === 'it_college' && window.IT_COLLEGE_INDOOR_DATA) {
+      room = window.IT_COLLEGE_INDOOR_DATA.nodes[roomId];
+    }
+
+    const roomNumber = room ? room.roomNumber : '310호';
+    const floor = room ? room.floor : '3F';
+    const roomName = room ? room.name : `${roomNumber}`;
+    const dept = room ? room.dept : '';
+
+    dom.searchInput.value = `${building.name} ${roomNumber}`;
+    if (dom.clearSearchBtn) dom.clearSearchBtn.classList.remove('hidden');
+    state.highlightedBuildingIds.clear();
+    state.highlightedBuildingIds.add(buildingId);
+    hideAutocomplete();
+
+    state.selectedDestId = buildingId;
+    state.pendingIndoorRoomId = roomId;
+    state.targetRoomMeta = {
+      buildingId,
+      roomId,
+      roomNumber,
+      floor,
+      name: roomName,
+      dept,
+      title: `${building.name} ${roomNumber}`,
+    };
+
+    openBuildingDetailView(buildingId, { room: state.targetRoomMeta });
+    showToast(`🎯 목적지: ${building.name} ${roomNumber}를 확인했습니다. [길안내 시작]을 눌러 안내를 시작하세요.`);
+  }
+
   function initSearchAndCategories() {
     dom.startNodeSelect.innerHTML = '';
 
@@ -2735,7 +2897,9 @@
       buildingsGroup.appendChild(opt);
     });
     dom.startNodeSelect.appendChild(buildingsGroup);
-    dom.startNodeSelect.value = state.startNodeId;
+    if (state.startNodeId) {
+      dom.startNodeSelect.value = state.startNodeId;
+    }
 
     // 길찾기 바텀 시트 내 빠른 출발지 프리셋 칩 및 지도 클릭 출발지 지정 이벤트 바인딩
     if (dom.testOriginChipsBar) {
@@ -2773,28 +2937,30 @@
       dom.quickBuildingChips.appendChild(chip);
     };
 
-    createFeaturedChip('🎯 IT대학 310호 (실내길안내)', () => {
+    createFeaturedChip('🎯 IT대학 310호', () => {
       hideAutocomplete();
-      openITCollegeIndoorNavigation({ roomId: 'room_310', speak: true });
+      selectDestinationRoom('it_college', 'room_310');
     }, 'indoor-featured-chip');
 
-    createFeaturedChip('🎯 IT대학 308호 (실내길안내)', () => {
+    createFeaturedChip('🎯 IT대학 308호', () => {
       hideAutocomplete();
-      openITCollegeIndoorNavigation({ roomId: 'room_308', speak: true });
+      selectDestinationRoom('it_college', 'room_308');
     }, 'indoor-featured-chip');
 
-    createFeaturedChip('🎯 IT대학 203호 (실내길안내)', () => {
+    createFeaturedChip('🎯 IT대학 203호', () => {
       hideAutocomplete();
-      openITCollegeIndoorNavigation({ roomId: 'room_203', speak: true });
+      selectDestinationRoom('it_college', 'room_203');
     }, 'indoor-featured-chip');
 
-    createFeaturedChip('🚪 후문 (출발지 설정)', () => {
+    createFeaturedChip('🚪 후문 (테스트)', () => {
       hideAutocomplete();
+      toggleSimulationMode(true);
       setNavigationStartOrigin('back_gate', { announce: true });
     }, 'origin-preset-chip');
 
-    createFeaturedChip('🏪 경상관 CU 쪽문 (출발지)', () => {
+    createFeaturedChip('🏪 경상관 CU 쪽문 (테스트)', () => {
       hideAutocomplete();
+      toggleSimulationMode(true);
       setNavigationStartOrigin('west_gate_cu', { announce: true });
     }, 'origin-preset-chip');
 
@@ -3053,16 +3219,11 @@
         </div>
         <div class="ac-right">
           <span class="ac-dist">IT대학 ${floorKo}</span>
-          <span class="ac-go-tag indoor-go-tag">실내 안내 &rarr;</span>
+          <span class="ac-go-tag indoor-go-tag">선택 &rarr;</span>
         </div>
       `;
       li.addEventListener('click', () => {
-        dom.searchInput.value = `IT대학 ${room.roomNumber}`;
-        dom.clearSearchBtn.classList.remove('hidden');
-        state.highlightedBuildingIds.clear();
-        state.highlightedBuildingIds.add('it_college');
-        hideAutocomplete();
-        openITCollegeIndoorNavigation({ roomId: room.id, speak: true });
+        selectDestinationRoom('it_college', room.id);
       });
       dom.autocompleteList.appendChild(li);
     });
@@ -3085,23 +3246,26 @@
         </div>
         <div class="ac-right">
           <span class="ac-dist">${floorNum}층 ${roomNumber}</span>
-          <span class="ac-go-tag indoor-go-tag">바로 길찾기 &rarr;</span>
+          <span class="ac-go-tag indoor-go-tag">선택 &rarr;</span>
         </div>
       `;
-      li.addEventListener('click', async () => {
+      li.addEventListener('click', () => {
         dom.searchInput.value = `${building.name} ${roomNumber}`;
         dom.clearSearchBtn.classList.remove('hidden');
         state.highlightedBuildingIds.clear();
         state.highlightedBuildingIds.add(building.id);
         hideAutocomplete();
-        await startRouteFindingToBuilding(building.id);
-        showToast(`🎯 ${building.name} ${floorNum}층 ${roomNumber} 목적지로 경로를 안내합니다.`);
-        if (tts) {
-          tts.speak(
-            `${building.name} ${floorNum}층 ${roomNumber}까지 보행자 최단 경로를 안내합니다.`,
-            { interrupt: true }
-          );
-        }
+        state.selectedDestId = building.id;
+        state.pendingIndoorRoomId = null;
+        state.targetRoomMeta = {
+          buildingId: building.id,
+          roomNumber,
+          floor: `${floorNum}F`,
+          name: `${floorNum}층 ${roomNumber}`,
+          title: `${building.name} ${roomNumber}`,
+        };
+        openBuildingDetailView(building.id, { room: state.targetRoomMeta });
+        showToast(`🎯 목적지: ${building.name} ${roomNumber}를 확인했습니다. [길안내 시작]을 눌러 안내를 시작하세요.`);
       });
       dom.autocompleteList.appendChild(li);
     });
@@ -3133,7 +3297,11 @@
         state.highlightedBuildingIds.clear();
         state.highlightedBuildingIds.add(building.id);
         hideAutocomplete();
+        state.selectedDestId = building.id;
+        state.pendingIndoorRoomId = null;
+        state.targetRoomMeta = null;
         openBuildingDetailView(building.id);
+        showToast(`🎯 목적지: ${building.name}을(를) 확인했습니다. [길안내 시작]을 눌러 안내를 시작하세요.`);
       });
       dom.autocompleteList.appendChild(li);
     });
@@ -3309,6 +3477,12 @@
           if (state.gpsFollowMode) {
             state.map.panTo([gpsData.lat, gpsData.lng], { animate: true, duration: 0.4 });
           }
+
+          // [요구사항 4] 실내 2D 도면 모드가 열려 있을 때 실시간 도면 GPS 위치 갱신 및 지나온 경로 삭제
+          if (indoorNav && indoorNav.isOpen) {
+            indoorNav.updateUserGpsPosition(gpsData.lat, gpsData.lng);
+          }
+
           if (state.isNavigating && state.currentRoute) {
             // 실시간 지나온 길 삭제 + 경로 이탈(>=28m) 시 자동 재탐색 수행
             updateRemainingRouteOnMap(gpsData.lat, gpsData.lng, { allowReroute: true });
@@ -3390,13 +3564,221 @@
     };
     dom.uswBrandBtn.addEventListener('click', resetToCampusCenter);
 
-    // State 02 (건물 상세 시트) 내 버튼들: [실내 보기] / [길찾기] / [북마크] / [닫기]
+    // [핵심 요구사항 3] 시뮬레이션 모드 ON/OFF 완전 분리 토글 함수
+    function toggleSimulationMode(forceState) {
+      const nextMode = typeof forceState === 'boolean' ? forceState : !state.isSimulationMode;
+      state.isSimulationMode = nextMode;
+
+      if (dom.floatingSimBtn) {
+        dom.floatingSimBtn.classList.toggle('sim-mode-active', nextMode);
+      }
+      if (dom.floatingSimLabel) {
+        dom.floatingSimLabel.textContent = nextMode ? '시뮬레이션 ON' : '시뮬레이션';
+      }
+
+      // 시뮬레이션 전용 UI 온/오프 제어
+      if (dom.floatingPickOriginBtn) {
+        dom.floatingPickOriginBtn.classList.toggle('hidden', !nextMode);
+      }
+      if (dom.testOriginChipsBar) {
+        dom.testOriginChipsBar.classList.toggle('hidden', !nextMode);
+      }
+      if (dom.sheetSimBtn) {
+        dom.sheetSimBtn.classList.toggle('hidden', !nextMode);
+      }
+      if (dom.startNodeSelect) {
+        dom.startNodeSelect.classList.toggle('hidden', !nextMode);
+      }
+      if (dom.sheetOriginText) {
+        dom.sheetOriginText.classList.toggle('hidden', nextMode);
+      }
+
+      // 마커 드래그 모드 제어
+      if (state.userMarker) {
+        if (nextMode) {
+          state.userMarker.dragging?.enable();
+        } else {
+          state.userMarker.dragging?.disable();
+        }
+      }
+
+      if (nextMode) {
+        showToast('🎮 시뮬레이션 모드가 켜졌습니다. 지도 클릭 또는 출발지 선택으로 가상 주행을 테스트할 수 있습니다.');
+      } else {
+        // 시뮬레이션 모드 종료 시: 가상 주행 즉시 정지 및 실제 GPS 위치로 복귀
+        if (simulator && simulator.state !== 'idle') {
+          simulator.stop();
+        }
+        if (dom.simProgressPanel) {
+          dom.simProgressPanel.classList.add('hidden');
+        }
+        if (state.isPickOriginMode) {
+          toggleMapPickOriginMode(false);
+        }
+
+        state.startNodeId = null;
+        const realLat = (gpsTracker && gpsTracker.lastPosition) ? gpsTracker.lastPosition.lat : state.userPosition.lat;
+        const realLng = (gpsTracker && gpsTracker.lastPosition) ? gpsTracker.lastPosition.lng : state.userPosition.lng;
+        state.customGpsCoord = {
+          lat: realLat,
+          lng: realLng,
+          name: '내 위치 (실시간 GPS)',
+        };
+
+        createOrUpdateUserMarker(realLat, realLng, state.userPosition.bearing || 180);
+        showToast('📍 실시간 GPS 일반 모드로 복귀했습니다. (내 실제 GPS 위치에서 출발)');
+
+        if (state.activeSheetView === 'route' && state.selectedDestId) {
+          startRouteFindingToBuilding(state.selectedDestId, { skipFitBounds: true, snapStage: state.sheetSnapStage || 2 });
+        }
+      }
+    }
+
+    // [핵심 요구사항 2] 실시간 GPS 기반 길안내 시작 함수 (네이버 지도식 검색 -> 목적지 확인 -> 길안내 시작 -> 내 위치 화면 전환 및 출발)
+    const startRealGpsNavigation = async (destBuildingId = null, options = {}) => {
+      const targetDestId = destBuildingId || state.selectedDestId || 'it_college';
+      const destBuilding = CAMPUS_NODES[targetDestId];
+      if (!destBuilding) return;
+
+      state.selectedDestId = targetDestId;
+
+      if (simulator && simulator.state !== 'idle') {
+        simulator.stop();
+      }
+      if (state.isPickOriginMode) {
+        toggleMapPickOriginMode(false);
+      }
+
+      if (gpsTracker) {
+        gpsTracker.start();
+      }
+      state.gpsFollowMode = true;
+
+      // 1) 스마트폰 실제 GPS 좌표 획득 (getCurrentPosition 및 watchPosition 캐시 대조)
+      const acquireRealGpsPosition = () =>
+        new Promise((resolve) => {
+          if (!('geolocation' in navigator)) {
+            resolve(null);
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              resolve({
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                accuracy: pos.coords.accuracy || 15,
+                heading:
+                  typeof pos.coords.heading === 'number' && !Number.isNaN(pos.coords.heading)
+                    ? pos.coords.heading
+                    : state.userPosition.bearing || 180,
+              });
+            },
+            () => resolve(null),
+            { enableHighAccuracy: true, timeout: 2000, maximumAge: 3000 }
+          );
+        });
+
+      const liveGps = await acquireRealGpsPosition();
+      const campusBounds = L.latLngBounds(SUWON_CAMPUS_CONFIG.maxBounds);
+
+      let realLat = state.userPosition.lat;
+      let realLng = state.userPosition.lng;
+      let realHeading = state.userPosition.bearing || 180;
+      let realAccuracy = 14;
+
+      if (liveGps && campusBounds.contains([liveGps.lat, liveGps.lng])) {
+        realLat = liveGps.lat;
+        realLng = liveGps.lng;
+        realHeading = liveGps.heading;
+        realAccuracy = liveGps.accuracy;
+      } else if (gpsTracker && gpsTracker.lastPosition) {
+        realLat = gpsTracker.lastPosition.lat;
+        realLng = gpsTracker.lastPosition.lng;
+        realHeading = gpsTracker.lastPosition.heading || realHeading;
+        realAccuracy = gpsTracker.lastPosition.accuracy || realAccuracy;
+      }
+
+      createOrUpdateUserMarker(realLat, realLng, realHeading, realAccuracy);
+
+      // [핵심 요구사항 2-2] 카메라가 목적지에서 나의 실제 GPS 위치로 즉시 부드럽게 전환(이동 및 줌인)
+      state.map.flyTo([realLat, realLng], 18, {
+        animate: true,
+        duration: 0.85,
+      });
+
+      // 2) 현재 GPS 좌표가 캠퍼스 내 건물 폴리곤(실내)에 속하는지 엄격 판별
+      const indoorBuilding = detectBuildingContainingGps(realLat, realLng);
+
+      if (indoorBuilding) {
+        // [실내일 때] "현재 OO건물 몇 층에 계신가요?" 팝업을 띄우고 선택된 층 도면에서 안내 시작
+        openFloorSelectModal(indoorBuilding.id, '3F');
+        return;
+      }
+
+      // 3) [야외일 때] 절대 층수 팝업을 띄우지 않고 즉시 현재 야외 GPS 위치에서부터 목적지까지 바로 안내 시작!
+      state.customGpsCoord = {
+        lat: realLat,
+        lng: realLng,
+        name: '내 위치 (실시간 GPS)',
+      };
+      state.startNodeId = null;
+      updateTestOriginChipsActiveState('__gps_live__');
+
+      await startRouteFindingToBuilding(targetDestId, {
+        skipFitBounds: true, // 내 위치 카메라 유지
+        snapStage: 1, // 네이버 지도식 1단계 미니바로 즉시 스냅
+      });
+
+      const route = state.currentRoute;
+      if (!route) return;
+
+      const startCoord = route.coordinates[0];
+      const firstBearing = route.segments[0] ? route.segments[0].bearing : realHeading;
+      createOrUpdateUserMarker(startCoord[0], startCoord[1], firstBearing, realAccuracy);
+
+      const startCp = route.checkpoints[0];
+      renderCheckpointTimeline(route.checkpoints, 0);
+
+      let destVoiceName = route.destinationName;
+      if (state.targetRoomMeta && state.targetRoomMeta.roomNumber) {
+        destVoiceName = `${route.destinationName} ${state.targetRoomMeta.roomNumber}`;
+      }
+      tts.speak(`${destVoiceName} 입구까지 실시간 길안내를 시작합니다.`, { turnType: 'start' });
+
+      state.isNavigating = true;
+      state.triggeredGpsCheckpoints.clear();
+      state.triggeredGpsCheckpoints.add(startCp.id);
+      if (dom.startNavBtnText) {
+        dom.startNavBtnText.textContent = '실시간 GPS 안내 중';
+      }
+      if (dom.startNavBtn) {
+        dom.startNavBtn.classList.add('active-nav');
+      }
+
+      let destNoticeName = route.destinationName;
+      if (state.targetRoomMeta && state.targetRoomMeta.roomNumber) {
+        destNoticeName = `${route.destinationName} ${state.targetRoomMeta.roomNumber}`;
+      }
+      showToast(
+        `📍 현재 실시간 GPS 위치에서 ${destNoticeName}까지 실시간 길안내를 시작합니다.`
+      );
+
+      // 안내 시작 시 바텀 시트를 네이버 지도 1단계(최소화 한 줄 모드)로 스냅
+      setSheetSnapStage(1);
+    };
+
+    // State 02 (건물 상세 시트) 내 버튼들: [실내 보기] / [길안내 시작] / [북마크] / [닫기]
     dom.openFloorPlanBtn.addEventListener('click', () => {
-      openIndoorFloorPlanModal(state.selectedDestId);
+      if (state.targetRoomMeta && state.targetRoomMeta.buildingId === 'it_college' && indoorNav) {
+        openITCollegeIndoorNavigation({ roomId: state.targetRoomMeta.roomId, speak: true });
+      } else {
+        openIndoorFloorPlanModal(state.selectedDestId);
+      }
     });
 
+    // [길안내 시작] 버튼: 목적지 상세 시트에서 클릭 시 내 GPS 위치로 즉시 전환 및 길안내 시작!
     dom.goRouteViewBtn.addEventListener('click', () => {
-      startRouteFindingToBuilding(state.selectedDestId || 'future_innovation');
+      startRealGpsNavigation();
     });
 
     dom.bookmarkBuildingBtn.addEventListener('click', () => {
@@ -3415,6 +3797,7 @@
 
     dom.closeDetailSheetBtn.addEventListener('click', () => {
       state.selectedDestId = null;
+      state.targetRoomMeta = null;
       state.highlightedBuildingIds.clear();
       refreshBuildingMarkersStyle();
       switchSheetView('explore');
@@ -3438,108 +3821,20 @@
     }
 
     // [안내 시작] 버튼: 실제 스마트폰 GPS 위치에서 출발 & '실내 vs 실외' 자동 판별
-    dom.startNavBtn.addEventListener('click', async () => {
-      if (simulator && simulator.state !== 'idle') {
-        simulator.stop();
-      }
-      if (state.isPickingOriginOnMap) {
-        toggleMapPickOriginMode(false);
-      }
-
-      if (gpsTracker) {
-        gpsTracker.start();
-      }
-      state.gpsFollowMode = true;
-
-      // 1) 스마트폰 실제 GPS 좌표 획득 시도
-      const acquireRealGpsPosition = () =>
-        new Promise((resolve) => {
-          if (!('geolocation' in navigator)) {
-            resolve(null);
-            return;
-          }
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              resolve({
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude,
-                accuracy: pos.coords.accuracy || 15,
-                heading:
-                  typeof pos.coords.heading === 'number' && !Number.isNaN(pos.coords.heading)
-                    ? pos.coords.heading
-                    : state.userPosition.heading || 180,
-              });
-            },
-            () => resolve(null),
-            { enableHighAccuracy: true, timeout: 2500, maximumAge: 5000 }
-          );
-        });
-
-      const liveGps = await acquireRealGpsPosition();
-      const campusBounds = L.latLngBounds(SUWON_CAMPUS_CONFIG.maxBounds);
-
-      let realLat = state.userPosition.lat;
-      let realLng = state.userPosition.lng;
-      let realHeading = state.userPosition.heading || 180;
-      let realAccuracy = 14;
-
-      if (liveGps && campusBounds.contains([liveGps.lat, liveGps.lng])) {
-        realLat = liveGps.lat;
-        realLng = liveGps.lng;
-        realHeading = liveGps.heading;
-        realAccuracy = liveGps.accuracy;
-      }
-
-      createOrUpdateUserMarker(realLat, realLng, realHeading, realAccuracy);
-
-      // 2) 현재 GPS 좌표가 캠퍼스 내 건물 폴리곤(실내)에 속하는지 엄격 판별
-      const indoorBuilding = detectBuildingContainingGps(realLat, realLng);
-
-      if (indoorBuilding) {
-        // [실내일 때] "현재 OO건물 몇 층에 계신가요?" 팝업을 띄우고 선택된 층 도면에서 안내 시작
-        openFloorSelectModal(indoorBuilding.id, '3F');
-        return;
-      }
-
-      // [야외일 때] 절대 층수 팝업을 띄우지 않고 즉시 현재 야외 GPS 위치에서부터 목적지까지 바로 안내 시작!
-      state.customGpsCoord = {
-        lat: realLat,
-        lng: realLng,
-        name: `내 현재 위치 (GPS ${realLat.toFixed(5)}, ${realLng.toFixed(5)})`,
-      };
-      updateTestOriginChipsActiveState('__gps_live__');
-
-      await startRouteFindingToBuilding(state.selectedDestId || 'it_college', {
-        snapStage: 1,
-      });
-
-      const route = state.currentRoute;
-      if (!route) return;
-
-      const startCoord = route.coordinates[0];
-      const firstBearing = route.segments[0] ? route.segments[0].bearing : realHeading;
-      createOrUpdateUserMarker(startCoord[0], startCoord[1], firstBearing, realAccuracy);
-      state.map.setView(startCoord, 18, { animate: true });
-
-      const startCp = route.checkpoints[0];
-      renderCheckpointTimeline(route.checkpoints, 0);
-      tts.speak(startCp.voiceText, { turnType: 'start' });
-
-      state.isNavigating = true;
-      state.triggeredGpsCheckpoints.clear();
-      state.triggeredGpsCheckpoints.add(startCp.id);
-      dom.startNavBtnText.textContent = '실시간 GPS 안내 중';
-      dom.startNavBtn.classList.add('active-nav');
-      showToast(
-        `📍 현재 야외 GPS 위치에서 ${route.destinationName}까지 실시간 길안내를 시작합니다.`
-      );
-
-      // 안내 시작 시 바텀 시트를 네이버 지도 1단계(최소화 한 줄 모드)로 스냅
-      setSheetSnapStage(1);
+    dom.startNavBtn.addEventListener('click', () => {
+      startRealGpsNavigation();
     });
 
-    // [가상 이동 시뮬레이션] 버튼 (우측 플로팅 & 바텀 시트 공통)
+    // 우측 [시뮬레이션] 버튼: 시뮬레이션 모드 ON/OFF 전용 토글
+    dom.floatingSimBtn.addEventListener('click', () => {
+      toggleSimulationMode();
+    });
+
+    // 바텀 시트 내 [가상 이동 시뮬레이션] 버튼 (시뮬레이션 모드 ON일 때만 실행)
     const handleSimulationTrigger = async () => {
+      if (!state.isSimulationMode) {
+        toggleSimulationMode(true);
+      }
       if (state.isPickingOriginOnMap) {
         toggleMapPickOriginMode(false);
       }
@@ -3560,7 +3855,6 @@
       }
     };
 
-    dom.floatingSimBtn.addEventListener('click', handleSimulationTrigger);
     dom.sheetSimBtn.addEventListener('click', handleSimulationTrigger);
 
     // 배속 변경 (1x, 2x, 3x)
@@ -3583,8 +3877,10 @@
     dom.myLocationBtn.addEventListener('click', () => {
       state.gpsFollowMode = true;
       if (gpsTracker) gpsTracker.start();
+      const targetLat = (gpsTracker && gpsTracker.lastPosition) ? gpsTracker.lastPosition.lat : state.userPosition.lat;
+      const targetLng = (gpsTracker && gpsTracker.lastPosition) ? gpsTracker.lastPosition.lng : state.userPosition.lng;
       state.map.setView(
-        [state.userPosition.lat, state.userPosition.lng],
+        [targetLat, targetLng],
         18,
         { animate: true }
       );
@@ -3705,7 +4001,7 @@
           state.pendingIndoorRoomId = roomId || 'room_203';
           indoorNav.close();
           if (directionMode === 'exit') {
-            startRouteFindingToBuilding(state.selectedDestId || 'main_gate', {
+            startRouteFindingToBuilding(state.selectedDestId || 'future_innovation', {
               keepIndoorEntrance: true,
             });
             showToast(
@@ -3719,6 +4015,8 @@
           }
         },
       });
+      window.indoorNav = indoorNav;
+      window.indoorNavigator = indoorNav;
     }
 
     initFloorSelectModal();

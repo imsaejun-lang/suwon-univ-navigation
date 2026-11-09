@@ -793,8 +793,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       shaftId: 'elv_east',
       name: '동측 엘리베이터 (3층)',
       shortLabel: '🛗 엘리베이터',
-      x: 70.2,
-      y: 78.5,
+      x: 72.6,
+      y: 73.4,
     },
     stair_east_3F: {
       id: 'stair_east_3F',
@@ -803,8 +803,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       shaftId: 'stair_east',
       name: '동측 주계단 (3층)',
       shortLabel: '🪜 계단',
-      x: 73.5,
-      y: 78.8,
+      x: 73.3,
+      y: 76.5,
     },
     elv_west_3F: {
       id: 'elv_west_3F',
@@ -813,8 +813,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       shaftId: 'elv_west',
       name: '서측 엘리베이터 (3층)',
       shortLabel: '🛗 서측 엘리베이터',
-      x: 11.5,
-      y: 59.8,
+      x: 11.75,
+      y: 60.05,
     },
     stair_west_3F: {
       id: 'stair_west_3F',
@@ -823,38 +823,38 @@ const IT_COLLEGE_INDOOR_DATA = {
       shaftId: 'stair_west',
       name: '서측 비상계단 (3층)',
       shortLabel: '🪜 서측 계단',
-      x: 6.5,
-      y: 61.5,
+      x: 6.54,
+      y: 58.33,
     },
 
     // 3F 복도 교차로 및 문 앞 직각 진입 노드 (308·307·306호 벽 관통 원천 차단 직각 복도)
-    c3_w_elv: { id: 'c3_w_elv', floor: '3F', type: 'corridor', name: '3층 서측 엘리베이터 앞', x: 15.5, y: 59.8 },
-    c3_w_stair: { id: 'c3_w_stair', floor: '3F', type: 'corridor', name: '3층 서측 계단 앞', x: 6.5, y: 64.5 },
+    c3_w_elv: { id: 'c3_w_elv', floor: '3F', type: 'corridor', name: '3층 서측 엘리베이터 앞', x: 15.5, y: 60.05 },
+    c3_w_stair: { id: 'c3_w_stair', floor: '3F', type: 'corridor', name: '3층 서측 계단 앞', x: 6.54, y: 64.5 },
     c3_w_mid: { id: 'c3_w_mid', floor: '3F', type: 'corridor', name: '3층 서측 복도', x: 15.5, y: 64.5 },
     c3_w_bridge: { id: 'c3_w_bridge', floor: '3F', type: 'corridor', name: '3층 서측-중앙 연결 복도', x: 15.5, y: 68.5 },
     c3_w_entry: { id: 'c3_w_entry', floor: '3F', type: 'corridor', name: '3층 서측 언덕출입구 홀', x: 15.5, y: 73.5 },
-    c3_w_311: { id: 'c3_w_311', floor: '3F', type: 'corridor', name: '311호 문 앞 복도', x: 15.5, y: 44.0 },
+    c3_w_311: { id: 'c3_w_311', floor: '3F', type: 'corridor', name: '311호 문 앞 복도', x: 15.5, y: 43.98 },
     c3_sw_corner: { id: 'c3_sw_corner', floor: '3F', type: 'corridor', name: '310·309호 앞 코너', x: 15.5, y: 79.2 },
-    c3_310_door: { id: 'c3_310_door', floor: '3F', type: 'corridor', name: '310호 문 앞', x: 11.0, y: 79.2 },
-    c3_s_309: { id: 'c3_s_309', floor: '3F', type: 'corridor', name: '309호 문 앞 복도', x: 20.8, y: 79.2 },
+    c3_310_door: { id: 'c3_310_door', floor: '3F', type: 'corridor', name: '310호 문 앞', x: 11.18, y: 79.2 },
+    c3_s_309: { id: 'c3_s_309', floor: '3F', type: 'corridor', name: '309호 문 앞 복도', x: 20.92, y: 79.2 },
     c3_u_25: { id: 'c3_u_25', floor: '3F', type: 'corridor', name: '3층 중앙 복도 서단', x: 25.0, y: 68.5 },
     c3_u_25_drop: { id: 'c3_u_25_drop', floor: '3F', type: 'corridor', name: '308호 복도 진입 코너', x: 25.0, y: 69.2 },
-    c3_s_308: { id: 'c3_s_308', floor: '3F', type: 'corridor', name: '308호 문 앞 복도', x: 29.0, y: 69.2 },
-    c3_s_307: { id: 'c3_s_307', floor: '3F', type: 'corridor', name: '307호 문 앞 복도', x: 37.5, y: 69.2 },
+    c3_s_308: { id: 'c3_s_308', floor: '3F', type: 'corridor', name: '308호 문 앞 복도', x: 29.08, y: 69.2 },
+    c3_s_307: { id: 'c3_s_307', floor: '3F', type: 'corridor', name: '307호 문 앞 복도', x: 37.68, y: 69.2 },
     c3_u_42: { id: 'c3_u_42', floor: '3F', type: 'corridor', name: '3층 중앙 복도 코너', x: 42.5, y: 69.2 },
     c3_u_42_drop: { id: 'c3_u_42_drop', floor: '3F', type: 'corridor', name: '306호 복도 진입 코너', x: 42.5, y: 72.2 },
-    c3_s_306: { id: 'c3_s_306', floor: '3F', type: 'corridor', name: '306호 문 앞 복도', x: 45.5, y: 72.2 },
+    c3_s_306: { id: 'c3_s_306', floor: '3F', type: 'corridor', name: '306호 문 앞 복도', x: 45.83, y: 72.2 },
     c3_mid_top: { id: 'c3_mid_top', floor: '3F', type: 'corridor', name: '3층 중앙-동측 연결 복도 상단', x: 56.9, y: 72.2 },
-    c3_305_door: { id: 'c3_305_door', floor: '3F', type: 'corridor', name: '305호 문 앞 복도', x: 56.9, y: 81.5 },
-    c3_mid_bottom: { id: 'c3_mid_bottom', floor: '3F', type: 'corridor', name: '3층 동측 복도 교차점', x: 56.9, y: 83.8 },
-    c3_s_304: { id: 'c3_s_304', floor: '3F', type: 'corridor', name: '304호 문 앞 복도', x: 53.5, y: 83.8 },
-    c3_se_hall: { id: 'c3_se_hall', floor: '3F', type: 'corridor', name: '3층 동측 엘리베이터 통로 입구', x: 67.8, y: 83.8 },
-    c3_elv_east: { id: 'c3_elv_east', floor: '3F', type: 'corridor', name: '3층 동측 엘리베이터 앞', x: 67.8, y: 78.5 },
-    c3_303: { id: 'c3_303', floor: '3F', type: 'corridor', name: '303호 문 앞 복도', x: 70.5, y: 83.8 },
-    c3_stair_hall: { id: 'c3_stair_hall', floor: '3F', type: 'corridor', name: '3층 동측 계단 통로 입구', x: 75.2, y: 83.8 },
-    c3_stair_east: { id: 'c3_stair_east', floor: '3F', type: 'corridor', name: '3층 동측 계단 앞', x: 75.2, y: 78.8 },
-    c3_302: { id: 'c3_302', floor: '3F', type: 'corridor', name: '302·312-B호 문 앞 복도', x: 78.5, y: 83.8 },
-    c3_301: { id: 'c3_301', floor: '3F', type: 'corridor', name: '301·313호 문 앞 복도', x: 88.5, y: 83.8 },
+    c3_305_door: { id: 'c3_305_door', floor: '3F', type: 'corridor', name: '305호 문 앞 복도', x: 52.94, y: 81.5 },
+    c3_mid_bottom: { id: 'c3_mid_bottom', floor: '3F', type: 'corridor', name: '3층 동측 복도 교차점', x: 56.9, y: 84.8 },
+    c3_s_304: { id: 'c3_s_304', floor: '3F', type: 'corridor', name: '304호 문 앞 복도', x: 53.99, y: 84.8 },
+    c3_se_hall: { id: 'c3_se_hall', floor: '3F', type: 'corridor', name: '3층 동측 엘리베이터 통로 입구', x: 67.8, y: 84.8 },
+    c3_elv_east: { id: 'c3_elv_east', floor: '3F', type: 'corridor', name: '3층 동측 엘리베이터 앞', x: 67.8, y: 73.4 },
+    c3_303: { id: 'c3_303', floor: '3F', type: 'corridor', name: '303호 문 앞 복도', x: 70.48, y: 84.8 },
+    c3_stair_hall: { id: 'c3_stair_hall', floor: '3F', type: 'corridor', name: '3층 동측 계단 통로 입구', x: 73.3, y: 84.8 },
+    c3_stair_east: { id: 'c3_stair_east', floor: '3F', type: 'corridor', name: '3층 동측 계단 앞', x: 73.3, y: 76.5 },
+    c3_302: { id: 'c3_302', floor: '3F', type: 'corridor', name: '302·312-B호 문 앞 복도', x: 78.82, y: 84.8 },
+    c3_301: { id: 'c3_301', floor: '3F', type: 'corridor', name: '301·313호 문 앞 복도', x: 88.82, y: 84.8 },
 
     // 3F 강의실 노드
     room_301: {
@@ -866,8 +866,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '컴퓨터학부',
       shortLabel: '301호',
       aliases: ['IT대학 301호', '301호'],
-      x: 88.5,
-      y: 88.0,
+      x: 88.82,
+      y: 88.49,
     },
     room_302: {
       id: 'room_302',
@@ -878,8 +878,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '정보보호학과',
       shortLabel: '302호',
       aliases: ['IT대학 302호', '302호'],
-      x: 78.5,
-      y: 88.0,
+      x: 78.82,
+      y: 88.39,
     },
     room_303: {
       id: 'room_303',
@@ -890,8 +890,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '데이터과학부',
       shortLabel: '303호',
       aliases: ['IT대학 303호', '303호', '데이터사이언스실습실'],
-      x: 70.5,
-      y: 88.0,
+      x: 70.48,
+      y: 88.17,
     },
     room_304: {
       id: 'room_304',
@@ -902,8 +902,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '컴퓨터학부',
       shortLabel: '304호',
       aliases: ['IT대학 304호', '304호'],
-      x: 53.5,
-      y: 88.0,
+      x: 53.99,
+      y: 88.01,
     },
     room_305: {
       id: 'room_305',
@@ -914,8 +914,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '정보보호학과',
       shortLabel: '305호',
       aliases: ['IT대학 305호', '305호'],
-      x: 52.8,
-      y: 81.5,
+      x: 52.94,
+      y: 82.58,
     },
     room_306: {
       id: 'room_306',
@@ -926,8 +926,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '데이터과학부',
       shortLabel: '306호',
       aliases: ['IT대학 306호', '306호', '빅데이터실습실'],
-      x: 45.5,
-      y: 84.5,
+      x: 45.83,
+      y: 81.51,
     },
     room_307: {
       id: 'room_307',
@@ -938,8 +938,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: 'AI융합학부',
       shortLabel: '307호',
       aliases: ['IT대학 307호', '307호'],
-      x: 37.5,
-      y: 84.5,
+      x: 37.68,
+      y: 81.51,
     },
     room_308: {
       id: 'room_308',
@@ -950,8 +950,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '정보통신학부',
       shortLabel: '308호',
       aliases: ['IT대학 308호', '308호', 'IoT실습실'],
-      x: 29.0,
-      y: 84.5,
+      x: 29.08,
+      y: 81.51,
     },
     room_309: {
       id: 'room_309',
@@ -962,8 +962,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '컴퓨터학부',
       shortLabel: '309호',
       aliases: ['IT대학 309호', '309호'],
-      x: 20.8,
-      y: 85.5,
+      x: 20.92,
+      y: 85.48,
     },
     room_310: {
       id: 'room_310',
@@ -974,8 +974,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '미디어SW학과',
       shortLabel: '310호',
       aliases: ['IT대학 310호', '310호'],
-      x: 11.0,
-      y: 85.5,
+      x: 11.18,
+      y: 85.48,
     },
     room_311: {
       id: 'room_311',
@@ -986,8 +986,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: '미디어SW학과',
       shortLabel: '311호',
       aliases: ['IT대학 311호', '311호', 'VR실습실'],
-      x: 12.2,
-      y: 44.0,
+      x: 12.76,
+      y: 43.98,
     },
     room_312: {
       id: 'room_312',
@@ -998,8 +998,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: 'IT대학 공통',
       shortLabel: '312-B호',
       aliases: ['IT대학 312호', '312호', '312-B호'],
-      x: 78.5,
-      y: 78.0,
+      x: 78.90,
+      y: 78.33,
     },
     room_313: {
       id: 'room_313',
@@ -1010,8 +1010,8 @@ const IT_COLLEGE_INDOOR_DATA = {
       dept: 'IT대학 공통',
       shortLabel: '313호',
       aliases: ['IT대학 313호', '313호'],
-      x: 88.5,
-      y: 78.0,
+      x: 88.82,
+      y: 78.33,
     },
 
     // =========================================================================
@@ -2306,8 +2306,34 @@ class IndoorMultiFloorRouter {
   }
 
   /**
-   * [요구사항 4] 현재 GPS 위경도 및 사용자가 선택한 층수(예: '3F')를 대조하여
-   * 해당 층에서 가장 가까운 호실(예: 3층 선택 시 308호 등)을 자동 매칭
+   * [요구사항 2] 실시간 GPS(위경도)를 2D 실내 도면 상대 좌표(x: 6~90%, y: 44~86%)로 1:1 선형 매핑
+   */
+  gpsToFloorPercentage(lat, lng) {
+    // IT대학 외곽 위경도 바운딩 박스 (지오바운딩)
+    // 남서단: lat 37.20980, lng 126.97460 (서측 310호/언덕출입구 방면)
+    // 북동단: lat 37.21060, lng 126.97585 (동측 301호/아트리움 방면)
+    const minLat = 37.20978;
+    const maxLat = 37.21060;
+    const minLng = 126.97460;
+    const maxLng = 126.97585;
+
+    // 도면 좌표 범위
+    const minX = 6.0;
+    const maxX = 90.0;
+    const minY = 44.0;
+    const maxY = 86.0;
+
+    const u = Math.max(0, Math.min(1, (lng - minLng) / (maxLng - minLng)));
+    const v = Math.max(0, Math.min(1, (maxLat - lat) / (maxLat - minLat)));
+
+    const x = minX + u * (maxX - minX);
+    const y = minY + v * (maxY - minY);
+    return { x, y };
+  }
+
+  /**
+   * [요구사항 2] 현재 GPS 위경도 및 사용자가 선택한 층수(예: '3F')를 대조하여
+   * 해당 층에서 유클리드 거리가 가장 가까운 호실(예: 3층 선택 시 308호 등)을 자동 매칭
    */
   matchRoomByGpsAndFloor(lat, lng, floorId = '3F') {
     const normalizedFloor = String(floorId || '3F').toUpperCase().endsWith('F')
@@ -2319,19 +2345,18 @@ class IndoorMultiFloorRouter {
     );
     if (roomsOnFloor.length === 0) return null;
 
-    // IT대학 외곽 위경도 바운딩 박스 -> 도면 (x: 8~92%, y: 10~90%) 선형 매핑
-    const minLat = 37.20955;
-    const maxLat = 37.21055;
-    const minLng = 126.97485;
-    const maxLng = 126.97605;
+    const minLat = 37.20978;
+    const maxLat = 37.21060;
+    const minLng = 126.97460;
+    const maxLng = 126.97585;
 
     const isInsideBuildingBounds =
       Number.isFinite(lat) &&
       Number.isFinite(lng) &&
-      lat >= minLat - 0.0005 &&
-      lat <= maxLat + 0.0005 &&
-      lng >= minLng - 0.0005 &&
-      lng <= maxLng + 0.0005;
+      lat >= minLat - 0.0006 &&
+      lat <= maxLat + 0.0006 &&
+      lng >= minLng - 0.0006 &&
+      lng <= maxLng + 0.0006;
 
     if (!isInsideBuildingBounds) {
       // 기본 대표 호실 (3층 -> 308호, 2층 -> 203호, 1층 -> 101호, 4층 -> 408호, 5층 -> 508호)
@@ -2347,8 +2372,7 @@ class IndoorMultiFloorRouter {
       return roomsOnFloor[0];
     }
 
-    const mappedX = Math.max(8, Math.min(92, ((lng - minLng) / (maxLng - minLng)) * 84 + 8));
-    const mappedY = Math.max(10, Math.min(90, ((maxLat - lat) / (maxLat - minLat)) * 80 + 10));
+    const { x: mappedX, y: mappedY } = this.gpsToFloorPercentage(lat, lng);
 
     let bestRoom = roomsOnFloor[0];
     let bestDist = Infinity;
