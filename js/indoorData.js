@@ -2391,7 +2391,7 @@ class IndoorMultiFloorRouter {
    * [요구사항 4] 실내 호실(예: 308호)에서 출발하여 야외 목적지(예: 정문)로 나갈 때
    * [308호 ➔ 3층 복도 ➔ 3층 계단/엘리베이터 ➔ 1층 출입구]로 이어지는 실내 탈출 경로 계산
    */
-  findExitRouteFromRoom(startRoomId, outdoorDestId = 'main_gate', transitMode = 'stairs') {
+  findExitRouteFromRoom(startRoomId, outdoorDestId = null, transitMode = 'stairs') {
     const exitEntrance = this.resolveEntranceForOutdoorOrigin(outdoorDestId);
     const exitNodeId = exitEntrance ? exitEntrance.nodeId : 'ent_1f_main';
     const route = this.findRoute(startRoomId, exitNodeId, transitMode);

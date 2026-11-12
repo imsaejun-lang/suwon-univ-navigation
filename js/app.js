@@ -15,9 +15,14 @@
     activeSheetView: 'explore', // 'explore' | 'building' | 'route' | 'saved'
     activeBottomTab: 'map', // 'map' | 'route' | 'saved'
     startNodeId: null, // 일반 모드에서는 '정문' 고정이 아닌 실시간 GPS가 무조건 기본 출발지
+    userLocation: null, // 실제 스마트폰 GPS로 수신·확정된 실시간 위치 ({ lat, lng, accuracy, heading })
+    explicitSimulationOrigin: false, // 시뮬레이션 출발지 명시 선택 여부
     isSimulationMode: false, // 시뮬레이션 모드 (기본 OFF: 100% 실시간 GPS로만 동작)
     targetRoomMeta: null, // 검색 또는 선택된 호실(예: IT대학 310호) 상세 메타정보
     customGpsCoord: null,
+    pendingGpsWaitCancel: null, // GPS 대기 취소 함수 참조
+    pendingGpsWaitResolvers: [], // 실시간 GPS 수신 시 깨어날 Promise resolve 콜백들
+    lastGpsRetryCallback: null, // GPS 실패 모달에서 [다시 시도] 누를 때 실행할 액션
     isPickOriginMode: false, // 시뮬레이션용 지도 클릭 출발지 지정 모드
     lastTrimSegIdx: 0, // 지나온 경로 삭제 시 역방향 점프 방지 인덱스
     selectedDestId: null, // 현재 선택된 건물 ID
@@ -118,6 +123,18 @@
     dom.floatingSimIconWrap = document.getElementById('floatingSimIconWrap');
     dom.floatingSimLabel = document.getElementById('floatingSimLabel');
     dom.floatingPickOriginBtn = document.getElementById('floatingPickOriginBtn');
+
+    // GPS 위치 수신 대기 및 에러 모달 DOM 캐시
+    dom.sheetGpsLocatingBox = document.getElementById('sheetGpsLocatingBox');
+    dom.gpsLocatingOverlay = document.getElementById('gpsLocatingOverlay');
+    dom.gpsLocatingSub = document.getElementById('gpsLocatingSub');
+    dom.gpsLocatingCancelBtn = document.getElementById('gpsLocatingCancelBtn');
+    dom.gpsErrorModal = document.getElementById('gpsErrorModal');
+    dom.gpsErrorTitle = document.getElementById('gpsErrorTitle');
+    dom.gpsErrorDetail = document.getElementById('gpsErrorDetail');
+    dom.gpsErrorCloseBtn = document.getElementById('gpsErrorCloseBtn');
+    dom.gpsErrorRetryBtn = document.getElementById('gpsErrorRetryBtn');
+    dom.gpsErrorManualRow = document.getElementById('gpsErrorManualRow');
     dom.floatingPickOriginLabel = document.getElementById('floatingPickOriginLabel');
 
     dom.bottomSheet = document.getElementById('bottomSheet');
@@ -478,6 +495,175 @@
       showToast('🖱️ 지도의 원하는 도로·위치를 클릭하면 그 지점이 바로 출발지로 설정됩니다.');
     }
   }
+
+  /**
+   * =========================================================================
+   * [긴급 수정 핵심] 실시간 모바일 GPS 위치 탐색 대기(최대 10초) & 에러 안내창 제어
+   * =========================================================================
+   */
+  function showGpsLocatingUi(customSubText) {
+    if (dom.sheetGpsLocatingBox) {
+      dom.sheetGpsLocatingBox.classList.remove('hidden');
+    }
+    if (dom.gpsLocatingOverlay) {
+      if (customSubText && dom.gpsLocatingSub) {
+        dom.gpsLocatingSub.textContent = customSubText;
+      } else if (dom.gpsLocatingSub) {
+        dom.gpsLocatingSub.textContent = '위성 신호를 받는 동안 잠시만 기다려 주세요 (최대 10초)';
+      }
+      dom.gpsLocatingOverlay.classList.remove('hidden');
+    }
+  }
+
+  function hideGpsLocatingUi() {
+    if (dom.sheetGpsLocatingBox) {
+      dom.sheetGpsLocatingBox.classList.add('hidden');
+    }
+    if (dom.gpsLocatingOverlay) {
+      dom.gpsLocatingOverlay.classList.add('hidden');
+    }
+  }
+
+  function showGpsErrorModal(title, detail, retryCallback) {
+    hideGpsLocatingUi();
+    if (title && dom.gpsErrorTitle) {
+      dom.gpsErrorTitle.textContent = title;
+    }
+    if (dom.gpsErrorDetail) {
+      dom.gpsErrorDetail.textContent =
+        detail || '스마트폰 설정에서 브라우저의 위치 정보 접근 권한이 허용되어 있는지 확인해 주세요.';
+    }
+    state.lastGpsRetryCallback = typeof retryCallback === 'function' ? retryCallback : null;
+    if (dom.gpsErrorModal) {
+      dom.gpsErrorModal.classList.remove('hidden');
+    }
+  }
+
+  function hideGpsErrorModal() {
+    if (dom.gpsErrorModal) {
+      dom.gpsErrorModal.classList.add('hidden');
+    }
+  }
+
+  function notifyGpsLocationConfirmed(gpsLoc) {
+    if (!gpsLoc || typeof gpsLoc.lat !== 'number' || typeof gpsLoc.lng !== 'number') return;
+    state.userLocation = {
+      lat: gpsLoc.lat,
+      lng: gpsLoc.lng,
+      accuracy: gpsLoc.accuracy || 15,
+      heading: typeof gpsLoc.heading === 'number' && !Number.isNaN(gpsLoc.heading) ? gpsLoc.heading : state.userPosition.bearing || 180,
+    };
+    state.userPosition.lat = gpsLoc.lat;
+    state.userPosition.lng = gpsLoc.lng;
+
+    if (state.pendingGpsWaitResolvers.length > 0) {
+      const resolvers = [...state.pendingGpsWaitResolvers];
+      state.pendingGpsWaitResolvers = [];
+      resolvers.forEach((resolve) => resolve({ ok: true, location: state.userLocation }));
+    }
+  }
+
+  /**
+   * 실시간 GPS 위치를 최대 timeoutMs(기본 10초) 동안 await로 대기하는 비동기 함수.
+   */
+  function waitForRealGpsLocation(options = { timeoutMs: 10000 }) {
+    return new Promise((resolve) => {
+      const timeoutMs = options.timeoutMs || 10000;
+      const onRetry = options.onRetry;
+
+      if (state.userLocation && options.forceFresh !== true) {
+        resolve({ ok: true, location: state.userLocation });
+        return;
+      }
+
+      showGpsLocatingUi(options.subText || '위성 신호를 받는 동안 잠시만 기다려 주세요 (최대 10초)');
+
+      let isSettled = false;
+      let timerId = null;
+
+      const cleanup = () => {
+        if (timerId) clearTimeout(timerId);
+        state.pendingGpsWaitCancel = null;
+        const idx = state.pendingGpsWaitResolvers.indexOf(finishSuccess);
+        if (idx !== -1) state.pendingGpsWaitResolvers.splice(idx, 1);
+        hideGpsLocatingUi();
+      };
+
+      const finishSuccess = (result) => {
+        if (isSettled) return;
+        isSettled = true;
+        cleanup();
+        resolve(result);
+      };
+
+      const finishFailure = (errMsg, isPermissionDenied = false) => {
+        if (isSettled) return;
+        isSettled = true;
+        cleanup();
+        showGpsErrorModal(
+          isPermissionDenied
+            ? '위치 정보 접근 권한이 차단되었습니다.'
+            : '위치 정보를 가져오지 못했습니다. GPS 신호 또는 권한을 확인해 주세요.',
+          errMsg || '위치 권한을 허용한 후 [다시 시도]를 누르거나, 아래 버튼을 통해 테스트 출발지를 직접 지정하세요.',
+          onRetry
+        );
+        resolve({ ok: false, error: errMsg, isPermissionDenied });
+      };
+
+      state.pendingGpsWaitResolvers.push(finishSuccess);
+      state.pendingGpsWaitCancel = () => {
+        if (isSettled) return;
+        isSettled = true;
+        cleanup();
+        resolve({ ok: false, error: 'User cancelled GPS locating' });
+      };
+
+      timerId = setTimeout(() => {
+        finishFailure('10초 동안 스마트폰 GPS 좌표를 수신하지 못했습니다. 야외로 이동하거나 위치 권한을 확인해 주세요.', false);
+      }, timeoutMs);
+
+      if (gpsTracker) {
+        gpsTracker.start();
+      }
+
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const liveLoc = {
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
+              accuracy: pos.coords.accuracy || 15,
+              heading: typeof pos.coords.heading === 'number' && !Number.isNaN(pos.coords.heading) ? pos.coords.heading : 180,
+            };
+            notifyGpsLocationConfirmed(liveLoc);
+          },
+          (err) => {
+            if (err && err.code === 1) {
+              finishFailure('브라우저 위치 접근 권한이 거부되었습니다.', true);
+              return;
+            }
+            navigator.geolocation.getCurrentPosition(
+              (posFallback) => {
+                const liveLoc = {
+                  lat: posFallback.coords.latitude,
+                  lng: posFallback.coords.longitude,
+                  accuracy: posFallback.coords.accuracy || 25,
+                  heading: typeof posFallback.coords.heading === 'number' && !Number.isNaN(posFallback.coords.heading) ? posFallback.coords.heading : 180,
+                };
+                notifyGpsLocationConfirmed(liveLoc);
+              },
+              () => {},
+              { enableHighAccuracy: false, timeout: 5000, maximumAge: 3000 }
+            );
+          },
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 2000 }
+        );
+      } else {
+        finishFailure('현재 브라우저가 위치 정보(Geolocation)를 지원하지 않습니다.', false);
+      }
+    });
+  }
+
 
   /**
    * [요구사항 5] 길안내 중간 취소(안내 종료) 통합 함수
@@ -3463,31 +3649,42 @@
   function initGpsTracker() {
     gpsTracker = new MobileGpsTracker({
       onLocationUpdate: (gpsData) => {
+        const rawLat = typeof gpsData.rawLat === 'number' && !Number.isNaN(gpsData.rawLat) ? gpsData.rawLat : gpsData.lat;
+        const rawLng = typeof gpsData.rawLng === 'number' && !Number.isNaN(gpsData.rawLng) ? gpsData.rawLng : gpsData.lng;
+
+        notifyGpsLocationConfirmed({
+          lat: rawLat,
+          lng: rawLng,
+          accuracy: gpsData.accuracy || 15,
+          heading: typeof gpsData.heading === 'number' && !Number.isNaN(gpsData.heading) ? gpsData.heading : state.userPosition.bearing || 180,
+        });
+
         if (simulator && simulator.state === 'running') return;
 
-        // 캠퍼스 바운더리 내부에 실제로 있을 때만 내 위치 마커를 실제 GPS로 이동
-        const campusBounds = L.latLngBounds(SUWON_CAMPUS_CONFIG.maxBounds);
-        if (campusBounds.contains([gpsData.lat, gpsData.lng])) {
-          createOrUpdateUserMarker(
-            gpsData.lat,
-            gpsData.lng,
-            gpsData.heading,
-            gpsData.accuracy
-          );
-          if (state.gpsFollowMode) {
-            state.map.panTo([gpsData.lat, gpsData.lng], { animate: true, duration: 0.4 });
-          }
+        createOrUpdateUserMarker(
+          rawLat,
+          rawLng,
+          gpsData.heading,
+          gpsData.accuracy
+        );
 
-          // [요구사항 4] 실내 2D 도면 모드가 열려 있을 때 실시간 도면 GPS 위치 갱신 및 지나온 경로 삭제
-          if (indoorNav && indoorNav.isOpen) {
-            indoorNav.updateUserGpsPosition(gpsData.lat, gpsData.lng);
-          }
+        if (state.gpsFollowMode) {
+          state.map.panTo([rawLat, rawLng], { animate: true, duration: 0.4 });
+        }
 
-          if (state.isNavigating && state.currentRoute) {
-            // 실시간 지나온 길 삭제 + 경로 이탈(>=28m) 시 자동 재탐색 수행
-            updateRemainingRouteOnMap(gpsData.lat, gpsData.lng, { allowReroute: true });
-            handleRealWalkingGeofence(gpsData);
-          }
+        // [요구사항 4] 실내 2D 도면 모드가 열려 있을 때 실시간 도면 GPS 위치 갱신 및 지나온 경로 삭제
+        if (indoorNav && indoorNav.isOpen) {
+          indoorNav.updateUserGpsPosition(rawLat, rawLng);
+        }
+
+        if (state.isNavigating && state.currentRoute) {
+          // 실시간 지나온 길 삭제 + 경로 이탈(>=28m) 시 자동 재탐색 수행
+          updateRemainingRouteOnMap(rawLat, rawLng, { allowReroute: true });
+          handleRealWalkingGeofence({
+            ...gpsData,
+            lat: rawLat,
+            lng: rawLng,
+          });
         }
       },
       onHeadingUpdate: (heading) => {
@@ -3563,6 +3760,49 @@
       showToast('수원대학교 캠퍼스 중심으로 이동했습니다.');
     };
     dom.uswBrandBtn.addEventListener('click', resetToCampusCenter);
+
+    // GPS 위치 탐색 대기 모달 취소 & GPS 에러 모달 제어
+    if (dom.gpsLocatingCancelBtn) {
+      dom.gpsLocatingCancelBtn.addEventListener('click', () => {
+        if (typeof state.pendingGpsWaitCancel === 'function') {
+          state.pendingGpsWaitCancel();
+        } else {
+          hideGpsLocatingUi();
+        }
+        showToast('GPS 위치 탐색 대기를 취소했습니다.');
+      });
+    }
+
+    if (dom.gpsErrorCloseBtn) {
+      dom.gpsErrorCloseBtn.addEventListener('click', () => {
+        hideGpsErrorModal();
+      });
+    }
+
+    if (dom.gpsErrorRetryBtn) {
+      dom.gpsErrorRetryBtn.addEventListener('click', () => {
+        hideGpsErrorModal();
+        if (typeof state.lastGpsRetryCallback === 'function') {
+          state.lastGpsRetryCallback();
+        } else if (dom.startNavBtn) {
+          dom.startNavBtn.click();
+        }
+      });
+    }
+
+    if (dom.gpsErrorManualRow) {
+      dom.gpsErrorManualRow.querySelectorAll('.gps-manual-origin-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          hideGpsErrorModal();
+          const originId = btn.dataset.originId;
+          if (originId === '__map_click__') {
+            toggleMapPickOriginMode(true);
+          } else if (originId) {
+            setNavigationStartOrigin(originId, { announce: true });
+          }
+        });
+      });
+    }
 
     // [핵심 요구사항 3] 시뮬레이션 모드 ON/OFF 완전 분리 토글 함수
     function toggleSimulationMode(forceState) {
@@ -3654,49 +3894,31 @@
       }
       state.gpsFollowMode = true;
 
-      // 1) 스마트폰 실제 GPS 좌표 획득 (getCurrentPosition 및 watchPosition 캐시 대조)
-      const acquireRealGpsPosition = () =>
-        new Promise((resolve) => {
-          if (!('geolocation' in navigator)) {
-            resolve(null);
-            return;
-          }
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              resolve({
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude,
-                accuracy: pos.coords.accuracy || 15,
-                heading:
-                  typeof pos.coords.heading === 'number' && !Number.isNaN(pos.coords.heading)
-                    ? pos.coords.heading
-                    : state.userPosition.bearing || 180,
-              });
-            },
-            () => resolve(null),
-            { enableHighAccuracy: true, timeout: 2000, maximumAge: 3000 }
-          );
-        });
+      // 1) 스마트폰 실제 GPS 좌표 획득 대기 (최대 10초 대기, 로딩 스피너 및 에러 모달 연동)
+      state.explicitSimulationOrigin = false;
+      state.startNodeId = null;
+      state.customGpsCoord = null;
+      updateTestOriginChipsActiveState('__gps__');
 
-      const liveGps = await acquireRealGpsPosition();
-      const campusBounds = L.latLngBounds(SUWON_CAMPUS_CONFIG.maxBounds);
+      const gpsResult = await waitForRealGpsLocation({
+        timeoutMs: 10000,
+        onRetry: () => {
+          startRealGpsNavigation(targetDestId, options);
+        },
+      });
 
-      let realLat = state.userPosition.lat;
-      let realLng = state.userPosition.lng;
-      let realHeading = state.userPosition.bearing || 180;
-      let realAccuracy = 14;
-
-      if (liveGps && campusBounds.contains([liveGps.lat, liveGps.lng])) {
-        realLat = liveGps.lat;
-        realLng = liveGps.lng;
-        realHeading = liveGps.heading;
-        realAccuracy = liveGps.accuracy;
-      } else if (gpsTracker && gpsTracker.lastPosition) {
-        realLat = gpsTracker.lastPosition.lat;
-        realLng = gpsTracker.lastPosition.lng;
-        realHeading = gpsTracker.lastPosition.heading || realHeading;
-        realAccuracy = gpsTracker.lastPosition.accuracy || realAccuracy;
+      // GPS 수신 실패 또는 취소 시 절대 가짜 정문으로 경로를 계산하지 않고 즉시 중단!
+      if (!gpsResult.ok || !gpsResult.location) {
+        return;
       }
+
+      const realLat = gpsResult.location.lat;
+      const realLng = gpsResult.location.lng;
+      const realHeading =
+        typeof gpsResult.location.heading === 'number' && !Number.isNaN(gpsResult.location.heading)
+          ? gpsResult.location.heading
+          : state.userPosition.bearing || 180;
+      const realAccuracy = gpsResult.location.accuracy || 15;
 
       createOrUpdateUserMarker(realLat, realLng, realHeading, realAccuracy);
 
@@ -3874,17 +4096,32 @@
     });
 
     // 내 위치(GPS) 버튼
-    dom.myLocationBtn.addEventListener('click', () => {
+    dom.myLocationBtn.addEventListener('click', async () => {
       state.gpsFollowMode = true;
       if (gpsTracker) gpsTracker.start();
-      const targetLat = (gpsTracker && gpsTracker.lastPosition) ? gpsTracker.lastPosition.lat : state.userPosition.lat;
-      const targetLng = (gpsTracker && gpsTracker.lastPosition) ? gpsTracker.lastPosition.lng : state.userPosition.lng;
+
+      const gpsResult = await waitForRealGpsLocation({
+        timeoutMs: 10000,
+        onRetry: () => {
+          dom.myLocationBtn.click();
+        },
+      });
+      if (!gpsResult.ok || !gpsResult.location) {
+        return;
+      }
+
+      createOrUpdateUserMarker(
+        gpsResult.location.lat,
+        gpsResult.location.lng,
+        gpsResult.location.heading,
+        gpsResult.location.accuracy
+      );
       state.map.setView(
-        [targetLat, targetLng],
+        [gpsResult.location.lat, gpsResult.location.lng],
         18,
         { animate: true }
       );
-      showToast('현재 내 위치로 지도를 이동했습니다.');
+      showToast('📡 실시간 GPS 내 위치로 지도를 이동했습니다.');
     });
 
     // 우측 상단 [🛰️ 위성 모드] 온/오프 토글 버튼 (실제 위성 사진과 일반 지도 전환)
