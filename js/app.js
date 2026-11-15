@@ -430,7 +430,19 @@
       }).addTo(state.layers.vectorFootprintGroup);
     });
 
-    // 2) 수원대 캠퍼스 내 83개 실제 건물 폴리곤
+    // 1-B) 캠퍼스 호수(연못) 및 수변 구역
+    (vec.waters || []).forEach((water) => {
+      if (!water.coords || water.coords.length < 3) return;
+      L.polygon(water.coords, {
+        color: '#7dd3fc',
+        weight: 1.5,
+        fillColor: '#bae6fd',
+        fillOpacity: 0.78,
+        interactive: false,
+      }).addTo(state.layers.vectorFootprintGroup);
+    });
+
+    // 2) 수원대 캠퍼스 내 실제 건물 폴리곤
     (vec.buildings || []).forEach((b) => {
       if (!b.coords || b.coords.length < 3) return;
       L.polygon(b.coords, {
