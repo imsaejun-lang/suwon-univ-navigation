@@ -16,6 +16,7 @@ class IndoorNavigator {
     this.onShowToast = options.onShowToast || null;
     this.onExitIndoor = options.onExitIndoor || null;
     this.onRequestOutdoorRouteToEntrance = options.onRequestOutdoorRouteToEntrance || null;
+    this.onStateUpdated = options.onStateUpdated || null;
 
     // 상태 관리
     this.isOpen = false;
@@ -947,6 +948,7 @@ class IndoorNavigator {
 
     this.updateBottomSheetUI();
     this.renderCurrentFloorCanvas();
+    if (this.onStateUpdated) this.onStateUpdated();
 
     const activeRoute = this.getActiveRoute();
     if (options.speak && activeRoute) {
@@ -1009,6 +1011,8 @@ class IndoorNavigator {
     this.renderRightFloorButtons();
     this.updateBottomSheetUI();
     this.renderCurrentFloorCanvas();
+    if (this.onStateUpdated) this.onStateUpdated();
+    if (this.onStateUpdated) this.onStateUpdated();
   }
 
   /**

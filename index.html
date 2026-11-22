@@ -262,6 +262,10 @@
           <span id="goRouteViewBtnText">길안내 시작</span>
         </button>
       </div>
+      <button type="button" id="openProtoIndoorQuickBtn" class="btn-proto-indoor-entry hidden" title="깔끔한 전체화면 실내 지도(프로토타입)로 바로 보기">
+        <span class="proto-sparkle">✨</span>
+        <span>새 실내 UI (프로토타입)로 바로 보기</span>
+      </button>
     </div>
 
     <!-- [State 03] 길찾기 및 실시간/시뮬레이션 내비게이션 뷰 (구글/네이버 지도 길찾기 스타일) -->
@@ -547,6 +551,11 @@
           </div>
         </div>
 
+        <!-- [프로토타입 전환 토글] 기존 실내 지도를 보존하면서 새 전체화면 실내 UI로 전환 -->
+        <button type="button" id="indoorSwitchToProtoBtn" class="indoor-proto-toggle-btn" title="깔끔한 전체화면 실내 지도(프로토타입)로 전환하여 비교 테스트합니다">
+          <span>✨ 새 실내 UI (프로토타입)</span>
+        </button>
+
         <button type="button" id="indoorOpenOriginalPdfBtn" class="indoor-pdf-btn" title="업로드된 원본 건축 평면도 PDF 열기">
           <i data-lucide="file-text"></i>
           <span>원본 도면</span>
@@ -739,6 +748,174 @@
           <i data-lucide="x-circle"></i>
           <span>안내 종료</span>
         </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       [신규 프로토타입] 전체화면 실내 지도 보기 UI (기존 실내 지도와 토글 전환 방식)
+       ======================================================================= -->
+  <section id="indoorProtoOverlay" class="indoor-proto-overlay hidden" aria-label="강의실 길찾기 전체화면 실내 지도 프로토타입">
+    <div class="indoor-proto-shell">
+      <!-- 1. 상단 헤더: ← 강의실 길찾기 | 수원대학교 + [기존 UI] 전환 버튼 -->
+      <header class="proto-top-header">
+        <div class="proto-header-left">
+          <button type="button" id="protoBackBtn" class="proto-back-icon-btn" title="야외 지도로 돌아가기" aria-label="뒤로가기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5"></path>
+              <path d="M12 19l-7-7 7-7"></path>
+            </svg>
+          </button>
+          <h2 class="proto-header-title">강의실 길찾기</h2>
+        </div>
+
+        <div class="proto-header-right">
+          <div class="proto-usw-brand" aria-label="수원대학교">
+            <img src="assets/usw_logo.png" alt="수원대학교 엠블럼" class="proto-usw-logo" />
+            <div class="proto-usw-wordmark">
+              <strong>수원대학교</strong>
+              <span>SUWON UNIVERSITY</span>
+            </div>
+          </div>
+          <button type="button" id="protoSwitchToLegacyBtn" class="proto-legacy-toggle-btn" title="기존 실내 지도 화면으로 돌아가기">
+            기존 UI
+          </button>
+        </div>
+      </header>
+
+      <!-- 스크롤 가능한 중앙 본문 -->
+      <main class="proto-main-scroll">
+        <!-- 2. 출발·도착 및 소요시간 요약 카드 -->
+        <div class="proto-card proto-summary-card">
+          <div class="proto-od-grid">
+            <div class="proto-od-rail" aria-hidden="true">
+              <span class="proto-rail-circle"></span>
+              <span class="proto-rail-dotted"></span>
+              <svg class="proto-rail-pin" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+              </svg>
+            </div>
+            <div class="proto-od-rows">
+              <button type="button" id="protoOriginRowBtn" class="proto-od-row" title="클릭하여 출발 출입구 또는 현재 호실 변경">
+                <span class="proto-od-badge">출발</span>
+                <span id="protoOriginText" class="proto-od-text">IT대학 1층 남동측 주출입구</span>
+                <span class="proto-od-edit-hint">변경 ▾</span>
+              </button>
+              <button type="button" id="protoDestRowBtn" class="proto-od-row" title="클릭하여 목적지 강의실 변경">
+                <span class="proto-od-badge">도착</span>
+                <span id="protoDestText" class="proto-od-text">IT대학 3층 310호</span>
+                <span class="proto-od-edit-hint">변경 ▾</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 출발/도착 클릭 시 열리는 인라인 빠른 변경 선택기 -->
+          <div id="protoInlinePickerBox" class="proto-inline-picker hidden">
+            <div class="proto-inline-picker-head">
+              <span id="protoInlinePickerLabel">위치 선택</span>
+              <button type="button" id="protoInlinePickerClose" class="proto-inline-picker-close" aria-label="닫기">✕</button>
+            </div>
+            <select id="protoInlinePickerSelect" class="proto-inline-picker-select"></select>
+          </div>
+
+          <div class="proto-summary-divider"></div>
+
+          <div class="proto-metric-row">
+            <div class="proto-metric-pill">
+              <svg class="proto-walk-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="13.5" cy="4.5" r="2.1" />
+                <path d="M10.5 21l1.8-6.4 2.2 2v5.4h2v-6.7l-2.3-2.2.7-3.1c1.3 1.5 3.2 2.4 5.1 2.4v-2c-1.5 0-2.9-.8-3.8-2l-1.1-1.7c-.4-.6-1.1-1-1.8-1-.3 0-.5.1-.8.2L7.5 8v5h2V9.4l1.9-.8-1.6 7.4L5 15.1l-.4 2 5.9 3.9z" />
+              </svg>
+              <strong id="protoMetricText">약 2분 · 85m</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. [계단 N분] vs [엘리베이터 N분] 경로 전환 2분할 탭 -->
+        <div class="proto-mode-tabs" role="tablist" aria-label="층간 이동 수단 선택">
+          <button type="button" id="protoTabStairsBtn" class="proto-mode-tab" role="tab" aria-selected="false">
+            <svg class="proto-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 20h4v-4h4v-4h4V8h4"></path>
+            </svg>
+            <span class="proto-tab-name">계단</span>
+            <strong id="protoTabStairsTime" class="proto-tab-time">2분</strong>
+          </button>
+
+          <button type="button" id="protoTabElevatorBtn" class="proto-mode-tab active" role="tab" aria-selected="true">
+            <svg class="proto-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3.5" y="7" width="17" height="14" rx="2.5"></rect>
+              <path d="M9 3.5l-1.5 1.8L6 3.5M18 5.3L16.5 3.5 15 5.3"></path>
+              <circle cx="9.5" cy="11.5" r="1.3"></circle>
+              <path d="M8 17.5v-3h3v3"></path>
+              <circle cx="14.5" cy="11.5" r="1.3"></circle>
+              <path d="M13 17.5v-3h3v3"></path>
+            </svg>
+            <span class="proto-tab-name">엘리베이터</span>
+            <strong id="protoTabElevatorTime" class="proto-tab-time">3분</strong>
+          </button>
+        </div>
+
+        <!-- 4. 가독성 극대화 실내 도면 카드 (미니멀 벡터 2단 연결 뷰 / 원본 도면 비교 뷰) -->
+        <div id="protoFloorplanCard" class="proto-card proto-floorplan-card">
+          <div id="protoVectorWrap" class="proto-vector-wrap"></div>
+          <div id="protoOriginalWrap" class="proto-original-wrap hidden"></div>
+
+          <!-- 시뮬레이션 층간 이동 도달 시 나타나는 인라인 확인 바 -->
+          <div id="protoFloorTransitionBar" class="proto-floor-transition-bar hidden">
+            <span id="protoFloorTransitionMsg" class="proto-ft-msg">계단을 이용해 이동하세요.</span>
+            <button type="button" id="protoFloorTransitionConfirmBtn" class="proto-ft-btn">이동 완료</button>
+          </div>
+        </div>
+
+        <!-- 5. 단계별 핵심 경로 요약 리스트 (3~4줄) -->
+        <div class="proto-card proto-steps-card">
+          <ol id="protoStepList" class="proto-step-list"></ol>
+        </div>
+      </main>
+
+      <!-- 6. 하단 고정 액션 버튼 3종 ([길안내 시작], [상세 경로], [원본 도면]) -->
+      <footer class="proto-bottom-actions">
+        <button type="button" id="protoStartNavBtn" class="proto-btn-primary">
+          <svg class="proto-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+          </svg>
+          <span id="protoStartNavLabel">길안내 시작</span>
+        </button>
+
+        <div class="proto-secondary-row">
+          <button type="button" id="protoDetailRouteBtn" class="proto-btn-secondary">
+            <svg class="proto-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            <span>상세 경로</span>
+          </button>
+
+          <button type="button" id="protoOriginalPlanBtn" class="proto-btn-secondary">
+            <svg class="proto-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="8" y1="13" x2="16" y2="13"></line>
+              <line x1="8" y1="17" x2="13" y2="17"></line>
+            </svg>
+            <span id="protoOriginalPlanLabel">원본 도면</span>
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- [상세 경로] 슬라이드업 모달 -->
+    <div id="protoDetailModal" class="proto-detail-modal hidden" role="dialog" aria-modal="true" aria-label="실내 상세 경로 안내">
+      <div class="proto-detail-sheet">
+        <div class="proto-detail-header">
+          <div>
+            <h3>상세 실내 경로</h3>
+            <p id="protoDetailModalSubtitle">계단 우선 · 총 118m (약 2분)</p>
+          </div>
+          <button type="button" id="protoDetailModalClose" class="proto-detail-close" aria-label="닫기">✕</button>
+        </div>
+        <ul id="protoDetailModalList" class="proto-detail-list"></ul>
       </div>
     </div>
   </section>
@@ -1001,6 +1178,7 @@
   <script src="js/gpsTracker.js"></script>
   <script src="js/indoorData.js"></script>
   <script src="js/indoorNavigator.js"></script>
+  <script src="js/indoorPrototype.js"></script>
   <script src="js/app.js"></script>
 </body>
 

@@ -156,6 +156,7 @@
     dom.detailFloorBadge = document.getElementById('detailFloorBadge');
     dom.detailBuildingCopy = document.getElementById('detailBuildingCopy');
     dom.openFloorPlanBtn = document.getElementById('openFloorPlanBtn');
+    dom.openProtoIndoorQuickBtn = document.getElementById('openProtoIndoorQuickBtn');
     dom.goRouteViewBtn = document.getElementById('goRouteViewBtn');
     dom.goRouteViewBtnText = document.getElementById('goRouteViewBtnText');
 
@@ -387,9 +388,12 @@
       state.gpsFollowMode = false;
     });
 
-    // 확대/축소(Zoom Level)에 따른 건물명 표시 자동 제어
+    // 확대/축소(Zoom Level)에 따른 건물명 표시 자동 제어 및 경로선 화살표 밀도 재조정
     state.map.on('zoomend', () => {
       updateZoomBasedLabelVisibility();
+      if (state.currentRoute) {
+        renderRouteDirectionArrows(state.currentRoute, state.lastTraveledMeters || 0);
+      }
     });
   }
 
@@ -713,6 +717,7 @@
     state.activeRoutePolylines.arrowMarkers = [];
     state.activeRoutePolylines.checkpointMarkers = [];
     state.activeRoutePolylines.startMarker = null;
+    state.lastTraveledMeters = 0;
 
     if (dom.simProgressPanel) dom.simProgressPanel.classList.add('hidden');
     if (dom.indoorTransitionBanner) dom.indoorTransitionBanner.classList.add('hidden');
@@ -1068,6 +1073,10 @@
       state.savedBuildingIds.has(buildingId)
     );
 
+    if (dom.openProtoIndoorQuickBtn) {
+      dom.openProtoIndoorQuickBtn.classList.toggle('hidden', buildingId !== 'it_college');
+    }
+
     switchSheetView('building');
 
     // [핵심 요구사항 2-1] 지도의 화면(카메라 중심)이 즉시 해당 목적지 위치로 부드럽게 이동(flyTo)
@@ -1224,6 +1233,7 @@
     state.activeRoutePolylines.arrowMarkers = [];
     state.activeRoutePolylines.checkpointMarkers = [];
     state.activeRoutePolylines.startMarker = null;
+    state.lastTraveledMeters = 0;
 
     const coords = route.coordinates;
     if (!coords || coords.length < 2) return;
@@ -1279,41 +1289,8 @@
       lineJoin: 'round',
     }).addTo(state.layers.routeGroup);
 
-    // 4. 구간별 방향 화살표 마커 (누적 거리와 함께 저장하여 지나온 화살표를 실시간으로 제거)
-    (route.segments || []).forEach((seg) => {
-      if (seg.distance < 15) return;
-      const fractions = seg.distance > 90 ? [0.3, 0.7] : [0.5];
-      fractions.forEach((f) => {
-        const lat = seg.from[0] + (seg.to[0] - seg.from[0]) * f;
-        const lng = seg.from[1] + (seg.to[1] - seg.from[1]) * f;
-        const cumDist = (seg.startCumulativeDist || 0) + seg.distance * f;
-
-        const arrowIcon = L.divIcon({
-          className: 'custom-route-arrow',
-          html: `
-            <div class="route-direction-arrow" style="transform: rotate(${Math.round(seg.bearing - 90)}deg)">
-              &#10148;
-            </div>
-          `,
-          iconSize: [20, 20],
-          iconAnchor: [10, 10],
-        });
-
-        const marker = L.marker([lat, lng], {
-          icon: arrowIcon,
-          interactive: false,
-          zIndexOffset: 300,
-        }).addTo(state.layers.arrowGroup);
-
-        state.activeRoutePolylines.arrowMarkers.push({
-          marker,
-          lat,
-          lng,
-          cumulativeDist: cumDist,
-          removed: false,
-        });
-      });
-    });
+    // 4. [UI 개선] 거리(최소 46~78m) + 줌 비례 화면 간격(최소 92px) + 회전/출발/도착 배지 겹침 방지 방향 화살표 렌더링
+    renderRouteDirectionArrows(route, 0);
 
     // 5. 출발/도착 및 회전 체크포인트 배지
     route.checkpoints.forEach((cp, idx) => {
@@ -1400,6 +1377,150 @@
         });
       }
     });
+  }
+
+  /**
+   * [UI 개선] 야외 경로선 방향 화살표 밀도 최적화
+   * - 실제 거리 기준(줌 레벨별 최소 46m~78m) + 화면 픽셀 기준(최소 92px 이상 간격) 동시 적용
+   * - 출발/도착 핀 및 좌회전/우회전 배지 주변(28m 또는 58px 이내)은 겹치지 않도록 자동 제외
+   */
+  function renderRouteDirectionArrows(route, traveledMeters = 0) {
+    if (!state.layers.arrowGroup) return;
+    state.layers.arrowGroup.clearLayers();
+    state.activeRoutePolylines.arrowMarkers = [];
+
+    if (!route || !Array.isArray(route.segments) || route.segments.length === 0) return;
+
+    const zoom = state.map ? state.map.getZoom() : 16;
+    const minDistMeters = zoom <= 15 ? 68 : zoom === 16 ? 48 : 40;
+    const minScreenPx = 78;
+    const avoidBadgeDistMeters = 22;
+    const avoidBadgeScreenPx = 44;
+    const totalDist = route.totalDistance || 0;
+
+    // 출발/도착/회전 배지 좌표 수집 (겹침 방지 대상)
+    const protectedPoints = [];
+    (route.checkpoints || []).forEach((cp) => {
+      if (
+        cp.type === 'start' ||
+        cp.type === 'arrive' ||
+        cp.turnType === 'left' ||
+        cp.turnType === 'right'
+      ) {
+        if (Number.isFinite(cp.lat) && Number.isFinite(cp.lng)) {
+          protectedPoints.push({
+            lat: cp.lat,
+            lng: cp.lng,
+            pt: state.map ? state.map.latLngToContainerPoint([cp.lat, cp.lng]) : null,
+          });
+        }
+      }
+    });
+
+    const isClearOfProtected = (lat, lng, pt, distGuard, pxGuard) => {
+      for (let i = 0; i < protectedPoints.length; i++) {
+        const p = protectedPoints[i];
+        const dm = CampusRouter.haversineDistance(lat, lng, p.lat, p.lng);
+        if (dm < distGuard) return false;
+        if (pt && p.pt) {
+          const dp = Math.hypot(pt.x - p.pt.x, pt.y - p.pt.y);
+          if (dp < pxGuard) return false;
+        }
+      }
+      return true;
+    };
+
+    const placedArrows = [];
+    const addArrowMarker = (lat, lng, bearing, cumDist) => {
+      const isAlreadyPassed = cumDist <= traveledMeters + 6;
+      const arrowIcon = L.divIcon({
+        className: 'custom-route-arrow',
+        html: `
+          <div class="route-direction-arrow" style="transform: rotate(${Math.round(bearing - 90)}deg)">
+            &#10148;
+          </div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+      });
+
+      const marker = L.marker([lat, lng], {
+        icon: arrowIcon,
+        interactive: false,
+        zIndexOffset: 280,
+      });
+
+      if (!isAlreadyPassed) {
+        marker.addTo(state.layers.arrowGroup);
+      }
+
+      const pt = state.map ? state.map.latLngToContainerPoint([lat, lng]) : null;
+      const item = {
+        marker,
+        lat,
+        lng,
+        pt,
+        cumulativeDist: cumDist,
+        removed: isAlreadyPassed,
+      };
+      placedArrows.push(item);
+      state.activeRoutePolylines.arrowMarkers.push(item);
+    };
+
+    let lastPlacedDist = -Infinity;
+    let lastPlacedPt = null;
+
+    route.segments.forEach((seg) => {
+      if (!seg || seg.distance < 3) return;
+      const sampleStep = 14;
+      const subCount = Math.max(1, Math.ceil(seg.distance / sampleStep));
+
+      for (let s = 0; s < subCount; s++) {
+        const f = (s + 0.5) / subCount;
+        const cumDist = (seg.startCumulativeDist || 0) + seg.distance * f;
+
+        // 출발 직후(30m 이내) 및 도착 직전(34m 이내) 여백 확보
+        if (cumDist < 30 || (totalDist > 80 && totalDist - cumDist < 34)) continue;
+        if (cumDist - lastPlacedDist < minDistMeters) continue;
+
+        const lat = seg.from[0] + (seg.to[0] - seg.from[0]) * f;
+        const lng = seg.from[1] + (seg.to[1] - seg.from[1]) * f;
+        const pt = state.map ? state.map.latLngToContainerPoint([lat, lng]) : null;
+
+        if (pt && lastPlacedPt) {
+          const pxGap = Math.hypot(pt.x - lastPlacedPt.x, pt.y - lastPlacedPt.y);
+          if (pxGap < minScreenPx) continue;
+        }
+
+        if (!isClearOfProtected(lat, lng, pt, avoidBadgeDistMeters, avoidBadgeScreenPx)) {
+          continue;
+        }
+
+        addArrowMarker(lat, lng, seg.bearing, cumDist);
+        lastPlacedDist = cumDist;
+        lastPlacedPt = pt;
+      }
+    });
+
+    // 짧은 경로(55m 이상)에서 화살표가 0개라면 중앙에 단 1개만 깔끔하게 표시
+    if (placedArrows.length === 0 && totalDist >= 55) {
+      const targetMid = totalDist * 0.5;
+      const midSeg =
+        route.segments.find(
+          (seg) =>
+            (seg.startCumulativeDist || 0) <= targetMid &&
+            (seg.endCumulativeDist || 0) >= targetMid
+        ) || route.segments[Math.floor(route.segments.length / 2)];
+
+      if (midSeg) {
+        const lat = (midSeg.from[0] + midSeg.to[0]) / 2;
+        const lng = (midSeg.from[1] + midSeg.to[1]) / 2;
+        const pt = state.map ? state.map.latLngToContainerPoint([lat, lng]) : null;
+        if (isClearOfProtected(lat, lng, pt, 18, 40)) {
+          addArrowMarker(lat, lng, midSeg.bearing, targetMid);
+        }
+      }
+    }
   }
 
   /**
@@ -1553,6 +1674,7 @@
     }
 
     // 4. 이미 지나온 방향 화살표 마커(arrowMarkers) 및 회전 배지(checkpointMarkers) 실시간 삭제
+    state.lastTraveledMeters = traveledMeters;
     (state.activeRoutePolylines.arrowMarkers || []).forEach((item) => {
       if (item.cumulativeDist <= traveledMeters + 6) {
         if (!item.removed && state.layers.arrowGroup) {
@@ -2043,6 +2165,10 @@
       autoStartSim: Boolean(options.autoStartSim),
       speak: options.speak !== false,
     });
+
+    if (options.openPrototype && window.indoorProto) {
+      window.indoorProto.open();
+    }
 
     if (window.lucide) {
       window.lucide.createIcons();
@@ -4010,6 +4136,20 @@
       }
     });
 
+    if (dom.openProtoIndoorQuickBtn) {
+      dom.openProtoIndoorQuickBtn.addEventListener('click', () => {
+        const targetRoomId =
+          (state.targetRoomMeta && state.targetRoomMeta.roomId) ||
+          state.pendingIndoorRoomId ||
+          'room_203';
+        openITCollegeIndoorNavigation({
+          roomId: targetRoomId,
+          speak: true,
+          openPrototype: true,
+        });
+      });
+    }
+
     // [길안내 시작] 버튼: 목적지 상세 시트에서 클릭 시 내 GPS 위치로 즉시 전환 및 길안내 시작!
     dom.goRouteViewBtn.addEventListener('click', () => {
       startRealGpsNavigation();
@@ -4266,6 +4406,10 @@
       });
       window.indoorNav = indoorNav;
       window.indoorNavigator = indoorNav;
+
+      if (window.IndoorPrototypeView) {
+        window.indoorProto = new window.IndoorPrototypeView(indoorNav);
+      }
     }
 
     initFloorSelectModal();

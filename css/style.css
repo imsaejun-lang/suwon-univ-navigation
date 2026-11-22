@@ -8340,3 +8340,897 @@ button {
   background: #eff6ff;
   color: #0068ff;
 }
+
+/* ==========================================================================
+   [신규 프로토타입] 전체화면 실내 지도 UI (사진2.jpg 스타일) + 안전한 토글 전환 버튼
+   ========================================================================== */
+
+/* 기존 실내 지도 헤더의 [✨ 새 실내 UI (프로토타입)] 토글 버튼 */
+.indoor-proto-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1.5px solid #38bdf8;
+  background: linear-gradient(135deg, #08386b 0%, #0068ff 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 104, 255, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.indoor-proto-toggle-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow: 0 6px 16px rgba(0, 104, 255, 0.36);
+}
+
+/* 건물 상세 시트(IT대학) 내 [✨ 새 실내 UI (프로토타입)로 바로 보기] 보조 버튼 */
+.btn-proto-indoor-entry {
+  width: 100%;
+  margin-top: 8px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1.5px solid #bfdbfe;
+  background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+  color: #08386b;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-proto-indoor-entry:hover {
+  border-color: #0068ff;
+  background: #dbeafe;
+}
+
+.btn-proto-indoor-entry.hidden {
+  display: none !important;
+}
+
+/* 전체화면 프로토타입 오버레이 컨테이너 */
+.indoor-proto-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9600;
+  background: #f4f7fb;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0f172a;
+}
+
+.indoor-proto-overlay.hidden {
+  display: none !important;
+}
+
+.indoor-proto-shell {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  background: #f6f8fc;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 0 40px rgba(15, 23, 42, 0.12);
+}
+
+/* 1. 상단 헤더 (← 강의실 길찾기 | 수원대학교 + 기존 UI 전환) */
+.proto-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #eef2f7;
+  flex-shrink: 0;
+}
+
+.proto-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.proto-back-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+
+.proto-back-icon-btn:hover {
+  background: #f1f5f9;
+}
+
+.proto-back-icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.proto-header-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.proto-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.proto-usw-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.proto-usw-logo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.proto-usw-wordmark {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.proto-usw-wordmark strong {
+  font-size: 13px;
+  font-weight: 900;
+  color: #08386b;
+  letter-spacing: -0.03em;
+}
+
+.proto-usw-wordmark span {
+  font-size: 7px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.03em;
+}
+
+.proto-legacy-toggle-btn {
+  padding: 5px 9px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.14s ease;
+}
+
+.proto-legacy-toggle-btn:hover {
+  border-color: #08386b;
+  color: #08386b;
+  background: #eff6ff;
+}
+
+/* 중앙 스크롤 영역 */
+.proto-main-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 15px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.proto-card {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e5ecf4;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.045);
+  flex-shrink: 0;
+}
+
+/* 2. 출발·도착 및 소요시간 요약 카드 */
+.proto-summary-card {
+  padding: 14px 15px 13px;
+}
+
+.proto-od-grid {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.proto-od-rail {
+  width: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 4px;
+  flex-shrink: 0;
+}
+
+.proto-rail-circle {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2.5px solid #08386b;
+  background: #ffffff;
+}
+
+.proto-rail-dotted {
+  flex: 1;
+  width: 0;
+  border-left: 2px dotted #94a3b8;
+  margin: 3px 0;
+  min-height: 14px;
+}
+
+.proto-rail-pin {
+  width: 18px;
+  height: 18px;
+  color: #0068ff;
+}
+
+.proto-od-rows {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.proto-od-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 2px 4px;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.proto-od-row:hover {
+  background: #f1f5f9;
+}
+
+.proto-od-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 23px;
+  padding: 0 8px;
+  border-radius: 7px;
+  background: #e3efff;
+  color: #08386b;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.proto-od-text {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.proto-od-edit-hint {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.proto-inline-picker {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1.5px solid #bfdbfe;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.proto-inline-picker.hidden {
+  display: none !important;
+}
+
+.proto-inline-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 800;
+  color: #08386b;
+}
+
+.proto-inline-picker-close {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.proto-inline-picker-select {
+  width: 100%;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  padding: 0 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.proto-summary-divider {
+  height: 1px;
+  background: #eef2f7;
+  margin: 11px 0 10px;
+}
+
+.proto-metric-row {
+  display: flex;
+  align-items: center;
+}
+
+.proto-metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 11px;
+  background: #e6f0fd;
+  color: #08386b;
+  font-size: 15.5px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.proto-walk-icon {
+  width: 19px;
+  height: 19px;
+  color: #0068ff;
+}
+
+/* 3. [계단 N분] vs [엘리베이터 N분] 2분할 경로 전환 탭 */
+.proto-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.proto-mode-tab {
+  height: 44px;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  color: #1e293b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 14.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.proto-mode-tab .proto-tab-icon {
+  width: 20px;
+  height: 20px;
+  color: #08386b;
+}
+
+.proto-mode-tab .proto-tab-time {
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.proto-mode-tab.active {
+  background: #08386b;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(8, 56, 107, 0.28);
+}
+
+.proto-mode-tab.active .proto-tab-icon,
+.proto-mode-tab.active .proto-tab-time {
+  color: #ffffff;
+}
+
+/* 4. 실내 도면 카드 (미니멀 벡터 2단 연결 뷰 / 원본 도면 뷰) */
+.proto-floorplan-card {
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+}
+
+.proto-vector-wrap {
+  width: 100%;
+  display: block;
+  line-height: 0;
+}
+
+.proto-vector-wrap.hidden,
+.proto-original-wrap.hidden {
+  display: none !important;
+}
+
+.proto-floorplan-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.proto-room-box:hover rect {
+  fill: #e0f2fe;
+  stroke: #38bdf8;
+}
+
+.proto-room-box.highlighted:hover rect {
+  fill: #bae6fd;
+  stroke: #0284c7;
+}
+
+@keyframes protoPulseAnim {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.4;
+  }
+  70% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+
+.proto-user-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: protoPulseAnim 1.4s ease-out infinite;
+}
+
+/* 원본 도면 비교 뷰 */
+.proto-original-wrap {
+  padding: 10px 12px 12px;
+  background: #ffffff;
+}
+
+.proto-orig-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.proto-orig-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.proto-orig-floor-tab {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.proto-orig-floor-tab.active {
+  background: #08386b;
+  border-color: #08386b;
+  color: #ffffff;
+}
+
+.proto-orig-pdf-link {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #0068ff;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #eff6ff;
+}
+
+.proto-orig-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1140 / 930;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.proto-orig-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.proto-orig-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.proto-orig-caption {
+  margin-top: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #64748b;
+  text-align: center;
+}
+
+/* 프로토타입 내 층간 이동 확인 인라인 바 */
+.proto-floor-transition-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #eff6ff;
+  border-top: 1px solid #bfdbfe;
+}
+
+.proto-floor-transition-bar.hidden {
+  display: none !important;
+}
+
+.proto-ft-msg {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #08386b;
+  flex: 1;
+}
+
+.proto-ft-btn {
+  padding: 7px 13px;
+  border-radius: 9px;
+  border: none;
+  background: #0068ff;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 5. 단계별 핵심 경로 요약 리스트 (1, 2, 3) */
+.proto-steps-card {
+  padding: 6px 15px;
+}
+
+.proto-step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.proto-step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.proto-step-item:last-child {
+  border-bottom: none;
+}
+
+.proto-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e6f0fd;
+  color: #08386b;
+  font-size: 12.5px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.proto-step-icon-wrap {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #08386b;
+  flex-shrink: 0;
+}
+
+.proto-step-svg {
+  width: 20px;
+  height: 20px;
+}
+
+.proto-step-svg.pin {
+  color: #08386b;
+}
+
+.proto-step-text {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+/* 6. 하단 고정 액션 버튼 3종 */
+.proto-bottom-actions {
+  padding: 10px 15px max(14px, env(safe-area-inset-bottom));
+  background: #f6f8fc;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
+.proto-btn-primary {
+  width: 100%;
+  height: 52px;
+  border-radius: 15px;
+  border: none;
+  background: #08386b;
+  color: #ffffff;
+  font-size: 16.5px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(8, 56, 107, 0.28);
+  transition: transform 0.14s ease, filter 0.14s ease, background 0.14s ease;
+}
+
+.proto-btn-primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.proto-btn-primary.running {
+  background: #dc2626;
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.28);
+}
+
+.proto-btn-primary .proto-btn-icon {
+  width: 19px;
+  height: 19px;
+}
+
+.proto-secondary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.proto-btn-secondary {
+  height: 46px;
+  border-radius: 13px;
+  border: 1.5px solid #dbe4f0;
+  background: #f1f6fd;
+  color: #08386b;
+  font-size: 14.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.proto-btn-secondary:hover {
+  border-color: #08386b;
+  background: #e6f0fd;
+}
+
+.proto-btn-secondary.active {
+  background: #0068ff;
+  border-color: #0068ff;
+  color: #ffffff;
+}
+
+.proto-btn-secondary .proto-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* [상세 경로] 슬라이드업 모달 */
+.proto-detail-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9700;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.proto-detail-modal.hidden {
+  display: none !important;
+}
+
+.proto-detail-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 76vh;
+  background: #ffffff;
+  border-radius: 22px 22px 0 0;
+  padding: 18px 18px max(20px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 -10px 32px rgba(15, 23, 42, 0.22);
+}
+
+.proto-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid #eef2f7;
+  padding-bottom: 11px;
+}
+
+.proto-detail-header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  color: #08386b;
+}
+
+.proto-detail-header p {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.proto-detail-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.proto-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.proto-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 13px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.proto-detail-row:hover {
+  border-color: #60a5fa;
+  background: #eff6ff;
+}
+
+.proto-detail-badge {
+  min-width: 44px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+  background: #e2e8f0;
+  color: #334155;
+  flex-shrink: 0;
+}
+
+.proto-detail-badge.start {
+  background: #dbeafe;
+  color: #0068ff;
+}
+
+.proto-detail-badge.transit {
+  background: #08386b;
+  color: #ffffff;
+}
+
+.proto-detail-badge.arrive {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.proto-detail-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.proto-detail-body strong {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.proto-detail-body span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.proto-detail-dist {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0068ff;
+  white-space: nowrap;
+}
