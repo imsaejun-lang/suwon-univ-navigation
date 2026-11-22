@@ -19,7 +19,7 @@
   --border-light: #e5e8eb;
   --shadow-pill: 0 4px 18px rgba(8, 56, 107, 0.12), 0 1px 4px rgba(15, 23, 42, 0.06);
   --shadow-sheet: 0 -6px 28px rgba(15, 23, 42, 0.12);
-  --tab-bar-height: 68px;
+  --tab-bar-height: 0px;
   --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Noto Sans KR', sans-serif;
 }
 
@@ -971,10 +971,15 @@ button {
   overflow: hidden;
 }
 
-/* 1단계 (snap-1): 최소화 (하단 한 줄로 소요시간·남은거리·도착예정시각·진행바 표시) */
+.bottom-sheet.hidden {
+  display: none !important;
+}
+
+/* 1단계 (snap-1): 최소화 (하단 한 줄로 목적지명·소요시간·거리·안내종료 버튼·진행바 표시) */
 .bottom-sheet.snap-1 {
-  max-height: 78px !important;
-  height: 78px !important;
+  max-height: 112px !important;
+  height: auto !important;
+  min-height: 78px !important;
   border-radius: 20px 20px 0 0 !important;
 }
 
@@ -984,6 +989,9 @@ button {
 
 .bottom-sheet.snap-1 .sheet-mini-bar {
   display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* 2단계 (snap-2): 기본 중간 높이 (소요시간, 거리, 경로 옵션, 핵심 요약 표시 / 상세 타임라인 접힘) */
@@ -1291,11 +1299,20 @@ button {
   gap: 14px;
 }
 
-/* [State 01] 앱을 켰을 때: "어디로 가볼까요?" (UI 예시 01) */
+/* [State 01] 카테고리 선택 시 올라오는 목록 시트 헤더 */
 .explore-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.explore-header-text {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  flex: 1;
 }
 
 .explore-title {
@@ -1435,22 +1452,31 @@ button {
 }
 
 .bookmark-icon-btn {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   color: #94a3b8;
+  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.bookmark-icon-btn:hover {
+  background: #fef3c7;
+  color: #f59e0b;
 }
 
 .bookmark-icon-btn.saved {
-  color: var(--usw-navy);
+  color: #f59e0b;
+  background: #fef3c7;
 }
 
 .bookmark-icon-btn.saved svg {
-  fill: var(--usw-navy);
+  fill: #f59e0b;
+  stroke: #d97706;
 }
 
 .bookmark-icon-btn svg {
@@ -2075,66 +2101,6 @@ button {
 }
 
 /* ==========================================================================
-   6. 하단 고정 내비게이션 탭 바 (UI 예시 01·02의 [지도] [길찾기] [저장])
-   ========================================================================== */
-.bottom-tab-bar {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  width: min(520px, 100vw);
-  height: var(--tab-bar-height);
-  background: var(--surface-white);
-  border-top: 1px solid #edf0f3;
-  z-index: 1020;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  align-items: center;
-  padding-bottom: env(safe-area-inset-bottom, 6px);
-}
-
-.tab-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  color: #64748b;
-  transition: color 0.15s ease;
-}
-
-.tab-icon-pill {
-  width: 54px;
-  height: 32px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.16s ease;
-}
-
-.tab-item svg {
-  width: 21px;
-  height: 21px;
-  color: var(--usw-navy);
-}
-
-.tab-item.active .tab-icon-pill {
-  background: #edf1f6;
-}
-
-.tab-label {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #94a3b8;
-}
-
-.tab-item.active .tab-label {
-  color: var(--usw-navy);
-  font-weight: 800;
-}
-
-/* ==========================================================================
    7. 검색 자동완성 드롭다운 & 상단 음성 HUD 배너
    ========================================================================== */
 .autocomplete-dropdown {
@@ -2143,7 +2109,7 @@ button {
   box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18);
   border: 1px solid var(--border-light);
   overflow: hidden;
-  max-height: 320px;
+  max-height: 380px;
   display: flex;
   flex-direction: column;
 }
@@ -3731,16 +3697,16 @@ button {
   height: 20px;
 }
 
-/* 5) 하단 실내 전용 바텀 시트 ([🛗 엘리베이터 경로] vs [🪜 계단 경로] 탭) */
+/* 5) 하단 실내 전용 바텀 시트 (간소화 1줄 2열 핵심 버튼 + 안내 종료) */
 .indoor-bottom-sheet {
   background: #ffffff;
   border-top: 1px solid #dbe3ee;
-  box-shadow: 0 -8px 28px rgba(15, 23, 42, 0.1);
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 4px));
+  box-shadow: 0 -6px 22px rgba(15, 23, 42, 0.08);
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 4px));
   z-index: 25;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
 }
 
 .indoor-dual-route-tabs {
@@ -3892,25 +3858,86 @@ button {
 
 .indoor-sheet-actions {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
 .btn-indoor-primary-sim {
-  height: 44px;
+  height: 46px;
   border-radius: 12px;
   background: var(--usw-navy);
   color: #ffffff;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  padding: 0 10px;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(8, 56, 107, 0.22);
+  transition: transform 0.14s ease, filter 0.14s ease, background 0.14s ease;
+}
+
+.btn-indoor-primary-sim:hover {
+  filter: brightness(1.06);
 }
 
 .btn-indoor-primary-sim.running {
   background: #e11d48;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.28);
+}
+
+/* [단일 토글 버튼] 엘리베이터 경로(파란색) ↔ 계단 경로(초록색) */
+.btn-indoor-route-toggle {
+  height: 46px;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 10px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-indoor-route-toggle .route-toggle-emoji {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.btn-indoor-route-toggle .route-toggle-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-indoor-route-toggle.mode-elevator {
+  background: linear-gradient(135deg, #0068ff 0%, #0284c7 100%);
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 4px 12px rgba(0, 104, 255, 0.26);
+}
+
+.btn-indoor-route-toggle.mode-stairs {
+  background: linear-gradient(135deg, #03c75a 0%, #059669 100%);
+  color: #ffffff;
+  border-color: #34d399;
+  box-shadow: 0 4px 12px rgba(3, 199, 90, 0.28);
+}
+
+.btn-indoor-route-toggle:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 
 .btn-indoor-floor-toggle {
@@ -3928,7 +3955,8 @@ button {
 }
 
 .btn-indoor-outdoor-link {
-  height: 44px;
+  grid-column: span 2;
+  height: 40px;
   border-radius: 12px;
   background: #f1f5f9;
   color: #334155;
@@ -9233,4 +9261,287 @@ button {
   font-weight: 800;
   color: #0068ff;
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   UI/UX 전면 개편 (v1.8.0):
+   1. 최소화(snap-1) 바텀 시트 전체 너비 Flexbox 교정 (잘림 완전 방지)
+   2. 네이버 지도식 검색창 내 [최근/추천 칩] | [★ 저장] 통합 퀵 바
+   ========================================================================== */
+.bottom-sheet {
+  bottom: 0 !important;
+}
+
+.bottom-sheet .sheet-mini-bar {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  padding: 4px 16px calc(12px + env(safe-area-inset-bottom, 4px)) !important;
+  gap: 8px !important;
+  cursor: pointer;
+  background: transparent;
+}
+
+.sheet-mini-bar .mini-bar-top-row {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.sheet-mini-bar .mini-bar-left {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 2px !important;
+}
+
+.sheet-mini-bar .mini-bar-dest-title {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  font-size: 15.5px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.sheet-mini-bar .mini-bar-metrics-inline {
+  display: block !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #475569 !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+.sheet-mini-bar .mini-bar-metrics-inline .snap1-time {
+  font-size: 13.5px !important;
+  font-weight: 900 !important;
+  color: #0068ff !important;
+}
+
+.sheet-mini-bar .mini-bar-metrics-inline .snap1-dist {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+}
+
+.sheet-mini-bar .mini-bar-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+}
+
+.sheet-mini-bar .mini-stop-nav-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 14px !important;
+  border-radius: 10px !important;
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  border: 1px solid #fecaca !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  line-height: 1.1 !important;
+  cursor: pointer;
+}
+
+.sheet-mini-bar .mini-stop-nav-btn:hover {
+  background: #fecaca !important;
+}
+
+.sheet-mini-bar .mini-action-btn.expand {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* 네이버 지도 스타일 검색 드롭다운 상단 퀵 바 (최근/자주 찾는 칩 + | + [★ 저장]) */
+.search-quick-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-quick-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.search-quick-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.search-quick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.search-quick-chip:hover {
+  border-color: var(--usw-navy);
+  color: var(--usw-navy);
+  background: #eff6ff;
+}
+
+.search-quick-chip .sq-chip-dot {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.search-quick-divider {
+  width: 1px;
+  height: 20px;
+  background: #cbd5e1;
+  flex-shrink: 0;
+}
+
+.search-saved-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  color: #1e293b;
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.search-saved-toggle-btn .saved-star-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fef3c7;
+  color: #f59e0b;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.search-saved-toggle-btn .search-saved-count {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.search-saved-toggle-btn:hover {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.search-saved-toggle-btn.active {
+  background: var(--usw-navy);
+  border-color: var(--usw-navy);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(8, 56, 107, 0.22);
+}
+
+.search-saved-toggle-btn.active .saved-star-icon {
+  background: #fbbf24;
+  color: #08386b;
+}
+
+.search-saved-toggle-btn.active .search-saved-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* 저장된 항목 리스트 내 우측 별표 해제 버튼 & 빈 상태 */
+.saved-item-star-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fef3c7;
+  color: #f59e0b;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.14s ease, background 0.14s ease;
+}
+
+.saved-item-star-btn:hover {
+  background: #fde68a;
+  transform: scale(1.08);
+}
+
+.saved-empty-item {
+  padding: 24px 16px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.saved-empty-item strong {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+  margin-bottom: 4px;
 }

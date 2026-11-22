@@ -142,6 +142,9 @@ class IndoorNavigator {
     this.dom.routeStepSummary = document.getElementById('indoorRouteStepSummary');
     this.dom.startIndoorSimBtn = document.getElementById('indoorStartSimBtn');
     this.dom.startIndoorSimText = document.getElementById('indoorStartSimText');
+    this.dom.routeModeToggleBtn = document.getElementById('indoorRouteModeToggleBtn');
+    this.dom.routeModeToggleIcon = document.getElementById('indoorRouteModeToggleIcon');
+    this.dom.routeModeToggleText = document.getElementById('indoorRouteModeToggleText');
     this.dom.switchFloorPreviewBtn = document.getElementById('indoorSwitchFloorPreviewBtn');
     this.dom.switchFloorPreviewText = document.getElementById('indoorSwitchFloorPreviewText');
     this.dom.outdoorToEntranceBtn = document.getElementById('indoorOutdoorToEntranceBtn');
@@ -208,6 +211,14 @@ class IndoorNavigator {
     if (this.dom.tabStairsBtn) {
       this.dom.tabStairsBtn.addEventListener('click', () => {
         this.selectRouteMode('stairs', { speak: true });
+      });
+    }
+
+    // [단일 토글 버튼] 엘리베이터 경로 ↔ 계단 경로 1-tap 전환
+    if (this.dom.routeModeToggleBtn) {
+      this.dom.routeModeToggleBtn.addEventListener('click', () => {
+        const nextMode = this.activeRouteMode === 'elevator' ? 'stairs' : 'elevator';
+        this.selectRouteMode(nextMode, { speak: true });
       });
     }
 
@@ -1664,6 +1675,26 @@ class IndoorNavigator {
     }
 
     const isSameFloor = activeRoute.isSameFloor;
+
+    // [단일 토글 버튼] 엘리베이터 경로 (파란색) ↔ 계단 경로 (초록색) 상태 및 예상 시간 동기화
+    if (this.dom.routeModeToggleBtn) {
+      const isStairs = this.activeRouteMode === 'stairs';
+      const displayRoute = isStairs ? (stairRoute || activeRoute) : (elvRoute || activeRoute);
+      const mins = isSameFloor ? 1 : (displayRoute ? displayRoute.estimatedMinutes : activeRoute.estimatedMinutes);
+
+      this.dom.routeModeToggleBtn.classList.toggle('mode-elevator', !isStairs);
+      this.dom.routeModeToggleBtn.classList.toggle('mode-stairs', isStairs);
+      this.dom.routeModeToggleBtn.setAttribute('aria-pressed', String(isStairs));
+
+      if (this.dom.routeModeToggleIcon) {
+        this.dom.routeModeToggleIcon.textContent = isStairs ? '🪜' : '🛗';
+      }
+      if (this.dom.routeModeToggleText) {
+        this.dom.routeModeToggleText.textContent = isStairs
+          ? `계단 경로 (예상 ${mins}분)`
+          : `엘리베이터 경로 (예상 ${mins}분)`;
+      }
+    }
 
     if (this.dom.tabElevatorBtn && elvRoute) {
       this.dom.tabElevatorBtn.classList.toggle('active', this.activeRouteMode === 'elevator');

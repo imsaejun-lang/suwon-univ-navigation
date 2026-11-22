@@ -52,9 +52,9 @@
       </button>
     </div>
 
-    <!-- 2. 상단 3대 카테고리 알약 탭: [건물] [식당·카페] [편의시설] -->
+    <!-- 2. 상단 3대 카테고리 알약 탭: [건물] [식당·카페] [편의시설] (초기 비선택 디폴트) -->
     <div class="category-pills-row" role="tablist" aria-label="캠퍼스 시설 카테고리 필터">
-      <button type="button" class="cat-pill active" data-category="building" role="tab" aria-selected="true">
+      <button type="button" class="cat-pill" data-category="building" role="tab" aria-selected="false">
         건물
       </button>
       <button type="button" class="cat-pill" data-category="food" role="tab" aria-selected="false">
@@ -65,11 +65,20 @@
       </button>
     </div>
 
-    <!-- 3. 검색 자동완성 드롭다운 리스트 -->
+    <!-- 3. 검색 자동완성 드롭다운 리스트 (네이버 지도식 최근/추천 칩 + [★ 저장] 통합) -->
     <div id="autocompleteDropdown" class="autocomplete-dropdown hidden" role="listbox" aria-label="건물 및 강의실 자동완성 목록">
+      <div id="searchQuickBar" class="search-quick-bar" aria-label="최근 검색 및 저장 장소 바로가기">
+        <div id="searchQuickChips" class="search-quick-chips"></div>
+        <span class="search-quick-divider" aria-hidden="true"></span>
+        <button type="button" id="searchSavedToggleBtn" class="search-saved-toggle-btn" aria-pressed="false" title="저장한 건물·강의실 목록 보기">
+          <span class="saved-star-icon" aria-hidden="true">★</span>
+          <span>저장</span>
+          <span id="searchSavedCount" class="search-saved-count">0</span>
+        </button>
+      </div>
       <div class="dropdown-header">
         <span id="dropdownHeaderTitle">수원대학교 주요 건물 · 강의실</span>
-        <span class="dropdown-sub">선택 시 건물 정보 및 길찾기</span>
+        <span class="dropdown-sub" id="dropdownHeaderSub">선택 시 건물 정보 및 길찾기</span>
       </div>
       <ul id="autocompleteList" class="autocomplete-list"></ul>
     </div>
@@ -169,7 +178,7 @@
   <!-- =======================================================================
        하단 바텀 시트 (하단 고정 + 핸들바 기반 네이버 지도식 1단계/2단계/3단계 스냅)
        ======================================================================= -->
-  <section id="bottomSheet" class="bottom-sheet snap-2" aria-label="캠퍼스 건물 및 길찾기 시트">
+  <section id="bottomSheet" class="bottom-sheet snap-2 hidden" aria-label="캠퍼스 건물 및 길찾기 시트">
     <!-- 상단 중앙 회색 가로 작대기 (핸들바: 위아래 스와이프 또는 클릭으로 1단계 ↔ 2단계 ↔ 3단계 전환) -->
     <div class="sheet-drag-handle-area" id="sheetHandleArea" title="위아래로 쓸어올리거나 클릭하여 1~3단계 높이 전환">
       <div class="sheet-drag-bar"></div>
@@ -180,43 +189,43 @@
       <div class="mini-bar-top-row">
         <div class="mini-bar-left" id="miniBarClickExpandArea">
           <strong id="miniBarTitle" class="mini-bar-dest-title">미래혁신관 308호</strong>
-          <span id="miniBarMetrics" class="mini-bar-metrics-inline">(약 <b id="miniBarTime">8분</b> · <b
-              id="miniBarDist">520m</b>)</span>
+          <span id="miniBarMetrics" class="mini-bar-metrics-inline">(약 <b id="miniBarTime" class="snap1-time">8분</b> · <b
+              id="miniBarDist" class="snap1-dist">520m</b>)</span>
           <span id="miniBarEta" class="snap1-eta-text sr-only">도착 예정</span>
         </div>
         <div class="mini-bar-actions">
-          <span class="mini-bar-divider" aria-hidden="true">|</span>
-          <button type="button" id="miniStopNavBtn" class="mini-stop-nav-btn" title="길안내 종료">
-            안내 종료
-          </button>
-          <button type="button" id="miniStartNavBtn" class="mini-action-btn primary" title="실시간 안내 시작">
-            <i data-lucide="navigation"></i>
-            <span id="miniStartNavBtnText">안내</span>
-          </button>
           <button type="button" id="miniOpenIndoorBtn" class="mini-action-btn indoor hidden" title="실내 도면 보기">
             <i data-lucide="building-2"></i>
             <span>실내</span>
           </button>
+          <button type="button" id="miniStopNavBtn" class="mini-stop-nav-btn" title="길안내 종료">
+            안내 종료
+          </button>
           <button type="button" id="miniExpandBtn" class="mini-action-btn expand" title="상세 경로 펼치기 (2단계/3단계)">
-            <i data-lucide="menu"></i>
+            <i data-lucide="chevron-up"></i>
           </button>
         </div>
       </div>
       <!-- 네이버 지도 1단계 하단 진행 바 -->
-      <div class="snap1-progress-track">
+      <div class="snap1-progress-track" id="snap1ProgressTrack">
         <div class="snap1-progress-head" id="snap1ProgressHead" style="left: 0%">▶</div>
         <div class="snap1-progress-fill" id="snap1ProgressFill" style="width: 0%"></div>
       </div>
     </div>
 
-    <!-- [State 01] 앱을 켰을 때: "어디로 가볼까요?" 홈 탐색 뷰 (UI 예시 01) -->
+    <!-- [State 01] 카테고리 선택 시 올라오는 장소 선택 리스트 창 -->
     <div id="sheetViewExplore" class="sheet-view">
       <div class="explore-header">
-        <h2 class="explore-title" id="exploreTitle">어디로 가볼까요?</h2>
-        <p class="explore-subtitle" id="exploreSubtitle">건물부터 강의실까지 한 번에 찾아요</p>
+        <div class="explore-header-text">
+          <h2 class="explore-title" id="exploreTitle">어디로 가볼까요?</h2>
+          <p class="explore-subtitle" id="exploreSubtitle">건물부터 강의실까지 한 번에 찾아요</p>
+        </div>
+        <button type="button" id="closeExploreSheetBtn" class="sheet-x-btn" title="목록 닫기" aria-label="카테고리 목록 닫기">
+          <i data-lucide="x"></i>
+        </button>
       </div>
 
-      <!-- 사진으로 미리보기 카드 리스트 (UI 예시 01의 카드 디자인) -->
+      <!-- 사진으로 미리보기 카드 리스트 -->
       <div id="explorePreviewList" class="explore-preview-list">
         <!-- JS에서 미래혁신관, IT대학, 중앙도서관 등 미리보기 카드 렌더링 -->
       </div>
@@ -225,14 +234,14 @@
       <div class="quick-chips-scroll" id="quickBuildingChips" role="list" aria-label="주요 건물 빠른 선택"></div>
     </div>
 
-    <!-- [State 02] 건물을 선택했을 때: 건물 상세 프리뷰 & [실내 보기] / [길찾기] (UI 예시 02) -->
+    <!-- [State 02] 건물을 선택했을 때: 건물 상세 프리뷰 & [실내 보기] / [길안내 시작] -->
     <div id="sheetViewBuilding" class="sheet-view hidden">
       <div class="building-sheet-header">
         <div class="building-title-wrap">
           <div class="building-title-line">
             <h2 class="building-main-title" id="detailBuildingName">미래혁신관</h2>
-            <button type="button" id="bookmarkBuildingBtn" class="bookmark-icon-btn" title="저장하기">
-              <i data-lucide="bookmark"></i>
+            <button type="button" id="bookmarkBuildingBtn" class="bookmark-icon-btn" title="저장(즐겨찾기)" aria-label="저장하기">
+              <i data-lucide="star"></i>
             </button>
           </div>
           <p class="building-sub-caption" id="detailBuildingSub">수원대학교 · 건물 안내</p>
@@ -475,47 +484,7 @@
         </div>
       </div>
     </div>
-
-    <!-- [State 04] 저장 탭 뷰 (즐겨찾기한 건물 빠른 이동) -->
-    <div id="sheetViewSaved" class="sheet-view hidden">
-      <div class="explore-header">
-        <h2 class="explore-title">저장한 장소</h2>
-        <p class="explore-subtitle">자주 가는 수원대 건물과 강의실을 빠르게 안내받으세요</p>
-      </div>
-      <div id="savedBuildingsList" class="explore-preview-list"></div>
-    </div>
   </section>
-
-  <!-- =======================================================================
-       하단 고정 앱 내비게이션 탭 바 (UI 예시 01·02의 [지도] [길찾기] [저장] 탭)
-       ======================================================================= -->
-  <nav class="bottom-tab-bar" aria-label="하단 메인 메뉴">
-    <button type="button" class="tab-item active" data-tab="map" id="tabBtnMap">
-      <div class="tab-icon-pill">
-        <i data-lucide="map"></i>
-      </div>
-      <span class="tab-label">지도</span>
-    </button>
-
-    <button type="button" class="tab-item" data-tab="route" id="tabBtnRoute">
-      <div class="tab-icon-pill">
-        <svg class="route-s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="6" cy="19" r="2.5"></circle>
-          <path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"></path>
-          <circle cx="18" cy="5" r="2.5"></circle>
-        </svg>
-      </div>
-      <span class="tab-label">길찾기</span>
-    </button>
-
-    <button type="button" class="tab-item" data-tab="saved" id="tabBtnSaved">
-      <div class="tab-icon-pill">
-        <i data-lucide="bookmark"></i>
-      </div>
-      <span class="tab-label">저장</span>
-    </button>
-  </nav>
 
   <!-- =======================================================================
        [Step 2 핵심] 2D 건물 실내 도면 모드 & 다층 강의실 길안내 캔버스 (IT대학)
@@ -568,20 +537,6 @@
         </button>
       </div>
 
-      <!-- [요구사항 2, 3] GPS 현재 위치 인식 상태 바 (호실 자동 특정 & 빠른 위치 보정 버튼) -->
-      <div id="indoorGpsStatusBar" class="indoor-gps-status-bar">
-        <div class="gps-status-content">
-          <span class="gps-live-dot"></span>
-          <span id="indoorGpsStatusText" class="gps-status-text">📍 현재 위치 인식: IT대학 3층 308호</span>
-        </div>
-        <div class="gps-status-action">
-          <button type="button" id="indoorQuickFixOriginBtn" class="btn-quick-fix-origin" title="GPS 오차 시 내 호실 즉시 변경">
-            <i data-lucide="map-pin"></i>
-            <span id="indoorQuickFixOriginBtnText">출발 위치 변경 ▾</span>
-          </button>
-        </div>
-      </div>
-
       <!-- [요구사항 3] 실내 위치 미세조정 드래그 보정 툴바 -->
       <div id="indoorNodeEditorBar" class="indoor-node-editor-bar hidden">
         <div class="editor-bar-info">
@@ -601,17 +556,6 @@
             <span>완료</span>
           </button>
         </div>
-      </div>
-
-      <!-- 다중 출입구 선택 바 (야외 진입 또는 탈출 모드에서 표시) -->
-      <div id="indoorEntranceBar" class="indoor-entrance-bar">
-        <div class="entrance-bar-label">
-          <i data-lucide="door-open"></i>
-          <span id="indoorEntranceBarLabel">진입 출입구 선택 (입구 위치에 따라 시작 층수가 달라집니다):</span>
-        </div>
-        <div id="indoorEntranceChipsRow" class="indoor-entrance-chips-row" role="tablist" aria-label="IT대학 진입 출입구 선택">
-        </div>
-        <div id="indoorEntranceFloorExplain" class="indoor-entrance-explain"></div>
       </div>
     </div>
 
@@ -694,53 +638,19 @@
       </div>
     </div>
 
-    <!-- 5. 하단 바텀 시트: [🛗 엘리베이터 경로 (예상 3분)] vs [🪜 계단 경로 (예상 2분)] 탭 및 실내 안내 컨트롤 -->
+    <!-- 5. 하단 바텀 시트 (간소화 1줄 2열 핵심 버튼 + 안내 종료) -->
     <div class="indoor-bottom-sheet">
-      <!-- 엘리베이터 루트 vs 계단 루트 동시 비교·선택 탭 -->
-      <div id="indoorDualRouteTabs" class="indoor-dual-route-tabs" role="tablist" aria-label="엘리베이터 경로 및 계단 경로 선택">
-        <button type="button" id="indoorTabElevatorBtn" class="indoor-route-tab elevator-tab active" role="tab"
-          aria-selected="true">
-          <div class="tab-top-line">
-            <span class="tab-emoji">🛗</span>
-            <strong class="tab-title">엘리베이터 경로</strong>
-            <span id="indoorTabElevatorTime" class="tab-time-pill elv">예상 3분</span>
-          </div>
-          <p id="indoorTabElevatorMeta" class="tab-sub-meta">1F ➔ 🛗 엘리베이터 ➔ 2F · 59m</p>
-        </button>
-
-        <button type="button" id="indoorTabStairsBtn" class="indoor-route-tab stairs-tab" role="tab"
-          aria-selected="false">
-          <div class="tab-top-line">
-            <span class="tab-emoji">🪜</span>
-            <strong class="tab-title">계단 경로</strong>
-            <span id="indoorTabStairsTime" class="tab-time-pill stair">예상 2분</span>
-          </div>
-          <p id="indoorTabStairsMeta" class="tab-sub-meta">1F ➔ 🪜 계단 ➔ 2F · 78m</p>
-        </button>
-      </div>
-
-      <!-- 같은 층 진입 시 알림 배너 -->
-      <div id="indoorSameFloorNotice" class="indoor-same-floor-notice hidden"></div>
-
-      <!-- 다층 이동 시퀀스 ([출발 입구 ➔ 현재 층 수직통로 ➔ 도착 층 수직통로 ➔ 203호]) -->
-      <div id="indoorRouteStepSummary" class="indoor-route-step-summary"></div>
-
-      <!-- 실내 액션 버튼 그룹 -->
+      <!-- 실내 액션 버튼 그룹: 1줄 2열 ([실내 이동 시뮬레이션] | [엘리베이터/계단 단일 토글]) + 하단 [안내 종료] -->
       <div class="indoor-sheet-actions">
         <button type="button" id="indoorStartSimBtn" class="btn-indoor-primary-sim">
           <i data-lucide="navigation"></i>
           <span id="indoorStartSimText">실내 이동 시뮬레이션</span>
         </button>
 
-        <button type="button" id="indoorPickOriginBtn" class="btn-indoor-floor-toggle"
-          title="도면 위 원하는 위치를 마우스로 클릭해 시뮬레이션 출발지로 지정합니다">
-          <i data-lucide="mouse-pointer-click"></i>
-          <span>🖱️ 도면 클릭 출발</span>
-        </button>
-
-        <button type="button" id="indoorSwitchFloorPreviewBtn" class="btn-indoor-floor-toggle">
-          <i data-lucide="layers"></i>
-          <span id="indoorSwitchFloorPreviewText">도착 층(2F) 도면 보기</span>
+        <button type="button" id="indoorRouteModeToggleBtn" class="btn-indoor-route-toggle mode-elevator"
+          title="클릭 시 엘리베이터 경로 ↔ 계단 경로를 즉시 전환합니다" aria-pressed="false">
+          <span id="indoorRouteModeToggleIcon" class="route-toggle-emoji" aria-hidden="true">🛗</span>
+          <span id="indoorRouteModeToggleText" class="route-toggle-label">엘리베이터 경로 (예상 3분)</span>
         </button>
 
         <button type="button" id="indoorCancelNavBtn" class="btn-indoor-outdoor-link indoor-cancel-btn"

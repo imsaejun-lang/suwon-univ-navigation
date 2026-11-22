@@ -6,14 +6,61 @@
 (function () {
   'use strict';
 
+  const SAVED_PLACES_STORAGE_KEY = 'usw_nav_saved_places_v2';
+  const RECENT_SEARCHES_STORAGE_KEY = 'usw_nav_recent_searches_v1';
+
+  const DEFAULT_SAVED_PLACES = [
+    {
+      key: 'room:it_college:room_310',
+      type: 'room',
+      buildingId: 'it_college',
+      roomId: 'room_310',
+      roomNumber: '310호',
+      floor: '3F',
+      title: 'IT대학 310호',
+      subtitle: 'IT대학 3층 · 컴퓨터SW 실습실',
+    },
+    {
+      key: 'room:it_college:room_308',
+      type: 'room',
+      buildingId: 'it_college',
+      roomId: 'room_308',
+      roomNumber: '308호',
+      floor: '3F',
+      title: 'IT대학 308호',
+      subtitle: 'IT대학 3층 · 사물인터넷·IoT실습실',
+    },
+    {
+      key: 'bld:central_library',
+      type: 'building',
+      buildingId: 'central_library',
+      title: '중앙도서관',
+      subtitle: '도서관 · 열람실',
+    },
+    {
+      key: 'bld:future_innovation',
+      type: 'building',
+      buildingId: 'future_innovation',
+      title: '미래혁신관',
+      subtitle: '미래혁신관 · 단과대학',
+    },
+  ];
+
+  const DEFAULT_RECENT_CHIPS = [
+    { type: 'room', buildingId: 'it_college', roomId: 'room_310', title: 'IT대학 310호' },
+    { type: 'room', buildingId: 'it_college', roomId: 'room_203', title: 'IT대학 203호' },
+    { type: 'building', buildingId: 'central_library', title: '중앙도서관' },
+    { type: 'building', buildingId: 'future_innovation', title: '미래혁신관' },
+  ];
+
   // 전역 상태 관리
   const state = {
     map: null,
     tileLayers: {},
     currentMapMode: 'street', // 'street' | 'satellite'
-    activeCategory: 'building', // 'building' | 'food' | 'amenity'
-    activeSheetView: 'explore', // 'explore' | 'building' | 'route' | 'saved'
-    activeBottomTab: 'map', // 'map' | 'route' | 'saved'
+    activeCategory: null, // null (디폴트 비선택) | 'building' | 'food' | 'amenity'
+    activeSheetView: null, // null (숨김) | 'explore' | 'building' | 'route'
+    searchSavedMode: false, // 검색 드롭다운 내 [★ 저장] 목록 보기 토글 상태
     startNodeId: null, // 일반 모드에서는 '정문' 고정이 아닌 실시간 GPS가 무조건 기본 출발지
     userLocation: null, // 실제 스마트폰 GPS로 수신·확정된 실시간 위치 ({ lat, lng, accuracy, heading })
     explicitSimulationOrigin: false, // 시뮬레이션 출발지 명시 선택 여부
@@ -28,7 +75,8 @@
     selectedDestId: null, // 현재 선택된 건물 ID
     currentRoute: null, // Dijkstra 최단 경로 결과
     isNavigating: false,
-    savedBuildingIds: new Set(['future_innovation', 'it_college', 'central_library']),
+    savedPlaces: [],
+    recentSearches: [],
     buildingMarkers: {},
     userMarker: null,
     accuracyCircle: null,
@@ -103,7 +151,12 @@
     dom.clearSearchBtn = document.getElementById('clearSearchBtn');
     dom.searchSubmitBtn = document.getElementById('searchSubmitBtn');
     dom.autocompleteDropdown = document.getElementById('autocompleteDropdown');
+    dom.searchQuickBar = document.getElementById('searchQuickBar');
+    dom.searchQuickChips = document.getElementById('searchQuickChips');
+    dom.searchSavedToggleBtn = document.getElementById('searchSavedToggleBtn');
+    dom.searchSavedCount = document.getElementById('searchSavedCount');
     dom.dropdownHeaderTitle = document.getElementById('dropdownHeaderTitle');
+    dom.dropdownHeaderSub = document.getElementById('dropdownHeaderSub');
     dom.autocompleteList = document.getElementById('autocompleteList');
 
     // 나침반 및 지도 회전 컨트롤
@@ -140,10 +193,11 @@
     dom.bottomSheet = document.getElementById('bottomSheet');
     dom.sheetHandleArea = document.getElementById('sheetHandleArea');
 
-    // Sheet Views (01 Explore, 02 Building Detail, 03 Route, 04 Saved)
+    // Sheet Views (01 Category Explore, 02 Building Detail, 03 Route)
     dom.sheetViewExplore = document.getElementById('sheetViewExplore');
     dom.exploreTitle = document.getElementById('exploreTitle');
     dom.exploreSubtitle = document.getElementById('exploreSubtitle');
+    dom.closeExploreSheetBtn = document.getElementById('closeExploreSheetBtn');
     dom.explorePreviewList = document.getElementById('explorePreviewList');
     dom.quickBuildingChips = document.getElementById('quickBuildingChips');
 
@@ -240,14 +294,6 @@
     dom.stopNavBtn = document.getElementById('stopNavBtn');
     dom.sheetFacilitiesList = document.getElementById('sheetFacilitiesList');
     dom.checkpointTimeline = document.getElementById('checkpointTimeline');
-
-    dom.sheetViewSaved = document.getElementById('sheetViewSaved');
-    dom.savedBuildingsList = document.getElementById('savedBuildingsList');
-
-    // Bottom Tab Bar
-    dom.tabBtnMap = document.getElementById('tabBtnMap');
-    dom.tabBtnRoute = document.getElementById('tabBtnRoute');
-    dom.tabBtnSaved = document.getElementById('tabBtnSaved');
 
     // Indoor Floor Plan Modal
     dom.indoorModal = document.getElementById('indoorModal');
@@ -728,15 +774,19 @@
     state.targetRoomMeta = null;
     state.pendingIndoorRoomId = null;
     state.highlightedBuildingIds.clear();
+    state.activeCategory = null;
+    document.querySelectorAll('.cat-pill').forEach((p) => {
+      p.classList.remove('active');
+      p.setAttribute('aria-selected', 'false');
+    });
     refreshBuildingMarkersStyle();
     updateQuickChipsActiveState();
     updateTestOriginChipsActiveState();
 
-    renderExploreView();
-    switchSheetView('explore', { snapStage: 2 });
+    hideBottomSheet();
 
     if (!options.silent) {
-      showToast('길안내를 취소하고 초기 지도 화면으로 돌아왔습니다.');
+      showToast('길안내를 종료하고 기본 지도 화면으로 돌아왔습니다.');
     }
   }
 
@@ -752,6 +802,7 @@
 
     CAMPUS_BUILDINGS.forEach((building) => {
       if (
+        state.activeCategory &&
         state.activeCategory !== 'building' &&
         !(building.filterCategories || []).includes(state.activeCategory)
       ) {
@@ -934,44 +985,46 @@
 
   /**
    * =======================================================================
-   * 5. 바텀 시트 뷰 전환 (01 홈 탐색 / 02 건물 선택 상세 / 03 길찾기 안내 / 04 저장)
+   * 5. 바텀 시트 뷰 전환 (카테고리 목록 / 건물 상세 / 길안내 시작 시에만 노출)
    * =======================================================================
    */
+  function hideBottomSheet() {
+    state.activeSheetView = null;
+    if (dom.bottomSheet) {
+      dom.bottomSheet.classList.add('hidden');
+    }
+    if (dom.sheetMiniBar) {
+      dom.sheetMiniBar.classList.add('hidden');
+    }
+  }
+
   function switchSheetView(viewName, options = {}) {
+    if (!viewName) {
+      hideBottomSheet();
+      return;
+    }
+
     state.activeSheetView = viewName;
-    dom.bottomSheet.classList.remove('collapsed');
+    if (dom.bottomSheet) {
+      dom.bottomSheet.classList.remove('hidden', 'collapsed');
+    }
 
     dom.sheetViewExplore.classList.toggle('hidden', viewName !== 'explore');
     dom.sheetViewBuilding.classList.toggle('hidden', viewName !== 'building');
     dom.sheetViewRoute.classList.toggle('hidden', viewName !== 'route');
-    dom.sheetViewSaved.classList.toggle('hidden', viewName !== 'saved');
 
-    // 길찾기 실행 시 기본 상태는 2단계(중간 높이)로 표시
     if (viewName === 'route') {
-      setActiveBottomTab('route');
       setSheetSnapStage(options.snapStage || 2);
-    } else if (viewName === 'saved') {
-      setActiveBottomTab('saved');
-      setSheetSnapStage(2);
     } else {
-      setActiveBottomTab('map');
       setSheetSnapStage(2);
     }
   }
 
-  function setActiveBottomTab(tabName) {
-    state.activeBottomTab = tabName;
-    [dom.tabBtnMap, dom.tabBtnRoute, dom.tabBtnSaved].forEach((btn) => {
-      if (!btn) return;
-      btn.classList.toggle('active', btn.dataset.tab === tabName);
-    });
-  }
-
   /**
-   * [State 01] 앱을 켰을 때 홈 탐색 뷰 렌더링 ("어디로 가볼까요?" + 사진으로 미리보기 카드)
+   * [State 01] 카테고리 선택 시 장소 목록 뷰 렌더링
    */
   function renderExploreView() {
-    const cat = state.activeCategory;
+    const cat = state.activeCategory || 'building';
     if (cat === 'building') {
       dom.exploreTitle.textContent = '어디로 가볼까요?';
       dom.exploreSubtitle.textContent = '건물부터 강의실까지 한 번에 찾아요';
@@ -1067,11 +1120,8 @@
 
     dom.detailBuildingImg.src = building.photoUrl || 'assets/future_innovation.png';
 
-    // 북마크 상태 반영
-    dom.bookmarkBuildingBtn.classList.toggle(
-      'saved',
-      state.savedBuildingIds.has(buildingId)
-    );
+    // 저장(즐겨찾기 ★) 상태 반영 (건물 및 강의실 개별 지원)
+    updateBookmarkBtnUI();
 
     if (dom.openProtoIndoorQuickBtn) {
       dom.openProtoIndoorQuickBtn.classList.toggle('hidden', buildingId !== 'it_college');
@@ -2038,46 +2088,259 @@
   }
 
   /**
-   * [State 04] 저장 탭 뷰 렌더링
+   * =======================================================================
+   * [저장한 장소 & 최근 검색 localStorage 영구 저장/조회 엔진]
+   * - 건물뿐 아니라 'IT대학 310호', 'IT대학 308호' 등 개별 강의실도 저장 지원
+   * =======================================================================
    */
-  function renderSavedView() {
-    dom.savedBuildingsList.innerHTML = '';
-    const savedIds = Array.from(state.savedBuildingIds);
+  function loadSavedPlaces() {
+    try {
+      const raw = localStorage.getItem(SAVED_PLACES_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          state.savedPlaces = parsed;
+          return;
+        }
+      }
+    } catch (e) {}
+    state.savedPlaces = DEFAULT_SAVED_PLACES.map((item) => ({ ...item }));
+    saveSavedPlacesToStorage();
+  }
 
-    if (savedIds.length === 0) {
-      dom.savedBuildingsList.innerHTML = `
-        <div class="preview-building-card">
-          <div class="preview-card-body">
-            <div class="preview-card-sub">저장된 건물이 없습니다</div>
-            <div class="preview-card-title">건물 상세 화면에서 북마크를 눌러보세요</div>
-          </div>
-        </div>
-      `;
+  function saveSavedPlacesToStorage() {
+    try {
+      localStorage.setItem(SAVED_PLACES_STORAGE_KEY, JSON.stringify(state.savedPlaces));
+    } catch (e) {}
+    if (dom.searchSavedCount) {
+      dom.searchSavedCount.textContent = String(state.savedPlaces.length);
+    }
+  }
+
+  function loadRecentSearches() {
+    try {
+      const raw = localStorage.getItem(RECENT_SEARCHES_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          state.recentSearches = parsed;
+          return;
+        }
+      }
+    } catch (e) {}
+    state.recentSearches = [];
+  }
+
+  function recordRecentSearch(item) {
+    if (!item || !item.buildingId) return;
+    const key =
+      item.type === 'room'
+        ? `room:${item.buildingId}:${item.roomId || item.roomNumber || item.title}`
+        : `bld:${item.buildingId}`;
+    const entry = { ...item, key };
+    state.recentSearches = [
+      entry,
+      ...state.recentSearches.filter((x) => x.key !== key),
+    ].slice(0, 6);
+    try {
+      localStorage.setItem(RECENT_SEARCHES_STORAGE_KEY, JSON.stringify(state.recentSearches));
+    } catch (e) {}
+  }
+
+  function getCurrentTargetSavePayload() {
+    const bId = state.selectedDestId;
+    if (!bId) return null;
+    const building = CAMPUS_NODES[bId];
+    if (!building) return null;
+
+    if (state.targetRoomMeta) {
+      const r = state.targetRoomMeta;
+      const roomKeyPart = r.roomId || r.roomNumber || 'room';
+      const floorText = r.floor ? r.floor.replace('F', '층') : '';
+      return {
+        key: `room:${bId}:${roomKeyPart}`,
+        type: 'room',
+        buildingId: bId,
+        roomId: r.roomId || null,
+        roomNumber: r.roomNumber || '',
+        floor: r.floor || '',
+        title: r.title || `${building.name} ${r.roomNumber || ''}`.trim(),
+        subtitle: r.dept
+          ? `${building.name} ${floorText} · ${r.dept}`.trim()
+          : `${building.name} ${floorText} 강의실`.trim(),
+      };
+    }
+
+    return {
+      key: `bld:${bId}`,
+      type: 'building',
+      buildingId: bId,
+      title: building.name,
+      subtitle: `${building.category || '캠퍼스 건물'}${building.floors ? ' · ' + building.floors : ''}`,
+    };
+  }
+
+  function isPlaceSaved(key) {
+    return state.savedPlaces.some((p) => p.key === key);
+  }
+
+  function updateBookmarkBtnUI() {
+    if (!dom.bookmarkBuildingBtn) return;
+    const payload = getCurrentTargetSavePayload();
+    const saved = Boolean(payload && isPlaceSaved(payload.key));
+    dom.bookmarkBuildingBtn.classList.toggle('saved', saved);
+    dom.bookmarkBuildingBtn.setAttribute('aria-pressed', saved ? 'true' : 'false');
+    dom.bookmarkBuildingBtn.title = saved ? '저장 해제' : '저장하기';
+  }
+
+  function toggleSavePlace(payload) {
+    if (!payload || !payload.key) return false;
+    const existsIdx = state.savedPlaces.findIndex((p) => p.key === payload.key);
+    if (existsIdx >= 0) {
+      state.savedPlaces.splice(existsIdx, 1);
+      saveSavedPlacesToStorage();
+      updateBookmarkBtnUI();
+      showToast(`'${payload.title}'을(를) 저장 목록에서 해제했습니다.`);
+      return false;
+    }
+    state.savedPlaces.unshift(payload);
+    saveSavedPlacesToStorage();
+    updateBookmarkBtnUI();
+    showToast(`★ '${payload.title}'이(가) 저장되었습니다.`);
+    return true;
+  }
+
+  function openPlaceEntry(entry) {
+    if (!entry || !entry.buildingId) return;
+    const building = CAMPUS_NODES[entry.buildingId];
+    if (!building) return;
+
+    if (entry.type === 'room') {
+      if (entry.buildingId === 'it_college' && entry.roomId) {
+        selectDestinationRoom('it_college', entry.roomId);
+        return;
+      }
+      dom.searchInput.value = entry.title || `${building.name} ${entry.roomNumber || ''}`.trim();
+      if (dom.clearSearchBtn) dom.clearSearchBtn.classList.remove('hidden');
+      state.highlightedBuildingIds.clear();
+      state.highlightedBuildingIds.add(building.id);
+      hideAutocomplete();
+      state.selectedDestId = building.id;
+      state.pendingIndoorRoomId = entry.roomId || null;
+      state.targetRoomMeta = {
+        buildingId: building.id,
+        roomId: entry.roomId || null,
+        roomNumber: entry.roomNumber || '',
+        floor: entry.floor || '',
+        name: entry.title,
+        title: entry.title,
+      };
+      openBuildingDetailView(building.id, { room: state.targetRoomMeta });
       return;
     }
 
-    savedIds.forEach((id) => {
-      const b = CAMPUS_NODES[id];
-      if (!b) return;
-      const card = document.createElement('div');
-      card.className = 'preview-building-card';
-      card.innerHTML = `
-        <img src="${b.thumbUrl || 'assets/future_thumb.png'}" alt="${b.name}" class="preview-thumb-img" />
-        <div class="preview-card-body">
-          <div class="preview-card-sub">${b.category} · ${b.floors}</div>
-          <div class="preview-card-title">${b.name}</div>
+    dom.searchInput.value = building.name;
+    if (dom.clearSearchBtn) dom.clearSearchBtn.classList.remove('hidden');
+    state.highlightedBuildingIds.clear();
+    state.highlightedBuildingIds.add(building.id);
+    hideAutocomplete();
+    state.selectedDestId = building.id;
+    state.pendingIndoorRoomId = null;
+    state.targetRoomMeta = null;
+    openBuildingDetailView(building.id);
+  }
+
+  function renderSearchQuickBar() {
+    if (dom.searchSavedCount) {
+      dom.searchSavedCount.textContent = String(state.savedPlaces.length);
+    }
+    if (dom.searchSavedToggleBtn) {
+      dom.searchSavedToggleBtn.classList.toggle('active', state.searchSavedMode);
+      dom.searchSavedToggleBtn.setAttribute('aria-pressed', state.searchSavedMode ? 'true' : 'false');
+    }
+    if (!dom.searchQuickChips) return;
+
+    const chipsSource =
+      state.recentSearches.length > 0 ? state.recentSearches : DEFAULT_RECENT_CHIPS;
+    dom.searchQuickChips.innerHTML = '';
+
+    chipsSource.slice(0, 5).forEach((item) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'search-quick-chip';
+      const dot = item.type === 'room' ? '📍' : '🏛️';
+      btn.innerHTML = `<span class="sq-chip-dot">${dot}</span><span>${item.title}</span>`;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openPlaceEntry(item);
+      });
+      dom.searchQuickChips.appendChild(btn);
+    });
+  }
+
+  function renderSavedPlacesInDropdown() {
+    renderSearchQuickBar();
+    dom.dropdownHeaderTitle.textContent = `★ 저장한 장소 (${state.savedPlaces.length}건)`;
+    if (dom.dropdownHeaderSub) {
+      dom.dropdownHeaderSub.textContent = '선택 시 바로 이동 · ★ 클릭 시 해제';
+    }
+    dom.autocompleteList.innerHTML = '';
+    state.focusedAutocompleteIndex = -1;
+
+    if (state.savedPlaces.length === 0) {
+      const emptyLi = document.createElement('li');
+      emptyLi.className = 'saved-empty-item';
+      emptyLi.innerHTML = `
+        <strong>저장한 건물이나 강의실이 없습니다</strong>
+        <span>장소를 선택한 뒤 상단 ☆ 별표 버튼을 누르면 여기에 저장됩니다.</span>
+      `;
+      dom.autocompleteList.appendChild(emptyLi);
+      dom.autocompleteDropdown.classList.remove('hidden');
+      return;
+    }
+
+    state.savedPlaces.forEach((place) => {
+      const li = document.createElement('li');
+      li.className = `autocomplete-item ${place.type === 'room' ? 'indoor-room-ac-item' : ''}`;
+      const iconText =
+        place.type === 'room' ? place.floor || '실내' : (place.title || '건').charAt(0);
+      const badgeLabel = place.type === 'room' ? '저장 강의실' : '저장 건물';
+
+      li.innerHTML = `
+        <div class="ac-left">
+          <div class="ac-icon-circle ${place.type === 'room' ? 'indoor-room-icon' : ''}">${iconText}</div>
+          <div class="ac-text-wrap">
+            <div class="ac-title-row">
+              <span class="ac-name">${place.title}</span>
+              <span class="ac-category ${place.type === 'room' ? 'indoor-badge-cat' : ''}">${badgeLabel}</span>
+            </div>
+            <div class="ac-desc">${place.subtitle || '수원대학교 캠퍼스'}</div>
+          </div>
         </div>
-        <div class="preview-card-arrow">
-          <i data-lucide="chevron-right"></i>
+        <div class="ac-right">
+          <button type="button" class="saved-item-star-btn" title="저장 해제" aria-label="${place.title} 저장 해제">★</button>
         </div>
       `;
-      card.addEventListener('click', () => {
-        openBuildingDetailView(b.id);
+
+      const starBtn = li.querySelector('.saved-item-star-btn');
+      if (starBtn) {
+        starBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleSavePlace(place);
+          renderSavedPlacesInDropdown();
+        });
+      }
+
+      li.addEventListener('click', () => {
+        openPlaceEntry(place);
       });
-      dom.savedBuildingsList.appendChild(card);
+
+      dom.autocompleteList.appendChild(li);
     });
 
-    if (window.lucide) window.lucide.createIcons();
+    dom.autocompleteDropdown.classList.remove('hidden');
   }
 
   /**
@@ -3191,6 +3454,15 @@
       title: `${building.name} ${roomNumber}`,
     };
 
+    recordRecentSearch({
+      type: 'room',
+      buildingId,
+      roomId,
+      roomNumber,
+      floor,
+      title: `${building.name} ${roomNumber}`,
+    });
+
     openBuildingDetailView(buildingId, { room: state.targetRoomMeta });
     showToast(`🎯 목적지: ${building.name} ${roomNumber}를 확인했습니다. [길안내 시작]을 눌러 안내를 시작하세요.`);
   }
@@ -3302,8 +3574,35 @@
     });
 
     // 상단 3대 카테고리 알약 탭 ([건물] [식당·카페] [편의시설])
+    // - 초기 디폴트는 모두 비선택(흰색)
+    // - 클릭 시 활성화 + 해당 카테고리 마커/바텀시트 팝업
+    // - 이미 활성화된 버튼 재클릭 시 선택 해제 + 전체 건물명 복원 + 바텀시트 닫기
+    const clearCategorySelection = () => {
+      state.activeCategory = null;
+      document.querySelectorAll('.cat-pill').forEach((p) => {
+        p.classList.remove('active');
+        p.setAttribute('aria-selected', 'false');
+      });
+      renderBuildingMarkers();
+      hideBottomSheet();
+    };
+
     document.querySelectorAll('.cat-pill').forEach((pill) => {
       pill.addEventListener('click', () => {
+        const clickedCat = pill.dataset.category || 'building';
+        const isAlreadyActive =
+          state.activeCategory === clickedCat &&
+          dom.bottomSheet &&
+          !dom.bottomSheet.classList.contains('hidden') &&
+          state.activeSheetView === 'explore';
+
+        hideAutocomplete();
+
+        if (isAlreadyActive) {
+          clearCategorySelection();
+          return;
+        }
+
         document.querySelectorAll('.cat-pill').forEach((p) => {
           p.classList.remove('active');
           p.setAttribute('aria-selected', 'false');
@@ -3311,22 +3610,45 @@
         pill.classList.add('active');
         pill.setAttribute('aria-selected', 'true');
 
-        state.activeCategory = pill.dataset.category || 'building';
+        state.activeCategory = clickedCat;
         renderBuildingMarkers();
         renderExploreView();
-        if (state.activeSheetView !== 'explore') {
-          switchSheetView('explore');
-        }
+        switchSheetView('explore');
       });
     });
 
+    if (dom.closeExploreSheetBtn) {
+      dom.closeExploreSheetBtn.addEventListener('click', () => {
+        clearCategorySelection();
+      });
+    }
+
+    // 검색창 내 [★ 저장] 토글 버튼
+    if (dom.searchSavedToggleBtn) {
+      dom.searchSavedToggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        state.searchSavedMode = !state.searchSavedMode;
+        if (state.searchSavedMode) {
+          renderSavedPlacesInDropdown();
+        } else {
+          renderAutocompleteList(dom.searchInput.value.trim());
+        }
+      });
+    }
+
     // 검색 입력 및 포커스
     dom.searchInput.addEventListener('focus', () => {
-      renderAutocompleteList(dom.searchInput.value.trim());
+      if (state.searchSavedMode) {
+        renderSavedPlacesInDropdown();
+      } else {
+        renderAutocompleteList(dom.searchInput.value.trim());
+      }
     });
 
     dom.searchInput.addEventListener('input', (e) => {
       const q = e.target.value.trim();
+      state.searchSavedMode = false;
       dom.clearSearchBtn.classList.toggle('hidden', q.length === 0);
       renderAutocompleteList(q);
     });
@@ -3517,9 +3839,13 @@
 
     const totalCount =
       matchedIndoorRooms.length + smartOtherBuildingRooms.length + results.length;
+    renderSearchQuickBar();
     dom.dropdownHeaderTitle.textContent = normalized
       ? `'${query}' 스마트 검색 결과 (${totalCount}건)`
       : '수원대학교 주요 건물 · IT대학 실내 강의실 추천';
+    if (dom.dropdownHeaderSub) {
+      dom.dropdownHeaderSub.textContent = '선택 시 건물 정보 및 길찾기';
+    }
 
     dom.autocompleteList.innerHTML = '';
     state.focusedAutocompleteIndex = -1;
@@ -3588,6 +3914,13 @@
           name: `${floorNum}층 ${roomNumber}`,
           title: `${building.name} ${roomNumber}`,
         };
+        recordRecentSearch({
+          type: 'room',
+          buildingId: building.id,
+          roomNumber,
+          floor: `${floorNum}F`,
+          title: `${building.name} ${roomNumber}`,
+        });
         openBuildingDetailView(building.id, { room: state.targetRoomMeta });
         showToast(`🎯 목적지: ${building.name} ${roomNumber}를 확인했습니다. [길안내 시작]을 눌러 안내를 시작하세요.`);
       });
@@ -3624,6 +3957,11 @@
         state.selectedDestId = building.id;
         state.pendingIndoorRoomId = null;
         state.targetRoomMeta = null;
+        recordRecentSearch({
+          type: 'building',
+          buildingId: building.id,
+          title: building.name,
+        });
         openBuildingDetailView(building.id);
         showToast(`🎯 목적지: ${building.name}을(를) 확인했습니다. [길안내 시작]을 눌러 안내를 시작하세요.`);
       });
@@ -3642,6 +3980,11 @@
   function hideAutocomplete() {
     dom.autocompleteDropdown.classList.add('hidden');
     state.focusedAutocompleteIndex = -1;
+    state.searchSavedMode = false;
+    if (dom.searchSavedToggleBtn) {
+      dom.searchSavedToggleBtn.classList.remove('active');
+      dom.searchSavedToggleBtn.setAttribute('aria-pressed', 'false');
+    }
   }
 
   function updateQuickChipsActiveState() {
@@ -4150,23 +4493,19 @@
       });
     }
 
-    // [길안내 시작] 버튼: 목적지 상세 시트에서 클릭 시 내 GPS 위치로 즉시 전환 및 길안내 시작!
+    // [길안내 시작] 버튼: 클릭 시에만 길안내 경로 시트(#sheetViewRoute) 노출
     dom.goRouteViewBtn.addEventListener('click', () => {
-      startRealGpsNavigation();
+      if (state.isSimulationMode) {
+        startRouteFindingToBuilding(state.selectedDestId || 'it_college', { snapStage: 2 });
+      } else {
+        startRealGpsNavigation();
+      }
     });
 
     dom.bookmarkBuildingBtn.addEventListener('click', () => {
-      const id = state.selectedDestId;
-      if (!id) return;
-      if (state.savedBuildingIds.has(id)) {
-        state.savedBuildingIds.delete(id);
-        dom.bookmarkBuildingBtn.classList.remove('saved');
-        showToast('저장 목록에서 해제되었습니다.');
-      } else {
-        state.savedBuildingIds.add(id);
-        dom.bookmarkBuildingBtn.classList.add('saved');
-        showToast('저장한 장소에 추가되었습니다.');
-      }
+      const payload = getCurrentTargetSavePayload();
+      if (!payload) return;
+      toggleSavePlace(payload);
     });
 
     dom.closeDetailSheetBtn.addEventListener('click', () => {
@@ -4174,7 +4513,12 @@
       state.targetRoomMeta = null;
       state.highlightedBuildingIds.clear();
       refreshBuildingMarkersStyle();
-      switchSheetView('explore');
+      if (state.activeCategory) {
+        renderExploreView();
+        switchSheetView('explore');
+      } else {
+        hideBottomSheet();
+      }
     });
 
     // 안내 종료 / 취소 버튼들 (중간에 언제든 길안내 취소 가능)
@@ -4304,25 +4648,6 @@
       }
     });
 
-    // 하단 고정 탭 바 ([지도] [길찾기] [저장]) 클릭 이벤트
-    dom.tabBtnMap.addEventListener('click', () => {
-      if (state.selectedDestId && state.activeSheetView === 'building') {
-        switchSheetView('building');
-      } else {
-        renderExploreView();
-        switchSheetView('explore');
-      }
-    });
-
-    dom.tabBtnRoute.addEventListener('click', () => {
-      startRouteFindingToBuilding(state.selectedDestId || 'it_college');
-    });
-
-    dom.tabBtnSaved.addEventListener('click', () => {
-      renderSavedView();
-      switchSheetView('saved');
-    });
-
     // 실내 도면 모달 제어
     dom.openIndoorGuideBtn.addEventListener('click', () => {
       openIndoorFloorPlanModal(state.selectedDestId);
@@ -4412,14 +4737,17 @@
       }
     }
 
+    loadSavedPlaces();
+    loadRecentSearches();
+    renderSearchQuickBar();
+
     initFloorSelectModal();
     initGpsTracker();
     initPwaManager();
     bindControlEvents();
 
-    // 초기 화면: UI 예시 01 ("01 앱을 켰을 때") 상태로 시작!
-    renderExploreView();
-    switchSheetView('explore');
+    // 초기 화면: 상단 카테고리 모두 비선택 + 하단 바텀시트 숨김(탁 트인 전체 지도)
+    hideBottomSheet();
 
     if (window.lucide) {
       window.lucide.createIcons();
