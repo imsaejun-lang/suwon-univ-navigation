@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 1020" width="100%" height="100%" data-floor="6F">
+<rect width="1140" height="1020" fill="#f8fafc"/>
+<defs><pattern id="hatch-open" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<line x1="0" y1="0" x2="0" y2="10" stroke="#94a3b8" stroke-width="1.5" opacity="0.5"/></pattern>
+<style>.sector-path{cursor:pointer;transition:fill .15s,stroke .15s,stroke-width .15s}.sector-path:hover{filter:brightness(0.95)}</style></defs>
+<g id="layer-shell-base">
+<path d="M 146.5 42.0 L 67.5 941.5 L 68.5 945.0 L 456.5 979.0 L 461.0 940.5 L 679.0 940.5 L 682.5 978.0 L 686.0 979.0 L 1068.5 945.5 L 1072.5 944.0 L 994.0 45.0 L 992.5 41.0 L 641.0 71.5 L 640.0 74.5 L 642.5 108.0 L 497.5 108.0 L 500.0 74.5 L 499.0 71.5 L 156.0 41.5 Z" fill="#f1f5f9" stroke="none"/>
+</g><g id="layer-corridors">
+<path d="M 147.0 45.5 L 115.5 409.5 L 119.0 412.5 L 307.0 429.5 L 309.0 427.5 L 309.5 448.0 L 305.0 469.0 L 306.0 481.0 L 303.5 489.5 L 300.0 487.0 L 113.0 470.5 L 109.5 474.0 L 69.0 941.0 L 72.5 944.5 L 453.5 977.5 L 457.5 972.5 L 460.5 940.0 L 679.5 940.0 L 682.5 973.0 L 686.5 977.5 L 1066.5 945.0 L 1071.0 941.0 L 1030.5 474.0 L 1027.0 470.5 L 829.5 488.0 L 826.0 490.5 L 824.0 485.0 L 824.0 475.5 L 820.0 449.0 L 820.5 428.5 L 822.5 430.5 L 1021.0 412.5 L 1024.5 409.5 L 993.5 46.5 L 989.5 42.0 L 645.5 71.5 L 641.0 75.5 L 643.5 107.0 L 649.5 111.5 L 648.5 112.5 L 643.5 108.5 L 497.0 108.5 L 492.0 112.5 L 491.5 111.5 L 496.5 107.0 L 499.0 75.5 L 494.5 71.5 L 150.5 42.0 Z" fill="#ffffff" stroke="none"/>
+</g><g id="layer-sectors">
+<path id="sector-6F_room_2" class="sector-path" d="M 375.0 308.0 L 369.5 314.0 L 368.0 321.5 L 368.5 328.5 L 371.0 334.5 L 374.5 337.5 L 386.0 338.0 L 388.5 335.5 L 391.0 311.5 L 387.5 308.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_2" data-type="classroom" data-room-number="" data-name="6F 공간 1" data-center="379.0,323.0" data-corridor-node="6F_c16" data-door-pos="361.7,326.3"/>
+<path id="sector-6F_room_3" class="sector-path" d="M 770.5 314.5 L 765.0 308.0 L 747.5 309.0 L 745.5 310.5 L 744.0 309.5 L 734.0 310.0 L 730.0 312.0 L 723.0 311.0 L 718.0 314.5 L 719.0 326.5 L 722.5 328.5 L 728.5 328.0 L 730.5 326.5 L 736.0 327.0 L 749.0 324.5 L 766.5 323.5 L 770.5 321.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_3" data-type="classroom" data-room-number="" data-name="6F 공간 2" data-center="735.5,318.5" data-corridor-node="6F_c14" data-door-pos="727.5,310.5"/>
+<path id="sector-6F_room_4" class="sector-path" d="M 393.5 309.5 L 390.5 313.5 L 388.5 336.0 L 391.5 338.5 L 397.5 339.0 L 399.5 340.5 L 401.5 339.5 L 420.5 340.5 L 423.0 338.0 L 425.0 330.0 L 424.5 314.0 L 421.5 311.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_4" data-type="classroom" data-room-number="" data-name="6F 공간 3" data-center="406.0,325.0" data-corridor-node="6F_c9" data-door-pos="421.0,312.5"/>
+<path id="sector-6F_room_5" class="sector-path" d="M 715.5 312.5 L 667.5 316.0 L 664.0 319.0 L 665.5 324.0 L 668.0 357.5 L 670.0 363.0 L 682.0 361.5 L 694.0 362.5 L 697.5 360.0 L 699.5 361.0 L 717.0 359.5 L 721.5 357.0 L 720.5 345.0 L 718.5 342.5 L 720.0 340.5 L 719.5 330.0 L 717.0 327.5 L 718.5 326.0 L 718.0 315.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_5" data-type="classroom" data-room-number="" data-name="6F 공간 4" data-center="690.0,338.0" data-corridor-node="6F_c13" data-door-pos="704.1,368.8"/>
+<path id="sector-6F_room_7" class="sector-path" d="M 771.0 325.0 L 768.5 323.0 L 721.5 329.0 L 720.0 330.5 L 720.0 343.5 L 722.0 356.5 L 724.5 358.5 L 731.5 359.0 L 749.5 356.0 L 755.5 357.0 L 759.0 355.5 L 771.5 354.5 L 773.5 352.5 L 773.0 341.5 L 770.5 338.5 L 772.0 336.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_7" data-type="classroom" data-room-number="" data-name="6F 공간 5" data-center="753.0,341.0" data-corridor-node="6F_c13" data-door-pos="704.1,368.8"/>
+<path id="sector-6F_room_9" class="sector-path" d="M 453.0 337.5 L 452.5 341.5 L 459.0 345.5 L 468.5 345.0 L 470.5 346.0 L 473.5 342.5 L 473.5 338.0 L 471.0 335.5 L 455.5 334.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_9" data-type="classroom" data-room-number="" data-name="6F 공간 6" data-center="461.0,340.0" data-corridor-node="6F_c6" data-door-pos="470.0,307.7"/>
+<path id="sector-6F_room_10" class="sector-path" d="M 370.5 337.0 L 367.0 341.5 L 364.0 381.5 L 368.0 383.5 L 380.0 384.5 L 386.0 383.5 L 392.0 384.0 L 396.5 386.0 L 418.0 387.5 L 419.5 384.0 L 420.0 374.0 L 419.0 373.0 L 420.5 370.5 L 421.5 359.5 L 418.0 358.0 L 399.5 356.5 L 398.0 354.0 L 399.5 341.0 L 397.5 339.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_10" data-type="classroom" data-room-number="" data-name="6F 공간 7" data-center="383.0,365.5" data-corridor-node="6F_c16" data-door-pos="361.7,326.3"/>
+<path id="sector-6F_room_11" class="sector-path" d="M 400.0 341.0 L 398.5 354.0 L 399.5 356.0 L 420.0 358.5 L 421.5 357.5 L 423.0 343.5 L 420.5 341.0 L 405.0 340.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_11" data-type="classroom" data-room-number="" data-name="6F 공간 8" data-center="407.5,348.5" data-corridor-node="6F_c12" data-door-pos="421.5,341.5"/>
+<path id="sector-6F_room_12" class="sector-path" d="M 423.5 344.0 L 422.0 356.0 L 423.0 358.0 L 444.5 360.0 L 453.5 374.5 L 455.5 380.5 L 460.0 383.0 L 468.0 383.5 L 469.5 382.0 L 470.5 369.0 L 467.0 367.5 L 461.5 367.5 L 458.5 364.5 L 460.0 348.5 L 458.5 345.5 L 455.0 344.0 L 447.0 345.0 L 445.0 343.5 L 426.0 342.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_12" data-type="classroom" data-room-number="" data-name="6F 공간 9" data-center="450.5,353.5" data-corridor-node="6F_c12" data-door-pos="431.0,345.0"/>
+<path id="sector-6F_room_13" class="sector-path" d="M 462.5 345.5 L 460.0 349.0 L 459.0 364.5 L 461.5 367.0 L 469.5 367.5 L 472.0 362.5 L 472.5 348.5 L 468.5 345.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_13" data-type="classroom" data-room-number="" data-name="6F 공간 10" data-center="466.0,356.0" data-corridor-node="6F_c11" data-door-pos="471.5,357.5"/>
+<path id="sector-6F_room_14" class="sector-path" d="M 774.5 358.5 L 771.5 355.0 L 757.0 356.5 L 753.0 360.0 L 750.0 357.0 L 731.5 359.5 L 723.5 358.5 L 721.5 360.0 L 722.5 382.5 L 747.5 380.5 L 757.5 381.0 L 759.5 379.5 L 773.0 378.5 L 775.5 376.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_14" data-type="classroom" data-room-number="" data-name="6F 공간 11" data-center="762.5,367.5" data-corridor-node="6F_c13" data-door-pos="704.1,368.8"/>
+<path id="sector-6F_room_15" class="sector-path" d="M 422.0 359.5 L 420.5 371.0 L 421.5 372.5 L 442.5 374.5 L 450.0 379.5 L 454.0 379.5 L 454.0 376.5 L 444.5 360.5 L 425.0 358.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_15" data-type="classroom" data-room-number="" data-name="6F 공간 12" data-center="430.5,366.5" data-corridor-node="6F_c12" data-door-pos="430.5,366.5"/>
+<path id="sector-6F_room_17" class="sector-path" d="M 697.0 361.5 L 694.0 363.0 L 685.0 362.0 L 671.5 363.0 L 669.0 364.5 L 671.0 396.0 L 674.0 399.5 L 682.5 398.0 L 688.0 399.0 L 696.0 397.5 L 699.0 395.0 L 699.5 372.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_17" data-type="classroom" data-room-number="" data-name="6F 공간 13" data-center="684.0,377.0" data-corridor-node="6F_c13" data-door-pos="704.1,368.8"/>
+<path id="sector-6F_room_18" class="sector-path" d="M 422.0 373.0 L 420.0 376.0 L 419.5 386.5 L 420.5 388.0 L 418.5 399.0 L 422.0 401.0 L 439.0 403.0 L 444.0 419.0 L 447.0 420.5 L 461.0 421.0 L 464.0 419.5 L 467.5 414.5 L 469.5 385.5 L 466.5 383.5 L 460.0 383.5 L 454.0 380.0 L 450.0 380.0 L 442.5 375.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_18" data-type="classroom" data-room-number="" data-name="6F 공간 14" data-center="453.5,397.5" data-corridor-node="6F_c25" data-door-pos="433.1,409.1"/>
+<path id="sector-6F_room_19" class="sector-path" d="M 753.5 381.5 L 724.5 383.0 L 722.0 385.0 L 723.5 413.0 L 726.5 417.0 L 754.5 415.0 L 757.5 412.5 L 756.0 385.5 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_19" data-type="classroom" data-room-number="" data-name="6F 공간 15" data-center="739.5,399.0" data-corridor-node="6F_c14" data-door-pos="743.6,364.3"/>
+<path id="sector-6F_room_20" class="sector-path" d="M 364.0 384.5 L 361.0 404.0 L 362.0 408.0 L 365.5 412.5 L 405.5 416.0 L 409.0 401.0 L 398.0 399.5 L 395.5 397.5 L 395.5 389.0 L 397.0 386.5 L 386.0 384.0 L 380.0 385.0 L 365.5 383.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_20" data-type="classroom" data-room-number="" data-name="6F 공간 16" data-center="377.0,399.0" data-corridor-node="6F_c23" data-door-pos="402.3,406.6"/>
+<path id="sector-6F_room_21" class="sector-path" d="M 397.0 387.0 L 395.5 396.5 L 398.0 399.0 L 409.0 400.5 L 418.0 399.0 L 419.0 391.0 L 418.0 388.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_21" data-type="classroom" data-room-number="" data-name="6F 공간 17" data-center="409.0,393.5" data-corridor-node="6F_c12" data-door-pos="409.0,393.5"/>
+<path id="sector-6F_room_22" class="sector-path" d="M 685.5 398.5 L 676.0 399.0 L 672.0 402.0 L 672.5 414.5 L 676.0 419.5 L 680.0 419.0 L 687.0 404.0 L 687.5 400.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_22" data-type="classroom" data-room-number="" data-name="6F 공간 18" data-center="678.5,405.5" data-corridor-node="6F_c19" data-door-pos="693.5,405.7"/>
+<path id="sector-6F_room_24" class="sector-path" d="M 405.0 417.0 L 408.0 418.5 L 437.0 419.5 L 443.5 418.5 L 439.0 403.5 L 422.0 401.5 L 418.5 399.5 L 409.5 401.0 L 407.0 414.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_24" data-type="classroom" data-room-number="" data-name="6F 공간 19" data-center="417.5,409.5" data-corridor-node="6F_c25" data-door-pos="433.1,409.1"/>
+<path id="sector-6F_room_25" class="sector-path" d="M 114.5 416.0 L 110.5 459.0 L 110.5 468.0 L 113.5 470.5 L 302.0 487.5 L 305.0 484.0 L 304.5 469.0 L 309.0 448.0 L 309.0 432.0 L 306.5 429.5 L 118.5 412.5 Z" fill="#e8eefc" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_25" data-type="office" data-room-number="" data-name="세미나실" data-center="141.0,444.0" data-corridor-node="6F_c20" data-door-pos="315.3,459.3"/>
+<path id="sector-6F_room_26" class="sector-path" d="M 1025.5 416.0 L 1021.5 412.5 L 823.0 430.5 L 820.5 433.0 L 820.5 449.0 L 824.0 471.0 L 824.5 485.0 L 827.5 488.5 L 1026.5 470.5 L 1029.5 468.0 L 1029.5 459.0 Z" fill="#e2e8f0" stroke="#9aa8ba" stroke-width="1.4" stroke-linejoin="round" data-sector-id="6F_room_26" data-type="facility" data-room-number="" data-name="박물관 연구소" data-center="995.5,444.0" data-corridor-node="6F_c21" data-door-pos="814.3,458.3"/>
+<path id="sector-6F_room_28" class="sector-path" d="M 381.0 515.5 L 378.0 518.5 L 377.5 521.0 L 378.0 532.0 L 381.5 535.0 L 391.0 536.0 L 394.0 532.5 L 395.0 519.0 L 391.0 516.0 Z" fill="#edf4ff" stroke="#9aa8ba" stroke-width="1.5" stroke-linejoin="round" data-sector-id="6F_room_28" data-type="classroom" data-room-number="" data-name="6F 공간 22" data-center="386.0,524.0" data-corridor-node="6F_c24" data-door-pos="410.3,525.7"/>
+<path id="sector-6F_stair_auto" class="sector-path" d="M 591.5 620.0 L 623.5 620.0 L 623.5 646.0 L 591.5 646.0 Z" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.8" stroke-linejoin="round" data-sector-id="6F_stair_auto" data-type="stairs" data-room-number="" data-name="6F 계단" data-center="607.5,633.0" data-corridor-node="6F_c31" data-door-pos="607.5,633.0"/>
+</g><g id="layer-stair-treads"><clipPath id="st-clip-1"><path d="M 591.5 620.0 L 623.5 620.0 L 623.5 646.0 L 591.5 646.0 Z"/></clipPath><g clip-path="url(#st-clip-1)" pointer-events="none"><line x1="597.0" y1="620.0" x2="597.0" y2="646.0" stroke="#15803d" stroke-width="1.3" opacity="0.72"/><line x1="602.5" y1="620.0" x2="602.5" y2="646.0" stroke="#15803d" stroke-width="1.3" opacity="0.72"/><line x1="608.0" y1="620.0" x2="608.0" y2="646.0" stroke="#15803d" stroke-width="1.3" opacity="0.72"/><line x1="613.5" y1="620.0" x2="613.5" y2="646.0" stroke="#15803d" stroke-width="1.3" opacity="0.72"/><line x1="619.0" y1="620.0" x2="619.0" y2="646.0" stroke="#15803d" stroke-width="1.3" opacity="0.72"/><line x1="593.5" y1="633.0" x2="621.5" y2="633.0" stroke="#15803d" stroke-width="1.1" opacity="0.5"/></g></g><g id="layer-outer-wall" pointer-events="none">
+<path d="M 146.5 42.0 L 67.5 941.5 L 68.5 945.0 L 456.5 979.0 L 461.0 940.5 L 679.0 940.5 L 682.5 978.0 L 686.0 979.0 L 1068.5 945.5 L 1072.5 944.0 L 994.0 45.0 L 992.5 41.0 L 641.0 71.5 L 640.0 74.5 L 642.5 108.0 L 497.5 108.0 L 500.0 74.5 L 499.0 71.5 L 156.0 41.5 Z" fill="none" stroke="#94a3b8" stroke-width="7.2" stroke-linejoin="round" stroke-linecap="round"/>
+</g><g id="layer-labels" pointer-events="none"><text x="141.0" y="447.5" text-anchor="middle" font-size="10.5" font-weight="600" fill="#334155" stroke="#ffffff" stroke-width="2" paint-order="stroke" font-family="Pretendard,Noto Sans KR,sans-serif" pointer-events="none">세미나실</text><text x="995.5" y="447.5" text-anchor="middle" font-size="10.5" font-weight="600" fill="#334155" stroke="#ffffff" stroke-width="2" paint-order="stroke" font-family="Pretendard,Noto Sans KR,sans-serif" pointer-events="none">박물관 연구소</text></g><g id="layer-corridor-graph" opacity="0" pointer-events="none">
+<line x1="172.0" y1="70.5" x2="267.5" y2="185.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="968.0" y1="70.5" x2="872.0" y2="185.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="267.5" y1="185.0" x2="256.0" y2="200.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="256.0" y1="200.0" x2="247.0" y2="301.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="267.5" y1="185.0" x2="377.5" y2="189.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="377.5" y1="189.5" x2="397.0" y2="208.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="397.0" y1="208.0" x2="523.0" y2="209.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="523.0" y1="209.5" x2="538.5" y2="221.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="872.0" y1="185.0" x2="762.5" y2="189.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="762.5" y1="189.5" x2="742.5" y2="208.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="742.5" y1="208.0" x2="568.0" y2="211.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="568.0" y1="211.5" x2="559.5" y2="212.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="559.5" y1="212.5" x2="551.0" y2="221.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="872.0" y1="185.0" x2="883.0" y2="195.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="883.0" y1="195.0" x2="884.0" y2="201.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="884.0" y1="201.0" x2="890.5" y2="299.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="538.5" y1="221.0" x2="551.0" y2="221.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="538.5" y1="221.0" x2="461.0" y2="298.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="551.0" y1="221.0" x2="568.5" y2="240.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="568.5" y1="240.5" x2="570.0" y2="595.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="461.0" y1="298.5" x2="439.5" y2="321.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="890.5" y1="299.0" x2="1005.5" y2="395.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="890.5" y1="299.0" x2="803.0" y2="402.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="803.0" y1="402.0" x2="790.0" y2="409.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="790.0" y1="409.5" x2="788.5" y2="446.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="247.0" y1="301.0" x2="136.5" y2="393.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="247.0" y1="301.0" x2="307.5" y2="371.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="439.5" y1="321.0" x2="439.0" y2="329.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="439.0" y1="329.0" x2="433.0" y2="333.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="439.0" y1="329.0" x2="442.5" y2="332.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="703.0" y1="365.0" x2="710.5" y2="371.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="713.5" y1="368.0" x2="710.5" y2="371.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="307.5" y1="371.5" x2="334.5" y2="404.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="334.5" y1="404.0" x2="335.5" y2="439.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="335.5" y1="439.0" x2="338.5" y2="443.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="710.5" y1="371.0" x2="710.5" y2="406.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="710.5" y1="406.5" x2="706.0" y2="414.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="706.0" y1="414.0" x2="703.5" y2="440.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="703.5" y1="440.0" x2="750.5" y2="486.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="338.5" y1="443.0" x2="357.5" y2="466.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="788.5" y1="446.0" x2="750.5" y2="486.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="357.5" y1="466.5" x2="341.5" y2="483.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="341.5" y1="483.0" x2="339.5" y2="522.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="339.5" y1="522.0" x2="241.0" y2="620.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="357.5" y1="466.5" x2="402.5" y2="467.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="402.5" y1="467.5" x2="410.5" y2="468.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="410.5" y1="468.0" x2="433.0" y2="468.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="433.0" y1="468.0" x2="443.5" y2="469.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="443.5" y1="469.0" x2="570.0" y2="595.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="750.5" y1="486.5" x2="607.5" y2="633.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="1011.0" y1="493.5" x2="931.0" y2="589.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="931.0" y1="589.0" x2="806.5" y2="714.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="129.5" y1="494.0" x2="204.0" y2="583.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="204.0" y1="583.5" x2="241.0" y2="620.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="570.0" y1="595.0" x2="607.5" y2="633.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="241.0" y1="620.5" x2="242.5" y2="674.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="242.5" y1="674.0" x2="305.5" y2="738.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="607.5" y1="633.0" x2="609.5" y2="699.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="609.5" y1="699.5" x2="621.0" y2="714.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="621.0" y1="714.0" x2="806.5" y2="714.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="621.0" y1="714.0" x2="595.0" y2="738.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="595.0" y1="738.0" x2="305.5" y2="738.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="806.5" y1="714.0" x2="859.5" y2="759.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="859.5" y1="759.5" x2="860.5" y2="767.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="305.5" y1="738.0" x2="280.0" y2="760.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="280.0" y1="760.0" x2="279.5" y2="767.0" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="279.5" y1="767.0" x2="97.0" y2="919.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="279.5" y1="767.0" x2="434.5" y2="951.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="860.5" y1="767.0" x2="708.0" y2="948.5" stroke="#0ea5e9" stroke-width="2"/>
+<line x1="860.5" y1="767.0" x2="1045.5" y2="922.0" stroke="#0ea5e9" stroke-width="2"/>
+</g></svg>

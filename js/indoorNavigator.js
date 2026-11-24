@@ -17,11 +17,23 @@ class IndoorNavigator {
     this.onExitIndoor = options.onExitIndoor || null;
     this.onRequestOutdoorRouteToEntrance = options.onRequestOutdoorRouteToEntrance || null;
     this.onStateUpdated = options.onStateUpdated || null;
+    this.onSimTick = options.onSimTick || null;
+    this.onGetCurrentGps = options.onGetCurrentGps || null;
+    this.onSwitchToOutdoorGuidance = options.onSwitchToOutdoorGuidance || null;
 
-    // 상태 관리
+    // 상태 관리 (원본 도면 지도 & 도식화 지도 단일 진실 공급원 - Single Source of Truth)
     this.isOpen = false;
+    this.isSchematicViewActive = false;
     this.directionMode = 'enter'; // 'indoor' (실내 호실 간 이동) | 'exit' (실내 출발 -> 야외 목적지) | 'enter' (야외 -> 실내)
     this.currentFloor = '1F';
+    this.gpsFloor = null;
+    this.gpsConfirmState = {
+      stage: 0, // 0: 닫힘 | 1: [예/아니요] 확인 | 2: 주변 인접 호실 + 외부 선택
+      room: null,
+      mappedXY: null,
+      nearbyRooms: [],
+    };
+    this.pendingVerticalTransition = null;
     this.startRoomId = null; // 실내 출발 호실 ID (예: 'room_308')
     this.outdoorOriginId = null; // 야외 출발지 ID (기본: 실시간 GPS 내 위치)
     this.outdoorOriginName = '내 위치 (실시간 GPS)';
@@ -707,16 +719,281 @@ class IndoorNavigator {
     this.stopIndoorSimulation();
     this.hideFloorTransitionPopup();
     this.isOpen = false;
+    this.isSchematicViewActive = false;
+    this.pendingVerticalTransition = null;
+    this.gpsConfirmState = { stage: 0, room: null, mappedXY: null, nearbyRooms: [] };
     if (this.dom.container) {
       this.dom.container.classList.add('hidden');
     }
+    this.emitViewSync(false);
     if (this.onExitIndoor) {
       this.onExitIndoor();
     }
   }
 
+  emitViewSync(isTickOnly = false) {
+    if (isTickOnly) {
+      if (typeof this.onSimTick === 'function') this.onSimTick();
+    } else {
+      if (typeof this.onStateUpdated === 'function') this.onStateUpdated();
+    }
+  }
+
+  getLatestGpsSample() {
+    if (window.IndoorGpsEngine && window.IndoorGpsEngine.getLastRawGps()) {
+      return window.IndoorGpsEngine.getLastRawGps();
+    }
+    if (typeof this.onGetCurrentGps === 'function') {
+      const sample = this.onGetCurrentGps();
+      if (sample && Number.isFinite(sample.lat) && Number.isFinite(sample.lng)) {
+        return sample;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * [단일 엔진] 2단계 폴백 GPS 재요청 (enableHighAccuracy: true 실패 시 false 즉시 재요청)
+   */
+  requestFreshGpsAndMatch(floorId) {
+    const targetFloor = floorId || this.gpsFloor || this.currentFloor || '3F';
+    if (!('geolocation' in navigator)) {
+      return this.selectFloorAndAutoMatchRoom(targetFloor, { showConfirm: true });
+    }
+
+    const onSuccess = (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      if (window.IndoorGpsEngine) {
+        window.IndoorGpsEngine.recordRawGps({
+          lat,
+          lng,
+          accuracy: pos.coords.accuracy || 15,
+          heading: pos.coords.heading || 0,
+        });
+      }
+      this.selectFloorAndAutoMatchRoom(targetFloor, { showConfirm: true, rawGps: { lat, lng } });
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      onSuccess,
+      (err) => {
+        if (err && err.code === 1) {
+          this.selectFloorAndAutoMatchRoom(targetFloor, { showConfirm: true });
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          () => {
+            this.selectFloorAndAutoMatchRoom(targetFloor, { showConfirm: true });
+          },
+          { enableHighAccuracy: false, timeout: 6000, maximumAge: 3000 }
+        );
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 2000 }
+    );
+  }
+
+  /**
+   * [단일 엔진] 층수 선택 -> 건물 외곽선 GPS 좌표 변환 -> 가장 가까운 호실 자동 판별 -> 즉시 출발지 설정
+   * (원본 도면 지도와 도식화 지도가 100% 동일한 상태와 경로를 공유)
+   */
+  selectFloorAndAutoMatchRoom(floorId, options = {}) {
+    const normalizedFloor = String(floorId || '3F').toUpperCase();
+    this.gpsFloor = normalizedFloor;
+    this.stopIndoorSimulation();
+
+    const rawGps = options.rawGps || this.getLatestGpsSample();
+    let mapped = { x: 26, y: 72, isInside: false };
+    if (rawGps && Number.isFinite(rawGps.lat) && Number.isFinite(rawGps.lng)) {
+      mapped = this.router.gpsToFloorPercentage(rawGps.lat, rawGps.lng);
+    }
+
+    let snappedX = mapped.x;
+    let snappedY = mapped.y;
+    if (window.IndoorGpsEngine) {
+      const snapped = window.IndoorGpsEngine.snapAndSmoothITPosition(
+        this.data,
+        normalizedFloor,
+        mapped.x,
+        mapped.y,
+        { instant: true }
+      );
+      snappedX = snapped.x;
+      snappedY = snapped.y;
+    }
+
+    const matchedRoom =
+      rawGps && Number.isFinite(rawGps.lat)
+        ? this.router.matchRoomByGpsAndFloor(rawGps.lat, rawGps.lng, normalizedFloor)
+        : this.router.matchRoomByGpsAndFloor(NaN, NaN, normalizedFloor);
+
+    if (!matchedRoom) return null;
+
+    this.directionMode = 'indoor';
+    this.customOriginNodeId = null;
+    this.currentFloor = normalizedFloor;
+    this.startRoomId = matchedRoom.id;
+    this.isRealGpsNavigating = true;
+
+    const markerX = mapped.isInside ? snappedX : matchedRoom.x;
+    const markerY = mapped.isInside ? snappedY : matchedRoom.y;
+    this.userMarkerPos = {
+      floor: normalizedFloor,
+      x: markerX,
+      y: markerY,
+      orthoEdgeIndex: null,
+    };
+
+    if (this.selectedRoomId === matchedRoom.id) {
+      const altRoom = Object.values(this.data.nodes).find(
+        (n) => n.type === 'classroom' && n.id !== matchedRoom.id
+      );
+      if (altRoom) this.selectedRoomId = altRoom.id;
+    }
+
+    const nearestList = window.IndoorGpsEngine
+      ? window.IndoorGpsEngine.findNearestITRooms(this.data, normalizedFloor, snappedX, snappedY, 6)
+      : [];
+    const nearbyRooms = nearestList
+      .filter((item) => item.room.id !== matchedRoom.id)
+      .slice(0, 4)
+      .map((item) => item.room);
+
+    this.gpsConfirmState = {
+      stage: options.showConfirm !== false ? 1 : 0,
+      room: matchedRoom,
+      mappedXY: { x: snappedX, y: snappedY, floor: normalizedFloor },
+      nearbyRooms,
+    };
+
+    this.recalculateAndRender({ resetFloorToStart: true, preserveUserMarker: true });
+    return matchedRoom;
+  }
+
+  confirmDetectedRoomYes() {
+    const room = (this.gpsConfirmState && this.gpsConfirmState.room) || this.data.nodes[this.startRoomId];
+    if (room && window.IndoorGpsEngine) {
+      const rawGps = this.getLatestGpsSample();
+      window.IndoorGpsEngine.setConfirmedLocation('it_college', {
+        floorId: room.floor,
+        roomId: room.id,
+        roomNumber: room.roomNumber || room.name,
+        roomName: room.name || room.roomNumber,
+      });
+      if (rawGps && Number.isFinite(rawGps.lat)) {
+        const mapped = this.router.gpsToFloorPercentage(rawGps.lat, rawGps.lng);
+        if (mapped.isInside && Math.hypot(mapped.x - room.x, mapped.y - room.y) > 8) {
+          window.IndoorGpsEngine.calibrateToITRoom(room, rawGps.lat, rawGps.lng);
+        }
+      }
+      this.userMarkerPos = {
+        floor: room.floor,
+        x: room.x,
+        y: room.y,
+        orthoEdgeIndex: null,
+      };
+    }
+
+    this.gpsConfirmState = { ...this.gpsConfirmState, stage: 0 };
+    this.renderUserMarker();
+    this.renderDualRoutesSvg();
+    this.emitViewSync(false);
+
+    if (room && this.onShowToast) {
+      const floorKo = String(room.floor || '').replace('F', '층');
+      this.onShowToast(`✅ 현재 위치를 [IT대학 ${floorKo} ${room.roomNumber || room.name}]로 확정했습니다.`);
+    }
+  }
+
+  openNearbyCalibrationStep2() {
+    const floorId =
+      this.gpsFloor ||
+      (this.gpsConfirmState.room && this.gpsConfirmState.room.floor) ||
+      this.currentFloor ||
+      '3F';
+    const refX = this.gpsConfirmState.mappedXY
+      ? this.gpsConfirmState.mappedXY.x
+      : (this.gpsConfirmState.room ? this.gpsConfirmState.room.x : 30);
+    const refY = this.gpsConfirmState.mappedXY
+      ? this.gpsConfirmState.mappedXY.y
+      : (this.gpsConfirmState.room ? this.gpsConfirmState.room.y : 72);
+    const rejectedId = this.gpsConfirmState.room ? this.gpsConfirmState.room.id : null;
+
+    const nearestList = window.IndoorGpsEngine
+      ? window.IndoorGpsEngine.findNearestITRooms(this.data, floorId, refX, refY, 6)
+      : [];
+    const nearbyRooms = nearestList
+      .filter((item) => item.room.id !== rejectedId)
+      .slice(0, 4)
+      .map((item) => item.room);
+
+    this.gpsConfirmState = {
+      ...this.gpsConfirmState,
+      stage: 2,
+      nearbyRooms,
+    };
+    this.emitViewSync(false);
+  }
+
+  applyCalibratedRoomSelection(roomOrId) {
+    const room = typeof roomOrId === 'string' ? this.data.nodes[roomOrId] : roomOrId;
+    if (!room) return;
+    const rawGps = this.getLatestGpsSample();
+
+    if (window.IndoorGpsEngine) {
+      window.IndoorGpsEngine.calibrateToITRoom(
+        room,
+        rawGps ? rawGps.lat : NaN,
+        rawGps ? rawGps.lng : NaN
+      );
+    }
+
+    this.gpsFloor = room.floor;
+    this.directionMode = 'indoor';
+    this.customOriginNodeId = null;
+    this.currentFloor = room.floor;
+    this.startRoomId = room.id;
+    this.isRealGpsNavigating = true;
+    this.userMarkerPos = {
+      floor: room.floor,
+      x: room.x,
+      y: room.y,
+      orthoEdgeIndex: null,
+    };
+    this.gpsConfirmState = {
+      stage: 0,
+      room,
+      mappedXY: { x: room.x, y: room.y, floor: room.floor },
+      nearbyRooms: [],
+    };
+
+    this.recalculateAndRender({ resetFloorToStart: true });
+
+    const floorKo = String(room.floor || '').replace('F', '층');
+    if (this.onShowToast) {
+      this.onShowToast(`📍 GPS 오차 보정 완료: [IT대학 ${floorKo} ${room.roomNumber || room.name}]에서 경로를 다시 안내합니다.`);
+    }
+    this.speak(`현재 위치를 ${floorKo} ${room.roomNumber || room.name}로 보정하여 안내를 시작합니다.`, '실내 위치 보정');
+  }
+
+  dismissGpsConfirm() {
+    this.gpsConfirmState = { ...this.gpsConfirmState, stage: 0 };
+    this.emitViewSync(false);
+  }
+
+  switchToOutdoorFromCalibration() {
+    if (window.IndoorGpsEngine) {
+      window.IndoorGpsEngine.clearOffset('it_college');
+    }
+    this.close();
+    if (typeof this.onSwitchToOutdoorGuidance === 'function') {
+      this.onSwitchToOutdoorGuidance('it_college');
+    }
+  }
+
   getEntranceById(entranceId) {
-    return this.data.entrances.find((e) => e.id === entranceId) || null;
+    return this.data.entrances.find((e) => e.id === entranceId || e.nodeId === entranceId) || null;
   }
 
   getSelectedEntrance() {
@@ -917,25 +1194,45 @@ class IndoorNavigator {
   }
 
   /**
-   * [요구사항 4] 실내 도면 위 실시간 이동 추적 및 지나온 복도 경로 실시간 삭제
+   * [단일 엔진 요구사항 1·4] 실내 도면 위 실시간 이동 추적 (원본 도면 & 도식화 지도 동시 동기화!)
+   * - 폴리곤 변환 + 오차 보정 + 복도/호실 스냅/스무딩 + 지나온 경로 실시간 삭제
    */
   updateUserGpsPosition(lat, lng, options = {}) {
-    if (!this.isOpen) return;
+    if (!this.isOpen && !this.isSchematicViewActive) return;
 
-    const { x, y } = this.router.gpsToFloorPercentage(lat, lng);
+    const targetFloor = this.gpsFloor || this.currentFloor || '3F';
+    const rawMapped = this.router.gpsToFloorPercentage(lat, lng);
+    let x = rawMapped.x;
+    let y = rawMapped.y;
+    if (window.IndoorGpsEngine && typeof window.IndoorGpsEngine.snapAndSmoothITPosition === 'function') {
+      const snapped = window.IndoorGpsEngine.snapAndSmoothITPosition(
+        this.data,
+        targetFloor,
+        rawMapped.x,
+        rawMapped.y,
+        options
+      );
+      x = snapped.x;
+      y = snapped.y;
+    }
+
     this.isRealGpsNavigating = true;
 
-    // 현재 층 기준 사용자 마커 위치 갱신
-    this.userMarkerPos = {
-      floor: this.currentFloor,
-      x,
-      y,
-      orthoEdgeIndex: null,
-    };
+    // 현재 층 기준 사용자 마커 위치 갱신 (시뮬레이션 주행 중에는 시뮬레이션 마커 우선)
+    if (!this.isSimulating) {
+      this.userMarkerPos = {
+        floor: targetFloor,
+        x,
+        y,
+        orthoEdgeIndex: null,
+      };
+    }
 
-    // 실내 캔버스 사용자 마커 및 지나온 경로선 실시간 갱신(트리밍)
-    this.renderUserMarker();
-    this.renderDualRoutesSvg();
+    if (this.isOpen) {
+      this.renderUserMarker();
+      this.renderDualRoutesSvg();
+    }
+    this.emitViewSync(true);
 
     // 만약 목적지 호실 근처(<= 3.5% 도면거리)에 도달했으면 도착 안내
     const destRoom = this.data.nodes[this.selectedRoomId];
@@ -1009,7 +1306,7 @@ class IndoorNavigator {
       this.currentFloor = activeRoute.startNode.floor;
     }
 
-    if (activeRoute && activeRoute.startNode) {
+    if (!options.preserveUserMarker && activeRoute && activeRoute.startNode) {
       this.userMarkerPos = {
         floor: activeRoute.startNode.floor,
         x: activeRoute.startNode.x,
@@ -1022,8 +1319,7 @@ class IndoorNavigator {
     this.renderRightFloorButtons();
     this.updateBottomSheetUI();
     this.renderCurrentFloorCanvas();
-    if (this.onStateUpdated) this.onStateUpdated();
-    if (this.onStateUpdated) this.onStateUpdated();
+    this.emitViewSync(false);
   }
 
   /**
@@ -1257,12 +1553,13 @@ class IndoorNavigator {
    * [요구사항 4] 실시간 이동(실제 GPS 및 시뮬레이션) 중 내 위치(userMarkerPos)를 직교 경로 위의 투영점으로 계산해
    * 이미 지나온 복도 구간은 실시간으로 삭제하고 남은 안내선만 표시합니다.
    */
-  getTrimmedOrthogonalPoints(orthoPoints, isSelectedRoute) {
+  getTrimmedOrthogonalPoints(orthoPoints, isSelectedRoute, floorId = null) {
+    const checkFloor = floorId || this.currentFloor;
     if (
       !isSelectedRoute ||
       (!this.isSimulating && !this.isRealGpsNavigating) ||
       !this.userMarkerPos ||
-      this.userMarkerPos.floor !== this.currentFloor ||
+      this.userMarkerPos.floor !== checkFloor ||
       !Array.isArray(orthoPoints) ||
       orthoPoints.length < 2
     ) {
@@ -1877,6 +2174,8 @@ class IndoorNavigator {
     }
 
     this.simPhase = 'walking_to_transit';
+    this.pendingVerticalTransition = null;
+    this.emitViewSync(false);
     this.animateNodesSegment(firstSeg.nodes, () => {
       if (activeRoute.isSameFloor) {
         this.finishIndoorSimulation(activeRoute);
@@ -1890,6 +2189,7 @@ class IndoorNavigator {
     if (!verticalTransition) return;
 
     this.simPhase = 'waiting_floor_change';
+    this.pendingVerticalTransition = verticalTransition;
     if (this.simTimer) {
       clearInterval(this.simTimer);
       this.simTimer = null;
@@ -1899,16 +2199,20 @@ class IndoorNavigator {
       floor: verticalTransition.departureNode.floor,
       x: verticalTransition.departureNode.x,
       y: verticalTransition.departureNode.y,
-      segEdgeIndex: null,
+      orthoEdgeIndex: null,
     };
     this.renderUserMarker();
+    this.renderDualRoutesSvg();
 
     this.speak(
       verticalTransition.ttsPrompt,
       verticalTransition.transitType === 'elevator' ? '🛗 층간 엘리베이터 탑승' : '🪜 층간 계단 이동'
     );
 
-    this.showFloorTransitionPopup(verticalTransition);
+    if (!this.isSchematicViewActive) {
+      this.showFloorTransitionPopup(verticalTransition);
+    }
+    this.emitViewSync(false);
   }
 
   showFloorTransitionPopup(vt) {
@@ -1948,6 +2252,7 @@ class IndoorNavigator {
     if (!activeRoute || !activeRoute.verticalTransition) return;
 
     this.hideFloorTransitionPopup();
+    this.pendingVerticalTransition = null;
 
     const vt = activeRoute.verticalTransition;
     const destSeg = activeRoute.floorSegments[activeRoute.floorSegments.length - 1];
@@ -1959,9 +2264,10 @@ class IndoorNavigator {
       floor: vt.arrivalNode.floor,
       x: vt.arrivalNode.x,
       y: vt.arrivalNode.y,
-      segEdgeIndex: 0,
+      orthoEdgeIndex: 0,
     };
     this.renderUserMarker();
+    this.renderDualRoutesSvg();
 
     const transitArriveStep = activeRoute.steps.find((s) => s.type === 'transit_arrive');
     if (transitArriveStep) {
@@ -1970,6 +2276,7 @@ class IndoorNavigator {
 
     this.simPhase = 'walking_to_room';
     this.isSimulating = true;
+    this.emitViewSync(false);
     this.animateNodesSegment(destSeg.nodes, () => {
       this.finishIndoorSimulation(activeRoute);
     });
@@ -1978,10 +2285,12 @@ class IndoorNavigator {
   finishIndoorSimulation(activeRoute) {
     this.isSimulating = false;
     this.simPhase = 'arrived';
+    this.pendingVerticalTransition = null;
     if (this.userMarkerPos) {
-      this.userMarkerPos.segEdgeIndex = null;
+      this.userMarkerPos.orthoEdgeIndex = null;
     }
     this.renderDualRoutesSvg();
+    this.emitViewSync(false);
 
     if (this.dom.startIndoorSimBtn) {
       this.dom.startIndoorSimBtn.classList.remove('running');
@@ -2065,8 +2374,11 @@ class IndoorNavigator {
         return;
       }
       this.userMarkerPos = samplePoints[idx];
-      this.renderUserMarker();
-      this.renderDualRoutesSvg(); // 이동에 따라 지나온 실내 경로선 실시간 삭제
+      if (!this.isSchematicViewActive) {
+        this.renderUserMarker();
+        this.renderDualRoutesSvg(); // 이동에 따라 지나온 실내 경로선 실시간 삭제
+      }
+      this.emitViewSync(true);
       idx += 1;
     }, 40);
   }
@@ -2078,6 +2390,7 @@ class IndoorNavigator {
     }
     this.isSimulating = false;
     this.simPhase = 'idle';
+    this.pendingVerticalTransition = null;
     if (this.userMarkerPos) {
       this.userMarkerPos.orthoEdgeIndex = null;
     }
@@ -2087,6 +2400,7 @@ class IndoorNavigator {
     if (this.dom.startIndoorSimText) {
       this.dom.startIndoorSimText.textContent = '실내 이동 시뮬레이션';
     }
+    this.emitViewSync(false);
   }
 
   setZoom(nextZoom) {

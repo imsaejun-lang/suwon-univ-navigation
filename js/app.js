@@ -107,6 +107,7 @@
     pendingIndoorEntranceId: null,
     currentOutdoorEntranceId: null, // 야외 최단 경로가 실제로 도달한 IT대학 출입구 ID (야외-실내 100% 동기화)
     activeRoutePreference: 'shortest', // 'shortest' (최단거리 - 보행로·지름길 포함) | 'mainRoad' (큰길 우선 - 차도 중심)
+    isRouteDetailsExpanded: false, // [상세 안내 ▾] 아코디언 기본 접힘 상태
     dualRoutes: {
       mainRoad: null,
       shortest: null,
@@ -142,6 +143,7 @@
   let simulator = null;
   let gpsTracker = null;
   let indoorNav = null;
+  let panelMapIndoor = null;
 
   const dom = {};
 
@@ -210,7 +212,8 @@
     dom.detailFloorBadge = document.getElementById('detailFloorBadge');
     dom.detailBuildingCopy = document.getElementById('detailBuildingCopy');
     dom.openFloorPlanBtn = document.getElementById('openFloorPlanBtn');
-    dom.openProtoIndoorQuickBtn = document.getElementById('openProtoIndoorQuickBtn');
+    dom.openPanelMapQuickBtn = document.getElementById('openPanelMapQuickBtn');
+    dom.indoorSwitchToPanelMapBtn = document.getElementById('indoorSwitchToPanelMapBtn');
     dom.goRouteViewBtn = document.getElementById('goRouteViewBtn');
     dom.goRouteViewBtnText = document.getElementById('goRouteViewBtnText');
 
@@ -229,7 +232,15 @@
     dom.sheetTotalDist = document.getElementById('sheetTotalDist');
     dom.sheetCheckpointCount = document.getElementById('sheetCheckpointCount');
 
-    // 경로 옵션 선택 탭 (큰길 우선 vs 최단 거리)
+    // 경로 옵션 단일 토글 버튼 (🚶 최단거리 ↔ 🛣️ 큰길 우선) & 상세 안내 아코디언
+    dom.routePrefToggleBtn = document.getElementById('routePrefToggleBtn');
+    dom.routePrefToggleIcon = document.getElementById('routePrefToggleIcon');
+    dom.routePrefToggleText = document.getElementById('routePrefToggleText');
+    dom.routePrefToggleMeta = document.getElementById('routePrefToggleMeta');
+    dom.toggleRouteDetailsBtn = document.getElementById('toggleRouteDetailsBtn');
+    dom.toggleRouteDetailsLabel = document.getElementById('toggleRouteDetailsLabel');
+    dom.toggleRouteDetailsArrow = document.getElementById('toggleRouteDetailsArrow');
+    dom.sheetDetailsSection = document.getElementById('sheetDetailsSection');
     dom.routeOptionTabs = document.getElementById('routeOptionTabs');
     dom.tabMainRoadRoute = document.getElementById('tabMainRoadRoute');
     dom.tabShortestRoute = document.getElementById('tabShortestRoute');
@@ -741,6 +752,9 @@
     if (indoorNav && indoorNav.isOpen) {
       indoorNav.close();
     }
+    if (panelMapIndoor && panelMapIndoor.isOpen) {
+      panelMapIndoor.close({ silent: true });
+    }
 
     state.isNavigating = false;
     state.gpsFollowMode = false;
@@ -775,6 +789,7 @@
     state.pendingIndoorRoomId = null;
     state.highlightedBuildingIds.clear();
     state.activeCategory = null;
+    setRouteDetailsExpanded(false, { skipSnap: true });
     document.querySelectorAll('.cat-pill').forEach((p) => {
       p.classList.remove('active');
       p.setAttribute('aria-selected', 'false');
@@ -1123,8 +1138,11 @@
     // 저장(즐겨찾기 ★) 상태 반영 (건물 및 강의실 개별 지원)
     updateBookmarkBtnUI();
 
-    if (dom.openProtoIndoorQuickBtn) {
-      dom.openProtoIndoorQuickBtn.classList.toggle('hidden', buildingId !== 'it_college');
+    if (dom.openPanelMapQuickBtn) {
+      const supportsPanel =
+        window.PanelMapIndoorController &&
+        window.PanelMapIndoorController.hasBuilding(buildingId);
+      dom.openPanelMapQuickBtn.classList.toggle('hidden', !supportsPanel);
     }
 
     switchSheetView('building');
@@ -1357,40 +1375,20 @@
       } else if (cp.type === 'arrive') {
         const dest = route.destinationBuilding;
         const isItCollege = dest && dest.id === 'it_college';
-        let entranceName = '주출입구';
-        let entranceFloor = '1F';
+        const supportsPanelMap =
+          dest &&
+          window.PanelMapIndoorController &&
+          window.PanelMapIndoorController.hasBuilding(dest.id);
 
-        if (isItCollege && window.IT_COLLEGE_INDOOR_DATA && indoorNav) {
-          const entId =
-            route.destinationEntranceId ||
-            state.currentOutdoorEntranceId ||
-            state.pendingIndoorEntranceId;
-          const ent = entId
-            ? indoorNav.getEntranceById(entId)
-            : indoorNav.router.resolveEntranceForOutdoorOrigin(
-                state.startNodeId,
-                route.routePreference || state.activeRoutePreference
-              );
-          if (ent) {
-            entranceName = ent.name;
-            entranceFloor = ent.entryFloor;
-          }
-        }
-
+        // [UI/UX 정리 3] 긴 부가 설명·이모지 제거 -> '추천 진입로' 단일 깔끔 배지 (도착 말풍선과 비겹침 배치)
         const endPin = L.divIcon({
           className: 'custom-endpoint-pin',
-          html: isItCollege
-            ? `<div class="route-endpoint-pin end-pin-enhanced" title="클릭 시 IT대학 2D 실내 도면 모드로 전환합니다">
-                 <span class="end-pin-badge">🚩 추천 진입 출입구</span>
-                 <span class="end-pin-title">${route.destinationName} [${entranceName}]</span>
-                 <span class="end-pin-sub">👉 건물 ${entranceFloor}으로 진입 · 실내로 연결</span>
-               </div>`
-            : `<div class="route-endpoint-pin end-pin">도착 · ${route.destinationName} 주출입구</div>`,
+          html: `<div class="route-endpoint-pin rec-entrance-pill" title="클릭 시 실내 지도로 전환합니다">추천 진입로</div>`,
           iconSize: [0, 0],
         });
         const arriveMarker = L.marker([cp.lat, cp.lng], {
           icon: endPin,
-          zIndexOffset: 700,
+          zIndexOffset: 680,
         }).addTo(state.layers.checkpointGroup);
 
         if (isItCollege && indoorNav) {
@@ -1404,35 +1402,19 @@
               speak: true,
             });
           });
+        } else if (supportsPanelMap) {
+          arriveMarker.on('click', () => {
+            openIndoorFloorPlanModal(dest.id);
+          });
         }
-      } else if (cp.turnType === 'right' || cp.turnType === 'left') {
-        const cpIcon = L.divIcon({
-          className: 'custom-cp-badge',
-          html: `<div class="checkpoint-map-badge">${cp.turnLabel}</div>`,
-          iconSize: [0, 0],
-        });
-        const cpMarker = L.marker([cp.lat, cp.lng], {
-          icon: cpIcon,
-          zIndexOffset: 500,
-        }).addTo(state.layers.checkpointGroup);
-
-        cpMarker.on('click', () => {
-          simulator.jumpToCheckpoint(idx);
-        });
-
-        state.activeRoutePolylines.checkpointMarkers.push({
-          marker: cpMarker,
-          cumulativeDist: cp.cumulativeDist || 0,
-          removed: false,
-        });
       }
+      // [UI/UX 정리 2] 지도 경로선 위 '좌회전' / '우회전' 텍스트 배지 완전 제거 (단순 진행 화살표만 표시)
     });
   }
 
   /**
-   * [UI 개선] 야외 경로선 방향 화살표 밀도 최적화
-   * - 실제 거리 기준(줌 레벨별 최소 46m~78m) + 화면 픽셀 기준(최소 92px 이상 간격) 동시 적용
-   * - 출발/도착 핀 및 좌회전/우회전 배지 주변(28m 또는 58px 이내)은 겹치지 않도록 자동 제외
+   * [UI/UX 정리 2] 야외 경로선 방향 화살표 단순화 & 최소 밀도 표시
+   * - 좌회전/우회전 텍스트 배지 없이 깔끔한 단순 꺾쇠 화살표만 띄엄띄엄 표시
    */
   function renderRouteDirectionArrows(route, traveledMeters = 0) {
     if (!state.layers.arrowGroup) return;
@@ -1442,21 +1424,16 @@
     if (!route || !Array.isArray(route.segments) || route.segments.length === 0) return;
 
     const zoom = state.map ? state.map.getZoom() : 16;
-    const minDistMeters = zoom <= 15 ? 68 : zoom === 16 ? 48 : 40;
-    const minScreenPx = 78;
-    const avoidBadgeDistMeters = 22;
-    const avoidBadgeScreenPx = 44;
+    const minDistMeters = zoom <= 15 ? 82 : zoom === 16 ? 58 : 46;
+    const minScreenPx = 94;
+    const avoidBadgeDistMeters = 24;
+    const avoidBadgeScreenPx = 48;
     const totalDist = route.totalDistance || 0;
 
-    // 출발/도착/회전 배지 좌표 수집 (겹침 방지 대상)
+    // 출발/도착 핀 주변 겹침 방지
     const protectedPoints = [];
     (route.checkpoints || []).forEach((cp) => {
-      if (
-        cp.type === 'start' ||
-        cp.type === 'arrive' ||
-        cp.turnType === 'left' ||
-        cp.turnType === 'right'
-      ) {
+      if (cp.type === 'start' || cp.type === 'arrive') {
         if (Number.isFinite(cp.lat) && Number.isFinite(cp.lng)) {
           protectedPoints.push({
             lat: cp.lat,
@@ -1486,12 +1463,14 @@
       const arrowIcon = L.divIcon({
         className: 'custom-route-arrow',
         html: `
-          <div class="route-direction-arrow" style="transform: rotate(${Math.round(bearing - 90)}deg)">
-            &#10148;
+          <div class="route-direction-arrow simple-chevron-arrow" style="transform: rotate(${Math.round(bearing - 90)}deg)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5.5 3.5L10.5 8L5.5 12.5"></path>
+            </svg>
           </div>
         `,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
       });
 
       const marker = L.marker([lat, lng], {
@@ -1823,14 +1802,18 @@
         route.routePreference === 'mainRoad' ? '차도 중심 큰길' : '보행자 최단경로';
     }
 
-    dom.sheetCategoryTag.textContent = route.isOSRM
-      ? `${dest.category || '캠퍼스 건물'} · 🌐 ${modeBadge}`
-      : `${dest.category || '캠퍼스 건물'} · ${modeBadge}`;
+    if (dom.sheetCategoryTag) {
+      dom.sheetCategoryTag.textContent = route.isOSRM
+        ? `${dest.category || '캠퍼스 건물'} · 🌐 ${modeBadge}`
+        : `${dest.category || '캠퍼스 건물'} · ${modeBadge}`;
+    }
 
-    if (state.targetRoomMeta && state.targetRoomMeta.title) {
-      dom.sheetBuildingName.textContent = state.targetRoomMeta.title;
-    } else {
-      dom.sheetBuildingName.textContent = dest.fullName || dest.name;
+    if (dom.sheetBuildingName) {
+      if (state.targetRoomMeta && state.targetRoomMeta.title) {
+        dom.sheetBuildingName.textContent = state.targetRoomMeta.title;
+      } else {
+        dom.sheetBuildingName.textContent = dest.fullName || dest.name;
+      }
     }
 
     // 출발지 레이블 동기화 (일반 모드는 '📍 내 위치 (실시간 GPS)', 시뮬레이션 모드는 지정 출발지)
@@ -1872,14 +1855,18 @@
             route.routePreference || state.activeRoutePreference
           );
       const roomSuffix = state.targetRoomMeta && state.targetRoomMeta.roomNumber ? ` (${state.targetRoomMeta.roomNumber})` : '';
-      if (resolvedEnt) {
-        dom.sheetEndName.textContent = `IT대학 ${resolvedEnt.name}${roomSuffix}`;
-      } else {
-        dom.sheetEndName.textContent = `IT대학 입구${roomSuffix}`;
+      if (dom.sheetEndName) {
+        if (resolvedEnt) {
+          dom.sheetEndName.textContent = `IT대학 ${resolvedEnt.name}${roomSuffix}`;
+        } else {
+          dom.sheetEndName.textContent = `IT대학 입구${roomSuffix}`;
+        }
       }
     } else {
       const roomSuffix = state.targetRoomMeta && state.targetRoomMeta.roomNumber ? ` (${state.targetRoomMeta.roomNumber})` : '';
-      dom.sheetEndName.textContent = `${dest.name}${roomSuffix}`;
+      if (dom.sheetEndName) {
+        dom.sheetEndName.textContent = `${dest.name}${roomSuffix}`;
+      }
     }
 
     dom.sheetEstTime.textContent = `약 ${route.estimatedMinutes}분`;
@@ -1954,8 +1941,13 @@
     }
 
     dom.simProgressPanel.classList.add('hidden');
+    const supportsPanelMap =
+      window.PanelMapIndoorController &&
+      window.PanelMapIndoorController.hasBuilding(dest.id);
+
     if (dest.id === 'it_college') {
       dom.indoorTransitionBanner.classList.remove('hidden');
+      if (dom.miniOpenIndoorBtn) dom.miniOpenIndoorBtn.classList.remove('hidden');
       const roomNode =
         window.IT_COLLEGE_INDOOR_DATA &&
         window.IT_COLLEGE_INDOOR_DATA.nodes[state.pendingIndoorRoomId || 'room_203'];
@@ -1963,30 +1955,62 @@
       dom.indoorBannerSub.textContent = resolvedEnt
         ? `현재 야외 경로는 [${resolvedEnt.name}]를 통해 건물 ${resolvedEnt.entryFloor}으로 진입합니다. 2D 실내 도면(${roomLabel}) 안내로 바로 전환할 수 있습니다.`
         : `IT대학 2D 실내 도면 및 ${roomLabel} 강의실 길안내로 전환할 수 있습니다.`;
+    } else if (supportsPanelMap) {
+      dom.indoorTransitionBanner.classList.remove('hidden');
+      if (dom.miniOpenIndoorBtn) dom.miniOpenIndoorBtn.classList.remove('hidden');
+      const roomHint =
+        state.targetRoomMeta && state.targetRoomMeta.roomNumber
+          ? ` (${state.targetRoomMeta.roomNumber})`
+          : '';
+      dom.indoorBannerSub.textContent = `${dest.name}${roomHint} 층별 도식화 SVG 실내지도와 복도 전용 길찾기로 바로 이어갈 수 있습니다.`;
     } else {
       dom.indoorTransitionBanner.classList.add('hidden');
+      if (dom.miniOpenIndoorBtn) dom.miniOpenIndoorBtn.classList.add('hidden');
     }
-    dom.startNavBtnText.textContent = '안내 시작';
-    dom.startNavBtn.classList.remove('active-nav');
+    if (dom.startNavBtnText) dom.startNavBtnText.textContent = '안내 시작';
+    if (dom.startNavBtn) dom.startNavBtn.classList.remove('active-nav');
 
-    dom.sheetFacilitiesList.innerHTML = '';
-    (dest.facilities || []).forEach((fac) => {
-      const span = document.createElement('span');
-      span.className = 'facility-chip';
-      span.textContent = fac;
-      dom.sheetFacilitiesList.appendChild(span);
-    });
+    if (dom.sheetFacilitiesList) {
+      dom.sheetFacilitiesList.innerHTML = '';
+      (dest.facilities || []).forEach((fac) => {
+        const span = document.createElement('span');
+        span.className = 'facility-chip';
+        span.textContent = fac;
+        dom.sheetFacilitiesList.appendChild(span);
+      });
+    }
 
+    updateRouteOptionTabsUI();
     renderCheckpointTimeline(route.checkpoints);
   }
 
   /**
-   * [🛣️ 큰길 우선 (차도 중심)] vs [🚶 최단거리 (보행로·지름길 포함)] 탭 UI 상태 및 지표 동기화
+   * [UI/UX 정리 5] [🚶 최단거리] ↔ [🛣️ 큰길 우선] 단일 토글 버튼 UI 및 소요시간 동기화
    */
   function updateRouteOptionTabsUI() {
     if (!state.dualRoutes) return;
     const mr = state.dualRoutes.mainRoad;
     const sh = state.dualRoutes.shortest;
+    const currentPref = state.activeRoutePreference || 'shortest';
+    const isMainRoad = currentPref === 'mainRoad';
+
+    if (dom.routePrefToggleBtn) {
+      dom.routePrefToggleBtn.classList.toggle('is-mainroad', isMainRoad);
+      dom.routePrefToggleBtn.classList.toggle('is-shortest', !isMainRoad);
+      dom.routePrefToggleBtn.setAttribute('aria-pressed', String(isMainRoad));
+    }
+    if (dom.routePrefToggleIcon) {
+      dom.routePrefToggleIcon.textContent = isMainRoad ? '🛣️' : '🚶';
+    }
+    if (dom.routePrefToggleText) {
+      dom.routePrefToggleText.textContent = isMainRoad ? '큰길 우선' : '최단거리';
+    }
+    if (dom.routePrefToggleMeta) {
+      const activeRoute = isMainRoad ? mr : sh;
+      dom.routePrefToggleMeta.textContent = activeRoute
+        ? `· 약 ${activeRoute.estimatedMinutes}분`
+        : '';
+    }
 
     if (mr && dom.tabMainRoadMetrics) {
       dom.tabMainRoadMetrics.textContent = `약 ${mr.estimatedMinutes}분 · ${mr.totalDistance}m`;
@@ -1994,15 +2018,30 @@
     if (sh && dom.tabShortestMetrics) {
       dom.tabShortestMetrics.textContent = `약 ${sh.estimatedMinutes}분 · ${sh.totalDistance}m`;
     }
-
-    const currentPref = state.activeRoutePreference || 'shortest';
     if (dom.tabMainRoadRoute) {
-      dom.tabMainRoadRoute.classList.toggle('active', currentPref === 'mainRoad');
-      dom.tabMainRoadRoute.setAttribute('aria-selected', currentPref === 'mainRoad');
+      dom.tabMainRoadRoute.classList.toggle('active', isMainRoad);
+      dom.tabMainRoadRoute.setAttribute('aria-selected', isMainRoad);
     }
     if (dom.tabShortestRoute) {
-      dom.tabShortestRoute.classList.toggle('active', currentPref === 'shortest');
-      dom.tabShortestRoute.setAttribute('aria-selected', currentPref === 'shortest');
+      dom.tabShortestRoute.classList.toggle('active', !isMainRoad);
+      dom.tabShortestRoute.setAttribute('aria-selected', !isMainRoad);
+    }
+  }
+
+  function setRouteDetailsExpanded(expanded, options = {}) {
+    state.isRouteDetailsExpanded = Boolean(expanded);
+    if (dom.sheetDetailsSection) {
+      dom.sheetDetailsSection.classList.toggle('hidden', !state.isRouteDetailsExpanded);
+      dom.sheetDetailsSection.classList.toggle('is-expanded', state.isRouteDetailsExpanded);
+    }
+    if (dom.toggleRouteDetailsBtn) {
+      dom.toggleRouteDetailsBtn.setAttribute('aria-expanded', String(state.isRouteDetailsExpanded));
+    }
+    if (dom.toggleRouteDetailsArrow) {
+      dom.toggleRouteDetailsArrow.textContent = state.isRouteDetailsExpanded ? '▴' : '▾';
+    }
+    if (!options.skipSnap && state.activeSheetView === 'route') {
+      setSheetSnapStage(state.isRouteDetailsExpanded ? 3 : 2);
     }
   }
 
@@ -2382,7 +2421,7 @@
         (state.currentRoute.destinationBuilding &&
           state.currentRoute.destinationBuilding.id === 'it_college'));
 
-    if (!isCurrentRouteItCollege) {
+    if (!isCurrentRouteItCollege && !options.skipOutdoorRoute) {
       await startRouteFindingToBuilding('it_college', {
         skipFitBounds: true,
         keepIndoorEntrance: Boolean(
@@ -2429,8 +2468,8 @@
       speak: options.speak !== false,
     });
 
-    if (options.openPrototype && window.indoorProto) {
-      window.indoorProto.open();
+    if (options.openSchematic && panelMapIndoor) {
+      panelMapIndoor.openFromIndoorNav();
     }
 
     if (window.lucide) {
@@ -2441,8 +2480,7 @@
   function openIndoorFloorPlanModal(buildingId) {
     const targetId = buildingId || state.selectedDestId || 'it_college';
 
-    // IT대학인 경우 Step 2 2D 실내 도면 및 강의실 길안내 모드로 즉시 전환!
-    // 야외에서 안내받은 도착 입구를 반드시 유지하여 전달!
+    // IT대학인 경우 기존 Step 2 2D 실내 도면 및 강의실 길안내 모드로 즉시 전환 (기존 기능 완벽 보존)
     if (targetId === 'it_college' && indoorNav) {
       const entId =
         state.currentOutdoorEntranceId ||
@@ -2453,6 +2491,28 @@
         roomId: state.pendingIndoorRoomId || 'room_203',
         entranceId: entId,
         speak: true,
+      });
+      return;
+    }
+
+    // 전 건물(23개동) 도식화 SVG 실내지도 연동 (suwon_building_maps / SuwonBuildingMap)
+    if (
+      panelMapIndoor &&
+      window.PanelMapIndoorController &&
+      window.PanelMapIndoorController.hasBuilding(targetId)
+    ) {
+      const roomQuery =
+        state.targetRoomMeta && state.targetRoomMeta.buildingId === targetId
+          ? state.targetRoomMeta.roomNumber || state.targetRoomMeta.name
+          : null;
+      const floorId =
+        state.targetRoomMeta && state.targetRoomMeta.buildingId === targetId
+          ? state.targetRoomMeta.floor
+          : null;
+      panelMapIndoor.open({
+        buildingId: targetId,
+        roomQuery,
+        floorId,
       });
       return;
     }
@@ -2535,7 +2595,22 @@
     const panel = dom.bottomSheet;
     if (!panel) return;
 
-    // 경로 옵션 탭 클릭 (큰길 우선 vs 최단 거리)
+    // [UI/UX 정리 5] 단일 경로 옵션 토글 버튼 (최단거리 ↔ 큰길 우선)
+    if (dom.routePrefToggleBtn) {
+      dom.routePrefToggleBtn.addEventListener('click', () => {
+        const nextPref = state.activeRoutePreference === 'mainRoad' ? 'shortest' : 'mainRoad';
+        switchRouteOption(nextPref);
+      });
+    }
+
+    // [UI/UX 정리 6] [상세 안내 ▾] 접기/펼치기 아코디언 토글 버튼
+    if (dom.toggleRouteDetailsBtn) {
+      dom.toggleRouteDetailsBtn.addEventListener('click', () => {
+        setRouteDetailsExpanded(!state.isRouteDetailsExpanded);
+      });
+    }
+
+    // 경로 옵션 탭 클릭 (레거시 폴백 가드)
     if (dom.tabMainRoadRoute) {
       dom.tabMainRoadRoute.addEventListener('click', () => switchRouteOption('mainRoad'));
     }
@@ -4028,8 +4103,8 @@
         dom.simProgressPanel.classList.remove('hidden');
         dom.indoorTransitionBanner.classList.add('hidden');
         dom.simStatusText.textContent = `${route.destinationName} 입구로 이동 중...`;
-        dom.startNavBtnText.textContent = '안내 진행 중';
-        dom.startNavBtn.classList.add('active-nav');
+        if (dom.startNavBtnText) dom.startNavBtnText.textContent = '안내 진행 중';
+        if (dom.startNavBtn) dom.startNavBtn.classList.add('active-nav');
       },
 
       onPositionUpdate: (pos) => {
@@ -4075,8 +4150,8 @@
       onSimulationComplete: (route) => {
         dom.simStatusText.textContent = `${route.destinationName} 입구 도착 완료!`;
         dom.sheetEstTime.textContent = '도착 완료';
-        dom.startNavBtnText.textContent = '안내 다시 시작';
-        dom.startNavBtn.classList.remove('active-nav');
+        if (dom.startNavBtnText) dom.startNavBtnText.textContent = '안내 다시 시작';
+        if (dom.startNavBtn) dom.startNavBtn.classList.remove('active-nav');
         updateSnap1MiniBarMetrics(0, 0, 100);
 
         dom.indoorTransitionBanner.classList.remove('hidden');
@@ -4153,9 +4228,22 @@
           state.map.panTo([rawLat, rawLng], { animate: true, duration: 0.4 });
         }
 
-        // [요구사항 4] 실내 2D 도면 모드가 열려 있을 때 실시간 도면 GPS 위치 갱신 및 지나온 경로 삭제
-        if (indoorNav && indoorNav.isOpen) {
+        if (window.IndoorGpsEngine) {
+          window.IndoorGpsEngine.recordRawGps({
+            lat: rawLat,
+            lng: rawLng,
+            accuracy: gpsData.accuracy || 15,
+            heading: typeof gpsData.heading === 'number' && !Number.isNaN(gpsData.heading) ? gpsData.heading : state.userPosition.bearing || 180,
+          });
+        }
+
+        // [단일 엔진 동기화] IT대학 원본 도면 지도 & 도식화 지도 모두 IndoorNavigator 단일 엔진으로 실시간 GPS 갱신
+        if (indoorNav && (indoorNav.isOpen || indoorNav.isSchematicViewActive)) {
           indoorNav.updateUserGpsPosition(rawLat, rawLng);
+        }
+        // IT대학 외 22개 건물 도식화 실내지도 GPS 갱신
+        if (panelMapIndoor && panelMapIndoor.isOpen && !panelMapIndoor.isUsingSharedEngine()) {
+          panelMapIndoor.updateLiveGpsPosition(rawLat, rawLng, gpsData);
         }
 
         if (state.isNavigating && state.currentRoute) {
@@ -4479,8 +4567,18 @@
       }
     });
 
-    if (dom.openProtoIndoorQuickBtn) {
-      dom.openProtoIndoorQuickBtn.addEventListener('click', () => {
+    const openSchematicIndoorMapView = () => {
+      if (!panelMapIndoor) return;
+      const targetBldg = state.selectedDestId || 'it_college';
+
+      // IT대학이 이미 IndoorNavigator에서 열려 있으면(시뮬레이션·GPS 진행 중 포함) 초기화 없이 그대로 전환!
+      if (indoorNav && (indoorNav.isOpen || indoorNav.isSchematicViewActive)) {
+        panelMapIndoor.openFromIndoorNav();
+        return;
+      }
+
+      // 건물 상세 카드에서 IT대학 도식화 실내지도로 바로 진입 시에도 단일 엔진(indoorNav) 초기화 후 공유
+      if (targetBldg === 'it_college' && indoorNav) {
         const targetRoomId =
           (state.targetRoomMeta && state.targetRoomMeta.roomId) ||
           state.pendingIndoorRoomId ||
@@ -4488,9 +4586,27 @@
         openITCollegeIndoorNavigation({
           roomId: targetRoomId,
           speak: true,
-          openPrototype: true,
+          openSchematic: true,
         });
+        return;
+      }
+
+      const roomQuery =
+        (state.targetRoomMeta && state.targetRoomMeta.roomNumber) || null;
+      const floorId =
+        (state.targetRoomMeta && state.targetRoomMeta.floor) || null;
+      panelMapIndoor.open({
+        buildingId: targetBldg,
+        roomQuery,
+        floorId,
       });
+    };
+
+    if (dom.openPanelMapQuickBtn) {
+      dom.openPanelMapQuickBtn.addEventListener('click', openSchematicIndoorMapView);
+    }
+    if (dom.indoorSwitchToPanelMapBtn) {
+      dom.indoorSwitchToPanelMapBtn.addEventListener('click', openSchematicIndoorMapView);
     }
 
     // [길안내 시작] 버튼: 클릭 시에만 길안내 경로 시트(#sheetViewRoute) 노출
@@ -4538,10 +4654,12 @@
       });
     }
 
-    // [안내 시작] 버튼: 실제 스마트폰 GPS 위치에서 출발 & '실내 vs 실외' 자동 판별
-    dom.startNavBtn.addEventListener('click', () => {
-      startRealGpsNavigation();
-    });
+    // [안내 시작] 버튼 (레거시 가드)
+    if (dom.startNavBtn) {
+      dom.startNavBtn.addEventListener('click', () => {
+        startRealGpsNavigation();
+      });
+    }
 
     // 우측 [시뮬레이션] 버튼: 시뮬레이션 모드 ON/OFF 전용 토글
     dom.floatingSimBtn.addEventListener('click', () => {
@@ -4695,6 +4813,32 @@
     initVoiceAndSimulation();
     initBottomSheetSnapController();
 
+    const launchOutdoorEntranceGuidance = async (campusBuildingId) => {
+      const targetId = CAMPUS_NODES[campusBuildingId]
+        ? campusBuildingId
+        : state.selectedDestId || 'it_college';
+      state.selectedDestId = targetId;
+      const liveRaw =
+        (window.IndoorGpsEngine && window.IndoorGpsEngine.getLastRawGps()) ||
+        (gpsTracker && gpsTracker.lastPosition) ||
+        state.userLocation ||
+        state.userPosition;
+
+      if (liveRaw && Number.isFinite(liveRaw.lat) && Number.isFinite(liveRaw.lng)) {
+        state.customGpsCoord = {
+          lat: liveRaw.lat,
+          lng: liveRaw.lng,
+          name: '내 위치 (실시간 GPS)',
+        };
+        state.startNodeId = null;
+      }
+      state.isNavigating = true;
+      await startRouteFindingToBuilding(targetId, { snapStage: 2 });
+      showToast(
+        `🌳 야외 모드로 전환했습니다. 현재 야외 GPS 위치에서 ${CAMPUS_NODES[targetId]?.name || '건물'} 추천 출입구로 안내합니다.`
+      );
+    };
+
     if (window.IndoorNavigator && window.IT_COLLEGE_INDOOR_DATA) {
       indoorNav = new window.IndoorNavigator({
         tts,
@@ -4709,6 +4853,11 @@
         },
         onExitIndoor: () => {
           if (window.lucide) window.lucide.createIcons();
+        },
+        onGetCurrentGps: () =>
+          (gpsTracker && gpsTracker.lastPosition) || state.userLocation || state.userPosition,
+        onSwitchToOutdoorGuidance: (buildingId) => {
+          launchOutdoorEntranceGuidance(buildingId);
         },
         onRequestOutdoorRouteToEntrance: (entrance, roomId, directionMode) => {
           state.pendingIndoorEntranceId = entrance.id;
@@ -4731,10 +4880,44 @@
       });
       window.indoorNav = indoorNav;
       window.indoorNavigator = indoorNav;
+    }
 
-      if (window.IndoorPrototypeView) {
-        window.indoorProto = new window.IndoorPrototypeView(indoorNav);
-      }
+    // 전 건물(23개동) 도식화 SVG 실내지도 & 복도 전용 다층 길찾기 컨트롤러 초기화
+    // (IT대학은 기존 원본 도면 IndoorNavigator 단일 엔진과 100% 실시간 공유)
+    if (window.PanelMapIndoorController && window.SuwonBuildingMap) {
+      panelMapIndoor = new window.PanelMapIndoorController({
+        baseUrl: './suwon-univ-navigation-penelmap/suwon_building_maps',
+        indoorNav,
+        onShowToast: (msg) => showToast(msg),
+        onSpeak: (text) => {
+          if (tts) tts.speak(text, { turnType: 'start', title: '실내 복도 안내' });
+        },
+        onClose: () => {
+          if (window.lucide) window.lucide.createIcons();
+        },
+        onGetCurrentGps: () =>
+          (gpsTracker && gpsTracker.lastPosition) || state.userLocation || state.userPosition,
+        onSwitchToOutdoorGuidance: async (campusBuildingId) => {
+          await launchOutdoorEntranceGuidance(campusBuildingId);
+        },
+        onSwitchToITLegacy: () => {
+          if (indoorNav && indoorNav.dualRoutes && (indoorNav.dualRoutes.elevator || indoorNav.dualRoutes.stairs)) {
+            return;
+          }
+          openITCollegeIndoorNavigation({
+            roomId: state.pendingIndoorRoomId || 'room_203',
+            skipOutdoorRoute: true,
+            speak: true,
+          });
+        },
+        onRequestOutdoorRoute: (campusBuildingId) => {
+          if (CAMPUS_NODES[campusBuildingId]) {
+            openBuildingDetailView(campusBuildingId);
+            showToast(`🎯 ${CAMPUS_NODES[campusBuildingId].name} 목적지를 선택했습니다. [길안내 시작]을 눌러 안내를 시작하세요.`);
+          }
+        },
+      });
+      window.panelMapIndoor = panelMapIndoor;
     }
 
     loadSavedPlaces();

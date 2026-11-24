@@ -3,7 +3,7 @@
  * Version: v1.0.0
  */
 
-const CACHE_NAME = 'usw-nav-v1.8.0';
+const CACHE_NAME = 'usw-nav-v2.3.0';
 
 // 오프라인 및 빠른 로딩을 위한 핵심 앱 쉘 에셋
 const PRECACHE_ASSETS = [
@@ -15,9 +15,12 @@ const PRECACHE_ASSETS = [
   './js/app.js',
   './js/campusData.js',
   './js/dijkstra.js',
+  './js/indoorGpsEngine.js',
   './js/indoorData.js',
   './js/indoorNavigator.js',
-  './js/indoorPrototype.js',
+  './js/panelMapIndoor.js',
+  './suwon-univ-navigation-penelmap/suwon_building_maps/suwonBuildingMap.js',
+  './suwon-univ-navigation-penelmap/suwon_building_maps/catalog.json',
   './js/simulation.js',
   './js/tts.js',
   './js/gpsTracker.js',

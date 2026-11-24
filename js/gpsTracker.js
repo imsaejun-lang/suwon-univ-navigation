@@ -18,6 +18,7 @@ class MobileGpsTracker {
 
     this.watchId = null;
     this.isTracking = false;
+    this.usingLowAccuracyFallback = false;
     this.compassHeading = 0;
     this.hasOrientationListener = false;
     this.wakeLock = null;
@@ -54,6 +55,7 @@ class MobileGpsTracker {
     if (this.isTracking) return true;
 
     this.isTracking = true;
+    this.usingLowAccuracyFallback = false;
     this._requestWakeLock();
     this._initCompass();
 
@@ -61,10 +63,25 @@ class MobileGpsTracker {
       this.onStatusChange('locating');
     }
 
+    this._startWatch(Boolean(this.options.enableHighAccuracy));
+    return true;
+  }
+
+  /**
+   * 2단계 GPS 폴백 지원 watchPosition 시작
+   * - 1단계: enableHighAccuracy: true (실내 위성 지연/타임아웃 시)
+   * - 2단계: enableHighAccuracy: false (Wi-Fi/기지국 기반 즉시 재요청)
+   */
+  _startWatch(highAccuracy) {
+    if (this.watchId !== null) {
+      navigator.geolocation.clearWatch(this.watchId);
+      this.watchId = null;
+    }
+
     const geoOptions = {
-      enableHighAccuracy: this.options.enableHighAccuracy,
-      maximumAge: this.options.maximumAge,
-      timeout: this.options.timeout,
+      enableHighAccuracy: highAccuracy,
+      maximumAge: highAccuracy ? this.options.maximumAge : 3000,
+      timeout: highAccuracy ? Math.min(this.options.timeout, 8000) : 12000,
     };
 
     this.watchId = navigator.geolocation.watchPosition(
@@ -72,8 +89,6 @@ class MobileGpsTracker {
       (err) => this._handleGpsError(err),
       geoOptions
     );
-
-    return true;
   }
 
   /**
@@ -149,10 +164,24 @@ class MobileGpsTracker {
   }
 
   /**
-   * GPS 수신 에러 처리
+   * GPS 수신 에러 처리 (실내 타임아웃/신호 미약 시 enableHighAccuracy: false로 즉시 2단계 폴백!)
    */
   _handleGpsError(err) {
     console.warn('GPS 수신 에러 또는 지연:', err.message);
+
+    // 권한 거부(code === 1)가 아닌 타임아웃(3)/신호불가(2)이고 아직 폴백 전이면 즉시 저전력/Wi-Fi 모드로 재요청
+    if (
+      this.isTracking &&
+      err &&
+      err.code !== 1 &&
+      !this.usingLowAccuracyFallback
+    ) {
+      this.usingLowAccuracyFallback = true;
+      console.info('[MobileGpsTracker] 실내 GPS 타임아웃/지연 감지 -> enableHighAccuracy: false 폴백 즉시 전환');
+      this._startWatch(false);
+      return;
+    }
+
     if (this.onError) {
       this.onError(err);
     }

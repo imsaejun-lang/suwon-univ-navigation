@@ -271,13 +271,13 @@
           <span id="goRouteViewBtnText">길안내 시작</span>
         </button>
       </div>
-      <button type="button" id="openProtoIndoorQuickBtn" class="btn-proto-indoor-entry hidden" title="깔끔한 전체화면 실내 지도(프로토타입)로 바로 보기">
-        <span class="proto-sparkle">✨</span>
-        <span>새 실내 UI (프로토타입)로 바로 보기</span>
+      <button type="button" id="openPanelMapQuickBtn" class="btn-panel-indoor-entry hidden" title="기존 도면과 동일한 GPS·길찾기 엔진으로 전 건물(23개동) 도식화 SVG 실내지도 열기">
+        <span class="pm-sparkle">🗺️</span>
+        <span>도식화 실내지도 바로 보기</span>
       </button>
     </div>
 
-    <!-- [State 03] 길찾기 및 실시간/시뮬레이션 내비게이션 뷰 (구글/네이버 지도 길찾기 스타일) -->
+    <!-- [State 03] 길찾기 및 실시간/시뮬레이션 내비게이션 뷰 (간소화 개편) -->
     <div id="sheetViewRoute" class="sheet-view hidden">
       <!-- 바텀 시트 내 GPS 위치 탐색 대기 안내 박스 -->
       <div id="sheetGpsLocatingBox" class="sheet-gps-locating-box hidden">
@@ -288,97 +288,31 @@
         </div>
       </div>
 
-      <!-- 상단 출발지 -> 목적지 바 -->
-      <div class="route-header-row">
-        <div class="route-title-group">
-          <div class="route-badges-line">
-            <span class="route-tag" id="sheetRouteTag">도보 최단경로</span>
-            <span class="category-tag" id="sheetCategoryTag">단과대학</span>
-          </div>
-          <h2 class="dest-building-name" id="sheetBuildingName">IT대학</h2>
-          <div class="route-origin-dest-bar">
-            <span class="origin-pill">출발</span>
-            <span class="origin-display-text" id="sheetOriginText">📍 내 위치 (실시간 GPS)</span>
-            <select id="startNodeSelect" class="hidden" aria-label="출발지 선택 (시뮬레이션 전용)">
-              <option value="main_gate">정문 (주출입구)</option>
-              <option value="back_gate">후문 (제4공학관·고시길)</option>
-              <option value="west_gate_cu">경상관 CU 쪽문 (서측 외부)</option>
-              <option value="future_innovation">미래혁신관</option>
-              <option value="it_college">IT대학</option>
-              <option value="central_library">중앙도서관</option>
-              <option value="main_building">본관</option>
-              <option value="lecture_hall">종합강의동</option>
-              <option value="student_union">학생회관</option>
-            </select>
-            <i data-lucide="arrow-right" class="inline-arrow"></i>
-            <span class="dest-pill-text" id="sheetEndName">IT대학 입구</span>
-          </div>
+      <!-- [시뮬레이션 모드 전용] 출발지 선택 컨트롤 (일반 GPS 모드에서는 완전 숨김) -->
+      <div id="simOriginControlsWrap" class="sim-origin-controls-wrap">
+        <select id="startNodeSelect" class="hidden" aria-label="출발지 선택 (시뮬레이션 전용)">
+          <option value="main_gate">정문 (주출입구)</option>
+          <option value="back_gate">후문 (제4공학관·고시길)</option>
+          <option value="west_gate_cu">경상관 CU 쪽문 (서측 외부)</option>
+          <option value="future_innovation">미래혁신관</option>
+          <option value="it_college">IT대학</option>
+          <option value="central_library">중앙도서관</option>
+          <option value="main_building">본관</option>
+          <option value="lecture_hall">종합강의동</option>
+          <option value="student_union">학생회관</option>
+        </select>
 
-          <!-- [시뮬레이션 모드 전용] 주요 출발 지점 빠른 선택 테스트 칩 -->
-          <div class="test-origin-chips-bar hidden" id="testOriginChipsBar">
-            <span class="test-origin-bar-label">🚩 테스트 출발:</span>
-            <button type="button" class="test-origin-btn" data-origin-id="main_gate" title="정문 주출입구에서 출발">🚪 정문</button>
-            <button type="button" class="test-origin-btn" data-origin-id="back_gate" title="제4공학관·고시길 후문에서 출발">🚪 후문</button>
-            <button type="button" class="test-origin-btn" data-origin-id="west_gate_cu"
-              title="글로벌경상관 CU 쪽문(서측 외부)에서 출발">🏪 경상관 CU 쪽문</button>
-            <button type="button" id="pickOriginOnMapBtn" class="test-origin-btn pick-map-origin-btn"
-              title="지도 위의 원하는 도로/위치를 마우스로 직접 클릭하여 시뮬레이션 출발지로 지정합니다">🖱️ 지도 직접 클릭</button>
-            <button type="button" id="openFloorSelectModalBtn" class="test-origin-btn indoor-origin-btn"
-              title="현재 위치한 건물 층수 선택 ➔ 호실 자동 매칭 및 실내외 통합 길안내">🏢 실내 층·호실 출발</button>
-          </div>
-
-          <!-- [야외 출입구 추천 가이드 박스] 목적지 건물 진입 출입구 직관적 하이라이트 -->
-          <div id="sheetEntranceGuideBox" class="sheet-entrance-guide-box">
-            <div class="guide-box-main">
-              <div class="guide-icon-pulse-wrap">
-                <span class="guide-pulse-dot"></span>
-                <i data-lucide="door-open" class="guide-door-icon"></i>
-              </div>
-              <div class="guide-text-col">
-                <div class="guide-badge-title-row">
-                  <span class="guide-highlight-badge" id="guideEntranceBadge">진입 권장 출입구</span>
-                  <strong class="guide-entrance-title" id="guideEntranceTitle">1F 남동측 주출입구</strong>
-                </div>
-                <p class="guide-entrance-desc" id="guideEntranceDesc">
-                  정문에서 출발 시 가장 빠른 1층 로비 출입구입니다. 건물 진입 후 1층 실내 지도로 바로 이어집니다.
-                </p>
-              </div>
-            </div>
-            <div class="guide-box-footer">
-              <span class="guide-floor-tag" id="guideEntranceFloorTag">🏢 1층 진입</span>
-              <span class="guide-target-room-tag" id="guideTargetRoomTag">📍 실내 203호까지 최단 동선</span>
-            </div>
-          </div>
+        <div class="test-origin-chips-bar hidden" id="testOriginChipsBar">
+          <span class="test-origin-bar-label">🚩 테스트 출발:</span>
+          <button type="button" class="test-origin-btn" data-origin-id="main_gate" title="정문 주출입구에서 출발">🚪 정문</button>
+          <button type="button" class="test-origin-btn" data-origin-id="back_gate" title="제4공학관·고시길 후문에서 출발">🚪 후문</button>
+          <button type="button" class="test-origin-btn" data-origin-id="west_gate_cu"
+            title="글로벌경상관 CU 쪽문(서측 외부)에서 출발">🏪 경상관 CU 쪽문</button>
+          <button type="button" id="pickOriginOnMapBtn" class="test-origin-btn pick-map-origin-btn"
+            title="지도 위의 원하는 도로/위치를 마우스로 직접 클릭하여 시뮬레이션 출발지로 지정합니다">🖱️ 지도 직접 클릭</button>
+          <button type="button" id="openFloorSelectModalBtn" class="test-origin-btn indoor-origin-btn"
+            title="현재 위치한 건물 층수 선택 ➔ 호실 자동 매칭 및 실내외 통합 길안내">🏢 실내 층·호실 출발</button>
         </div>
-
-        <!-- 닫기 버튼 (불필요한 -, ㅁ, 사이드바, 리셋 창 조절 버튼 제거) -->
-        <div class="sheet-window-controls" aria-label="경로 창 닫기">
-          <button type="button" id="closeSheetBtn" class="sheet-x-btn" title="경로 닫기" aria-label="닫기">
-            <i data-lucide="x"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- [큰길 우선 (차도 중심)] vs [최단거리 (보행로·지름길 포함)] 경로 선택 탭 -->
-      <div class="route-option-tabs" id="routeOptionTabs" role="tablist" aria-label="경로 유형 선택">
-        <button type="button" class="route-tab-btn active" id="tabShortestRoute" data-option="shortest" role="tab"
-          aria-selected="true" title="보행로, 캠퍼스 산책로, 계단, 지름길을 모두 활용한 실제 보행 최단거리">
-          <div class="tab-badge-row">
-            <span class="tab-badge fast">기본</span>
-            <span class="tab-label">🚶 최단거리</span>
-          </div>
-          <span class="tab-subdesc">보행로·지름길 포함</span>
-          <span class="tab-metrics" id="tabShortestMetrics">계산 중...</span>
-        </button>
-        <button type="button" class="route-tab-btn" id="tabMainRoadRoute" data-option="mainRoad" role="tab"
-          aria-selected="false" title="자동차·통학버스가 다니는 넓은 아스팔트 주차도를 최대한 따라 이동하는 안전한 큰길 경로">
-          <div class="tab-badge-row">
-            <span class="tab-badge car">차도</span>
-            <span class="tab-label">🛣️ 큰길 우선</span>
-          </div>
-          <span class="tab-subdesc">차도 중심 주도로</span>
-          <span class="tab-metrics" id="tabMainRoadMetrics">계산 중...</span>
-        </button>
       </div>
 
       <!-- 예상 소요 시간 / 이동 거리 / 체크포인트 요약 카드 -->
@@ -424,7 +358,7 @@
         </div>
       </div>
 
-      <!-- 목적지 도착 완료 시 나타나는 [건물 내부 도면 안내 전환] 배너 -->
+      <!-- 목적지 도착 / 건물 내부 도면 안내 전환 배너 -->
       <div id="indoorTransitionBanner" class="indoor-transition-banner hidden">
         <div class="indoor-banner-info">
           <div class="indoor-icon-circle">
@@ -441,11 +375,13 @@
         </button>
       </div>
 
-      <!-- 메인 액션 버튼: [안내 시작 (실시간 GPS)] & [가상 이동 시뮬레이션] & [안내 종료] -->
+      <!-- 핵심 액션 1줄: [🚶 최단거리 ↔ 🛣️ 큰길 우선] 단일 토글 + [안내 종료] -->
       <div class="sheet-action-buttons">
-        <button type="button" id="startNavBtn" class="btn-primary-nav">
-          <i data-lucide="navigation"></i>
-          <span id="startNavBtnText">안내 시작</span>
+        <button type="button" id="routePrefToggleBtn" class="btn-route-pref-toggle is-shortest"
+          title="클릭하여 최단거리 ↔ 큰길 우선 경로를 즉시 전환합니다" aria-pressed="false">
+          <span id="routePrefToggleIcon" class="rpt-icon" aria-hidden="true">🚶</span>
+          <span id="routePrefToggleText">최단거리</span>
+          <span id="routePrefToggleMeta" class="rpt-meta">약 6분</span>
         </button>
 
         <button type="button" id="sheetSimBtn" class="btn-secondary-sim hidden" title="시뮬레이션 모드에서 가상 이동 테스트를 실행합니다">
@@ -459,16 +395,22 @@
         </button>
       </div>
 
-      <!-- [3단계 전체 화면 상세 경로 뷰] 구간별 회전 안내 타임라인 & 도착지 건물 사진 카드 -->
-      <div class="sheet-details-section" id="sheetDetailsSection">
-        <div class="building-facilities-row" id="sheetFacilitiesList"></div>
+      <!-- [상세 안내 ▾] 접기/펼치기 아코디언 토글 버튼 -->
+      <button type="button" id="toggleRouteDetailsBtn" class="btn-route-details-accordion" aria-expanded="false"
+        aria-controls="sheetDetailsSection">
+        <span id="toggleRouteDetailsLabel">상세 안내</span>
+        <span id="toggleRouteDetailsArrow" class="accordion-chevron" aria-hidden="true">▾</span>
+      </button>
+
+      <!-- [아코디언 본문] 기본 숨김 — [상세 안내 ▾] 클릭 시에만 단계별 회전 안내 리스트 펼쳐짐 -->
+      <div class="sheet-details-section hidden" id="sheetDetailsSection">
         <div class="checkpoint-list-header">
           <span>출발지 ~ 도착지 상세 경로 및 회전 안내</span>
           <span class="checkpoint-hint">클릭 시 해당 지점 이동 · 음성 출력</span>
         </div>
         <ul id="checkpointTimeline" class="checkpoint-timeline"></ul>
 
-        <!-- 네이버 지도 3단계 스타일 도착지 건물 공식 사진 카드 -->
+        <!-- 도착지 건물 공식 사진 카드 (아코디언 내부) -->
         <div id="routeDestBuildingCard" class="route-dest-building-card">
           <div class="rdbc-header">
             <span class="rdbc-pin-badge">도착</span>
@@ -520,9 +462,9 @@
           </div>
         </div>
 
-        <!-- [프로토타입 전환 토글] 기존 실내 지도를 보존하면서 새 전체화면 실내 UI로 전환 -->
-        <button type="button" id="indoorSwitchToProtoBtn" class="indoor-proto-toggle-btn" title="깔끔한 전체화면 실내 지도(프로토타입)로 전환하여 비교 테스트합니다">
-          <span>✨ 새 실내 UI (프로토타입)</span>
+        <!-- [도식화 지도 ↔ 원본 도면 지도 전환 토글] 동일한 길안내·GPS·시뮬레이션 상태를 유지하며 즉시 전환 -->
+        <button type="button" id="indoorSwitchToPanelMapBtn" class="indoor-proto-toggle-btn" title="현재 경로와 실시간 위치·시뮬레이션을 그대로 유지하며 도식화 실내지도로 전환합니다">
+          <span>🗺️ 도식화 지도</span>
         </button>
 
         <button type="button" id="indoorOpenOriginalPdfBtn" class="indoor-pdf-btn" title="업로드된 원본 건축 평면도 PDF 열기">
@@ -663,169 +605,189 @@
   </section>
 
   <!-- =======================================================================
-       [신규 프로토타입] 전체화면 실내 지도 보기 UI (기존 실내 지도와 토글 전환 방식)
+       [전 건물 23개동 통합] 도식화 SVG 실내지도 & 복도 전용 다층 길찾기 오버레이
+       (IT대학은 기존 원본 도면 IndoorNavigator 단일 엔진 100% 공유 / 전 건물 23개동 지원)
        ======================================================================= -->
-  <section id="indoorProtoOverlay" class="indoor-proto-overlay hidden" aria-label="강의실 길찾기 전체화면 실내 지도 프로토타입">
-    <div class="indoor-proto-shell">
-      <!-- 1. 상단 헤더: ← 강의실 길찾기 | 수원대학교 + [기존 UI] 전환 버튼 -->
-      <header class="proto-top-header">
-        <div class="proto-header-left">
-          <button type="button" id="protoBackBtn" class="proto-back-icon-btn" title="야외 지도로 돌아가기" aria-label="뒤로가기">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 12H5"></path>
-              <path d="M12 19l-7-7 7-7"></path>
-            </svg>
+  <section id="panelMapOverlay" class="pm-overlay hidden" role="dialog" aria-modal="true"
+    aria-label="수원대학교 전 건물 도식화 실내지도">
+    <div class="pm-shell">
+      <!-- 1. 상단 헤더: 뒤로가기 + 23개 건물 선택 드롭다운 + 원본 도면 지도 전환 / 이 건물 길찾기 -->
+      <header class="pm-header">
+        <div class="pm-header-left">
+          <button type="button" id="pmBackBtn" class="pm-back-btn" aria-label="야외 지도로 돌아가기">
+            <span aria-hidden="true">←</span>
+            <span>야외 지도</span>
           </button>
-          <h2 class="proto-header-title">강의실 길찾기</h2>
-        </div>
-
-        <div class="proto-header-right">
-          <div class="proto-usw-brand" aria-label="수원대학교">
-            <img src="assets/usw_logo.png" alt="수원대학교 엠블럼" class="proto-usw-logo" />
-            <div class="proto-usw-wordmark">
-              <strong>수원대학교</strong>
-              <span>SUWON UNIVERSITY</span>
-            </div>
+          <div class="pm-bldg-select-wrap">
+            <label for="pmBuildingSelect" class="sr-only">건물 선택</label>
+            <select id="pmBuildingSelect" class="pm-building-select" title="수원대학교 23개 건물 선택"></select>
           </div>
-          <button type="button" id="protoSwitchToLegacyBtn" class="proto-legacy-toggle-btn" title="기존 실내 지도 화면으로 돌아가기">
-            기존 UI
+        </div>
+        <div class="pm-header-right">
+          <button type="button" id="pmItLegacyBtn" class="pm-chip-action hidden" title="현재 경로와 실시간 위치·시뮬레이션을 그대로 유지하며 원본 도면 실내지도로 전환">
+            <span>원본 도면 지도</span>
+          </button>
+          <button type="button" id="pmOutdoorRouteBtn" class="pm-chip-action primary" title="현재 보고 있는 건물로 야외 길찾기 시작">
+            <span>이 건물 길찾기</span>
           </button>
         </div>
       </header>
 
-      <!-- 스크롤 가능한 중앙 본문 -->
-      <main class="proto-main-scroll">
-        <!-- 2. 출발·도착 및 소요시간 요약 카드 -->
-        <div class="proto-card proto-summary-card">
-          <div class="proto-od-grid">
-            <div class="proto-od-rail" aria-hidden="true">
-              <span class="proto-rail-circle"></span>
-              <span class="proto-rail-dotted"></span>
-              <svg class="proto-rail-pin" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
-              </svg>
+      <!-- 2. 메인 바디 (데스크톱: 좌측 패널 + 우측 SVG / 모바일: 상단 경로바 + 중앙 SVG + 하단 드로어) -->
+      <div class="pm-body">
+        <!-- 좌측/상단 제어 사이드바 -->
+        <aside class="pm-sidebar">
+          <!-- 층 선택 바 -->
+          <div class="pm-card pm-floor-card">
+            <div class="pm-card-head">
+              <span class="pm-card-title">층 선택</span>
+              <span id="pmFloorSummary" class="pm-floor-summary">로딩 중...</span>
             </div>
-            <div class="proto-od-rows">
-              <button type="button" id="protoOriginRowBtn" class="proto-od-row" title="클릭하여 출발 출입구 또는 현재 호실 변경">
-                <span class="proto-od-badge">출발</span>
-                <span id="protoOriginText" class="proto-od-text">IT대학 1층 남동측 주출입구</span>
-                <span class="proto-od-edit-hint">변경 ▾</span>
+            <div id="pmFloorPills" class="pm-floor-pills" role="tablist" aria-label="건물 층 선택"></div>
+          </div>
+
+          <!-- 복도 전용 다층 경로 탐색 카드 -->
+          <div class="pm-card pm-route-card">
+            <div class="pm-card-head">
+              <span class="pm-card-title">복도 전용 길찾기</span>
+              <button type="button" id="pmRoutePanelToggleBtn" class="pm-mini-toggle" aria-expanded="true">접기/펼치기</button>
+            </div>
+            <div id="pmRoutePanel" class="pm-route-panel">
+              <div class="pm-route-selects">
+                <select id="pmStartSelect" class="pm-select" aria-label="출발 공간 선택"></select>
+                <button type="button" id="pmSwapBtn" class="pm-swap-btn" title="출발·도착 바꾸기" aria-label="출발·도착 바꾸기">⇄</button>
+                <select id="pmEndSelect" class="pm-select" aria-label="도착 공간 선택"></select>
+              </div>
+              <div class="pm-mode-row" role="group" aria-label="층간 이동 수단">
+                <button type="button" class="pm-mode-btn active" data-mode="any">자동(계단+ELV)</button>
+                <button type="button" class="pm-mode-btn" data-mode="stairs">계단 우선</button>
+                <button type="button" class="pm-mode-btn" data-mode="elevator">엘리베이터</button>
+              </div>
+              <div class="pm-route-actions">
+                <button type="button" id="pmRouteBtn" class="pm-btn-primary">경로 탐색</button>
+                <button type="button" id="pmSimToggleBtn" class="pm-sim-btn hidden" title="기존 도면과 동일한 실내 이동 시뮬레이션 시작/중지">▶ 길안내 시작</button>
+                <button type="button" id="pmClearBtn" class="pm-btn-secondary">초기화</button>
+              </div>
+              <div id="pmRouteLog" class="pm-route-log">도면의 강의실/공간을 차례로 클릭하면 단독 색칠 및 복도 전용 다층 경로가 즉시 그려집니다.</div>
+              <div id="pmRouteFloorChips" class="pm-route-floor-chips"></div>
+            </div>
+          </div>
+
+          <!-- 공간 검색 목록 & 블로그 참고도 드로어 -->
+          <div id="pmDrawer" class="pm-card pm-drawer collapsed">
+            <div class="pm-drawer-bar">
+              <div class="pm-drawer-tabs" role="tablist">
+                <button type="button" id="pmTabSectorsBtn" class="pm-drawer-tab active" role="tab">공간 검색</button>
+                <button type="button" id="pmTabRefsBtn" class="pm-drawer-tab hidden" role="tab">
+                  참고 평면도 <span id="pmRefsCountBadge" class="pm-tab-badge">0</span>
+                </button>
+              </div>
+              <button type="button" id="pmDrawerToggleBtn" class="pm-mini-toggle">
+                <span id="pmDrawerToggleLabel">공간 검색 · 참고도 펼치기</span>
               </button>
-              <button type="button" id="protoDestRowBtn" class="proto-od-row" title="클릭하여 목적지 강의실 변경">
-                <span class="proto-od-badge">도착</span>
-                <span id="protoDestText" class="proto-od-text">IT대학 3층 310호</span>
-                <span class="proto-od-edit-hint">변경 ▾</span>
+            </div>
+
+            <div id="pmSectorsPane" class="pm-drawer-pane">
+              <div class="pm-search-row">
+                <input type="search" id="pmSectorSearch" class="pm-search-input" placeholder="호수/실명 검색 (예: 308, 교학과, 화장실)" />
+                <div class="pm-scope-group">
+                  <button type="button" id="pmScopeFloorBtn" class="pm-scope-btn active">현재 층</button>
+                  <button type="button" id="pmScopeAllBtn" class="pm-scope-btn">전체 층</button>
+                </div>
+              </div>
+              <div id="pmSectorList" class="pm-sector-list"></div>
+            </div>
+
+            <div id="pmRefsPane" class="pm-drawer-pane hidden">
+              <div id="pmRefsGrid" class="pm-refs-grid"></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- 중앙/우측 인터랙티브 도식화 SVG 캔버스 영역 -->
+        <main class="pm-main">
+          <div class="pm-status-bar">
+            <div id="pmStatusText" class="pm-status-text">도면 로딩 중...</div>
+            <div class="pm-options-row">
+              <button type="button" id="pmGpsLocateBtn" class="pm-gps-locate-btn" title="현재 GPS 위치로 이 층의 가장 가까운 호실 자동 판별 및 실시간 추적">
+                📡 내 위치
               </button>
+              <label class="pm-check-label">
+                <input type="checkbox" id="pmChkLabels" />
+                <span>호수 표시</span>
+              </label>
+              <label class="pm-check-label">
+                <input type="checkbox" id="pmChkGraph" />
+                <span>복도 그래프</span>
+              </label>
             </div>
           </div>
 
-          <!-- 출발/도착 클릭 시 열리는 인라인 빠른 변경 선택기 -->
-          <div id="protoInlinePickerBox" class="proto-inline-picker hidden">
-            <div class="proto-inline-picker-head">
-              <span id="protoInlinePickerLabel">위치 선택</span>
-              <button type="button" id="protoInlinePickerClose" class="proto-inline-picker-close" aria-label="닫기">✕</button>
+          <!-- 전 건물 도식화 실내지도용 2단계 GPS 오차 보정 확인 배너 -->
+          <div id="pmGpsConfirmBanner" class="indoor-gps-confirm-banner pm-inline-banner hidden" role="status" aria-live="polite">
+            <div id="pmGpsConfirmStep1" class="igc-step1">
+              <p id="pmGpsConfirmQuestion" class="igc-question">📍 현재 위치가 [건물 층 호실]가 맞나요?</p>
+              <div class="igc-btn-row">
+                <button type="button" id="pmGpsConfirmYesBtn" class="igc-btn yes">예, 맞아요</button>
+                <button type="button" id="pmGpsConfirmNoBtn" class="igc-btn no">아니요, 달라요</button>
+              </div>
             </div>
-            <select id="protoInlinePickerSelect" class="proto-inline-picker-select"></select>
-          </div>
-
-          <div class="proto-summary-divider"></div>
-
-          <div class="proto-metric-row">
-            <div class="proto-metric-pill">
-              <svg class="proto-walk-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <circle cx="13.5" cy="4.5" r="2.1" />
-                <path d="M10.5 21l1.8-6.4 2.2 2v5.4h2v-6.7l-2.3-2.2.7-3.1c1.3 1.5 3.2 2.4 5.1 2.4v-2c-1.5 0-2.9-.8-3.8-2l-1.1-1.7c-.4-.6-1.1-1-1.8-1-.3 0-.5.1-.8.2L7.5 8v5h2V9.4l1.9-.8-1.6 7.4L5 15.1l-.4 2 5.9 3.9z" />
-              </svg>
-              <strong id="protoMetricText">약 2분 · 85m</strong>
+            <div id="pmGpsConfirmStep2" class="igc-step2 hidden">
+              <div class="igc-step2-head">
+                <p class="igc-question">주변의 어느 위치에 계신가요?</p>
+                <button type="button" id="pmGpsConfirmCloseBtn" class="igc-close-btn" aria-label="확인 창 닫기">✕</button>
+              </div>
+              <div id="pmGpsNearbyList" class="igc-nearby-chips"></div>
             </div>
           </div>
-        </div>
 
-        <!-- 3. [계단 N분] vs [엘리베이터 N분] 경로 전환 2분할 탭 -->
-        <div class="proto-mode-tabs" role="tablist" aria-label="층간 이동 수단 선택">
-          <button type="button" id="protoTabStairsBtn" class="proto-mode-tab" role="tab" aria-selected="false">
-            <svg class="proto-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M4 20h4v-4h4v-4h4V8h4"></path>
-            </svg>
-            <span class="proto-tab-name">계단</span>
-            <strong id="protoTabStairsTime" class="proto-tab-time">2분</strong>
-          </button>
+          <div id="pmCanvasWrap" class="pm-canvas-wrap">
+            <div id="pmSvgStage" class="pm-svg-stage">
+              <div id="pmSvgHost" class="pm-svg-host"></div>
+            </div>
 
-          <button type="button" id="protoTabElevatorBtn" class="proto-mode-tab active" role="tab" aria-selected="true">
-            <svg class="proto-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3.5" y="7" width="17" height="14" rx="2.5"></rect>
-              <path d="M9 3.5l-1.5 1.8L6 3.5M18 5.3L16.5 3.5 15 5.3"></path>
-              <circle cx="9.5" cy="11.5" r="1.3"></circle>
-              <path d="M8 17.5v-3h3v3"></path>
-              <circle cx="14.5" cy="11.5" r="1.3"></circle>
-              <path d="M13 17.5v-3h3v3"></path>
-            </svg>
-            <span class="proto-tab-name">엘리베이터</span>
-            <strong id="protoTabElevatorTime" class="proto-tab-time">3분</strong>
-          </button>
-        </div>
+            <div id="pmLoadingState" class="pm-loading-state hidden">
+              <div class="gps-spinner" aria-hidden="true"></div>
+              <span>도식화 SVG 도면을 불러오는 중...</span>
+            </div>
 
-        <!-- 4. 가독성 극대화 실내 도면 카드 (미니멀 벡터 2단 연결 뷰 / 원본 도면 비교 뷰) -->
-        <div id="protoFloorplanCard" class="proto-card proto-floorplan-card">
-          <div id="protoVectorWrap" class="proto-vector-wrap"></div>
-          <div id="protoOriginalWrap" class="proto-original-wrap hidden"></div>
+            <!-- 층간 이동(엘리베이터/계단) 도착 시 나타나는 실시간 동기화 확인 바 -->
+            <div id="pmFloorTransitionBar" class="pm-floor-transition-bar hidden" role="status" aria-live="assertive">
+              <span id="pmFloorTransitionMsg" class="pm-ft-msg">엘리베이터를 타고 이동하세요.</span>
+              <button type="button" id="pmFloorTransitionConfirmBtn" class="pm-ft-btn">이동 완료</button>
+            </div>
 
-          <!-- 시뮬레이션 층간 이동 도달 시 나타나는 인라인 확인 바 -->
-          <div id="protoFloorTransitionBar" class="proto-floor-transition-bar hidden">
-            <span id="protoFloorTransitionMsg" class="proto-ft-msg">계단을 이용해 이동하세요.</span>
-            <button type="button" id="protoFloorTransitionConfirmBtn" class="proto-ft-btn">이동 완료</button>
+            <!-- 줌/리셋 플로팅 컨트롤 -->
+            <div class="pm-zoom-controls" role="group" aria-label="도면 확대/축소">
+              <button type="button" id="pmZoomInBtn" class="pm-zoom-btn" title="확대">+</button>
+              <button type="button" id="pmZoomOutBtn" class="pm-zoom-btn" title="축소">−</button>
+              <button type="button" id="pmZoomResetBtn" class="pm-zoom-btn" title="화면 맞춤">⟲</button>
+            </div>
           </div>
-        </div>
 
-        <!-- 5. 단계별 핵심 경로 요약 리스트 (3~4줄) -->
-        <div class="proto-card proto-steps-card">
-          <ol id="protoStepList" class="proto-step-list"></ol>
-        </div>
-      </main>
-
-      <!-- 6. 하단 고정 액션 버튼 3종 ([길안내 시작], [상세 경로], [원본 도면]) -->
-      <footer class="proto-bottom-actions">
-        <button type="button" id="protoStartNavBtn" class="proto-btn-primary">
-          <svg class="proto-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
-          </svg>
-          <span id="protoStartNavLabel">길안내 시작</span>
-        </button>
-
-        <div class="proto-secondary-row">
-          <button type="button" id="protoDetailRouteBtn" class="proto-btn-secondary">
-            <svg class="proto-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-              <polyline points="2 17 12 22 22 17"></polyline>
-              <polyline points="2 12 12 17 22 12"></polyline>
-            </svg>
-            <span>상세 경로</span>
-          </button>
-
-          <button type="button" id="protoOriginalPlanBtn" class="proto-btn-secondary">
-            <svg class="proto-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="8" y1="13" x2="16" y2="13"></line>
-              <line x1="8" y1="17" x2="13" y2="17"></line>
-            </svg>
-            <span id="protoOriginalPlanLabel">원본 도면</span>
-          </button>
-        </div>
-      </footer>
+          <!-- 하단 범례 바 -->
+          <div class="pm-legend-bar" aria-label="실내 도면 범례">
+            <span><i class="pm-sw" style="background:#edf4ff;border-color:#9aa8ba;"></i>빈 강의실</span>
+            <span><i class="pm-sw" style="background:#7cb9ff;border-color:#1d4ed8;"></i>선택·경로</span>
+            <span><i class="pm-sw" style="background:#bbf7d0;border-color:#16a34a;"></i>계단</span>
+            <span><i class="pm-sw" style="background:#ede9fe;border-color:#7c3aed;"></i>엘리베이터</span>
+            <span><i class="pm-sw" style="background:#0369a1;border-color:#075985;"></i>남 화장실</span>
+            <span><i class="pm-sw" style="background:#ec4899;border-color:#be185d;"></i>여 화장실</span>
+          </div>
+        </main>
+      </div>
     </div>
 
-    <!-- [상세 경로] 슬라이드업 모달 -->
-    <div id="protoDetailModal" class="proto-detail-modal hidden" role="dialog" aria-modal="true" aria-label="실내 상세 경로 안내">
-      <div class="proto-detail-sheet">
-        <div class="proto-detail-header">
-          <div>
-            <h3>상세 실내 경로</h3>
-            <p id="protoDetailModalSubtitle">계단 우선 · 총 118m (약 2분)</p>
-          </div>
-          <button type="button" id="protoDetailModalClose" class="proto-detail-close" aria-label="닫기">✕</button>
+    <!-- 블로그 참고도 원본 확대 라이트박스 -->
+    <div id="pmRefLightbox" class="pm-ref-lightbox hidden" role="dialog" aria-modal="true" aria-label="참고 평면도 크게 보기">
+      <div class="pm-lightbox-card">
+        <div class="pm-lightbox-header">
+          <strong id="pmRefLightboxCaption">참고 평면도</strong>
+          <button type="button" id="pmRefLightboxClose" class="pm-lightbox-close" aria-label="닫기">✕</button>
         </div>
-        <ul id="protoDetailModalList" class="proto-detail-list"></ul>
+        <div class="pm-lightbox-img-wrap">
+          <img id="pmRefLightboxImg" src="" alt="참고 평면도" />
+        </div>
       </div>
     </div>
   </section>
@@ -1086,9 +1048,11 @@
   <script src="js/tts.js"></script>
   <script src="js/simulation.js"></script>
   <script src="js/gpsTracker.js"></script>
+  <script src="js/indoorGpsEngine.js"></script>
   <script src="js/indoorData.js"></script>
   <script src="js/indoorNavigator.js"></script>
-  <script src="js/indoorPrototype.js"></script>
+  <script src="suwon-univ-navigation-penelmap/suwon_building_maps/suwonBuildingMap.js"></script>
+  <script src="js/panelMapIndoor.js"></script>
   <script src="js/app.js"></script>
 </body>
 

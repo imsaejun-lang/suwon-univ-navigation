@@ -2306,21 +2306,22 @@ class IndoorMultiFloorRouter {
   }
 
   /**
-   * [요구사항 2] 실시간 GPS(위경도)를 2D 실내 도면 상대 좌표(x: 6~90%, y: 44~86%)로 1:1 선형 매핑
+   * [요구사항 1] 건물 외곽선 폴리곤(회전각·비율 반영) + 오차 보정값(offsetLat, offsetLng) 기반
+   * 실시간 GPS(위경도) -> 2D 실내 도면 상대 좌표(0~100%) 1:1 매핑
    */
-  gpsToFloorPercentage(lat, lng) {
-    // IT대학 외곽 위경도 바운딩 박스 (지오바운딩)
-    // 남서단: lat 37.20980, lng 126.97460 (서측 310호/언덕출입구 방면)
-    // 북동단: lat 37.21060, lng 126.97585 (동측 301호/아트리움 방면)
+  gpsToFloorPercentage(lat, lng, options = {}) {
+    if (window.IndoorGpsEngine && typeof window.IndoorGpsEngine.gpsToITFloorXY === 'function') {
+      return window.IndoorGpsEngine.gpsToITFloorXY(lat, lng, options);
+    }
+
     const minLat = 37.20978;
     const maxLat = 37.21060;
     const minLng = 126.97460;
     const maxLng = 126.97585;
 
-    // 도면 좌표 범위
     const minX = 6.0;
     const maxX = 90.0;
-    const minY = 44.0;
+    const minY = 16.0;
     const maxY = 86.0;
 
     const u = Math.max(0, Math.min(1, (lng - minLng) / (maxLng - minLng)));
@@ -2328,12 +2329,12 @@ class IndoorMultiFloorRouter {
 
     const x = minX + u * (maxX - minX);
     const y = minY + v * (maxY - minY);
-    return { x, y };
+    return { x, y, isInside: true };
   }
 
   /**
    * [요구사항 2] 현재 GPS 위경도 및 사용자가 선택한 층수(예: '3F')를 대조하여
-   * 해당 층에서 유클리드 거리가 가장 가까운 호실(예: 3층 선택 시 308호 등)을 자동 매칭
+   * 해당 층에서 유클리드 거리가 가장 가까운 호실(예: 3층 선택 시 310호 등)을 자동 매칭
    */
   matchRoomByGpsAndFloor(lat, lng, floorId = '3F') {
     const normalizedFloor = String(floorId || '3F').toUpperCase().endsWith('F')
@@ -2345,25 +2346,15 @@ class IndoorMultiFloorRouter {
     );
     if (roomsOnFloor.length === 0) return null;
 
-    const minLat = 37.20978;
-    const maxLat = 37.21060;
-    const minLng = 126.97460;
-    const maxLng = 126.97585;
-
+    const mapped = this.gpsToFloorPercentage(lat, lng);
     const isInsideBuildingBounds =
-      Number.isFinite(lat) &&
-      Number.isFinite(lng) &&
-      lat >= minLat - 0.0006 &&
-      lat <= maxLat + 0.0006 &&
-      lng >= minLng - 0.0006 &&
-      lng <= maxLng + 0.0006;
+      Number.isFinite(lat) && Number.isFinite(lng) && mapped.isInside !== false;
 
     if (!isInsideBuildingBounds) {
-      // 기본 대표 호실 (3층 -> 308호, 2층 -> 203호, 1층 -> 101호, 4층 -> 408호, 5층 -> 508호)
       const preferredByFloor = {
         '1F': 'room_101',
         '2F': 'room_203',
-        '3F': 'room_308',
+        '3F': 'room_310',
         '4F': 'room_408',
         '5F': 'room_508',
       };
@@ -2372,12 +2363,10 @@ class IndoorMultiFloorRouter {
       return roomsOnFloor[0];
     }
 
-    const { x: mappedX, y: mappedY } = this.gpsToFloorPercentage(lat, lng);
-
     let bestRoom = roomsOnFloor[0];
     let bestDist = Infinity;
     roomsOnFloor.forEach((room) => {
-      const d = Math.hypot(room.x - mappedX, room.y - mappedY);
+      const d = Math.hypot(room.x - mapped.x, room.y - mapped.y);
       if (d < bestDist) {
         bestDist = d;
         bestRoom = room;
