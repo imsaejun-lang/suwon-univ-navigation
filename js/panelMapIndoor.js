@@ -122,9 +122,9 @@
         }
       };
 
-      this.nav.onSimTick = () => {
+      this.nav.onSimTick = (meta) => {
         if (this.isOpen && this.isUsingSharedEngine()) {
-          this.onSharedEngineTick();
+          this.onSharedEngineTick(meta);
         }
       };
     }
@@ -929,6 +929,13 @@
           this.renderFloorPills(fids);
           this.populateSectorDropdowns();
           this.renderReferences();
+
+          // 이미 건물 내부에 있는 실시간 GPS가 수신되어 있으면 열자마자 즉시 내 위치 마커 표시
+          const initialRawGps = this.nav.getLatestGpsSample();
+          if (initialRawGps && Number.isFinite(initialRawGps.lat) && !this.nav.isSimulating) {
+            this.nav.updateUserGpsPosition(initialRawGps.lat, initialRawGps.lng);
+          }
+
           this.syncFromSharedEngine({ autoFollowFloor: Boolean(options.fromSharedEngine) });
           return;
         }
@@ -980,6 +987,12 @@
         this.renderReferences();
         this.updateRouteLogDefault(matchedTarget);
         this.renderFloor();
+
+        // 타 건물(22개동)도 이미 건물 내부 실시간 GPS가 수신되어 있으면 열자마자 즉시 내 위치 마커 표시
+        const cachedGps = this.getLatestRawGps();
+        if (cachedGps && Number.isFinite(cachedGps.lat) && Number.isFinite(cachedGps.lng)) {
+          this.updateLiveGpsPosition(cachedGps.lat, cachedGps.lng);
+        }
 
         if (matchedTarget) {
           this.notify(`📍 [${matchedTarget.floor}] ${matchedTarget.name || matchedTarget.roomNumber} 위치를 도면에서 강조했습니다.`);
@@ -1298,6 +1311,13 @@
         this.renderRouteFloorChips({ ok: true, floors });
       }
 
+      if (this.dom.gpsLocateBtn) {
+        this.dom.gpsLocateBtn.classList.toggle(
+          'active',
+          Boolean(this.nav.isRealGpsNavigating || this.liveGpsEnabled)
+        );
+      }
+
       this.syncSharedSimAndTransitionUI();
       this.renderSharedGpsConfirmBanner();
       this.renderFloor();
@@ -1306,9 +1326,10 @@
     /**
      * [SSOT 60fps 틱] 시뮬레이션/GPS 이동 시 SVG 전체를 재생성하지 않고 경로선과 '내 위치' 레이어만 경량 갱신
      */
-    onSharedEngineTick() {
+    onSharedEngineTick(meta) {
       const now = Date.now();
-      if (now - this._lastTickRenderAt < 40) return;
+      const isImmediate = Boolean(meta && meta.immediate);
+      if (!isImmediate && now - this._lastTickRenderAt < 40) return;
       this._lastTickRenderAt = now;
 
       const pos = this.nav.userMarkerPos;

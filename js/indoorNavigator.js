@@ -731,11 +731,11 @@ class IndoorNavigator {
     }
   }
 
-  emitViewSync(isTickOnly = false) {
+  emitViewSync(isTickOnly = false, meta = null) {
     if (isTickOnly) {
-      if (typeof this.onSimTick === 'function') this.onSimTick();
+      if (typeof this.onSimTick === 'function') this.onSimTick(meta);
     } else {
-      if (typeof this.onStateUpdated === 'function') this.onStateUpdated();
+      if (typeof this.onStateUpdated === 'function') this.onStateUpdated(meta);
     }
   }
 
@@ -1202,6 +1202,12 @@ class IndoorNavigator {
 
     const targetFloor = this.gpsFloor || this.currentFloor || '3F';
     const rawMapped = this.router.gpsToFloorPercentage(lat, lng);
+
+    // 건물 밖(원거리)에서 단순 도면 열람 중일 때는 벽 모서리에 가짜 마커를 강제 표시하지 않음
+    if (!rawMapped.isInside && !this.isRealGpsNavigating && !options.forceOutside) {
+      return;
+    }
+
     let x = rawMapped.x;
     let y = rawMapped.y;
     if (window.IndoorGpsEngine && typeof window.IndoorGpsEngine.snapAndSmoothITPosition === 'function') {
@@ -1232,7 +1238,7 @@ class IndoorNavigator {
       this.renderUserMarker();
       this.renderDualRoutesSvg();
     }
-    this.emitViewSync(true);
+    this.emitViewSync(true, { immediate: true, source: 'gps' });
 
     // 만약 목적지 호실 근처(<= 3.5% 도면거리)에 도달했으면 도착 안내
     const destRoom = this.data.nodes[this.selectedRoomId];
